@@ -1,0 +1,47 @@
+{
+  "base": {
+    "$root": {
+      "$value": {
+        "unit": "px",
+        "value": "8"
+      }
+    },
+    "$type": "dimension",
+    "sm": {
+      "$value": {
+        "unit": "px",
+        "value": "4"
+      }
+    }
+  },
+  "brand": {
+    "$root": {
+      "$value": {
+        "unit": "px",
+        "value": "10"
+      }
+    },
+    "$type": "dimension",
+    "sm": {
+      "$value": {
+        "unit": "px",
+        "value": "4"
+      }
+    }
+  },
+  "component": {
+    "$root": {
+      "$value": {
+        "unit": "rem",
+        "value": "10"
+      }
+    },
+    "$type": "dimension",
+    "sm": {
+      "$value": {
+        "unit": "px",
+        "value": "4"
+      }
+    }
+  }
+}

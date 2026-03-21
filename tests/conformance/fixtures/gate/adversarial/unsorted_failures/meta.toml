@@ -1,0 +1,4 @@
+mode = "admissibility-witness"
+expect = "error"
+error_code = "invalid_admissibility_witness"
+error_contains = "deterministically ordered"

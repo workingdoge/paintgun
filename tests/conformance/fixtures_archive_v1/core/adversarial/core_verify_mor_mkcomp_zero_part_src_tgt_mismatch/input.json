@@ -1,0 +1,10 @@
+{
+  "rootCertId": "d16ebfbc020edebe0bcb98970790555f71f97c592c3d12106aa2385f3de74294",
+  "certStore": {
+    "d16ebfbc020edebe0bcb98970790555f71f97c592c3d12106aa2385f3de74294": "000000000000000000000000000000000000000000000000000000000000000011111111111111111111111111111111111111111111111111111111111111110403ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff61aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb01612a191a8a96e6002f0caae6f43bdeb26db3a1e2859afe8c53fc26508f23357d00"
+  },
+  "objStore": {},
+  "morStore": {
+    "612a191a8a96e6002f0caae6f43bdeb26db3a1e2859afe8c53fc26508f23357d": "11aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  }
+}

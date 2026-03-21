@@ -1,0 +1,4 @@
+mode = "resolver"
+expect = "error"
+error_code = "parse_json"
+error_contains = "legacy string entries are not supported"

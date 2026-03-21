@@ -1,0 +1,30 @@
+{
+  "deps": [
+    { "sort": 3, "opcode": 2, "meta": { "kind": "O_PRIM", "slot": "left" } },
+    { "sort": 3, "opcode": 2, "meta": { "kind": "O_PRIM", "slot": "right" } },
+    { "sort": 4, "opcode": 1, "meta": { "kind": "M_ID", "slot": "ignore" } }
+  ],
+  "spec": {
+    "poolPred": { "sort": 3, "opcode": 2, "metaEq": { "kind": "O_PRIM" } },
+    "pos": "anywhere",
+    "consumeAll": true,
+    "bags": [
+      {
+        "name": "leftBag",
+        "pred": { "sort": 3, "opcode": 2, "metaEq": { "kind": "O_PRIM" } },
+        "keyOf": { "meta": "slot" },
+        "expectedKeys": ["left"],
+        "mode": "unordered",
+        "pos": "anywhere"
+      },
+      {
+        "name": "rightBag",
+        "pred": { "sort": 3, "opcode": 2, "metaEq": { "kind": "O_PRIM" } },
+        "keyOf": { "meta": "slot" },
+        "expectedKeys": ["right"],
+        "mode": "unordered",
+        "pos": "anywhere"
+      }
+    ]
+  }
+}

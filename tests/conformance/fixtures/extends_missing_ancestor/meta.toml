@@ -1,0 +1,4 @@
+mode = "extends"
+expect = "error"
+error_code = "invalid_type"
+error_contains = "$extends refers to missing group"

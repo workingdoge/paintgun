@@ -1,0 +1,49 @@
+[
+  {
+    "path": "theme",
+    "type": "typography",
+    "value": {
+      "fontFamily": "Inter",
+      "fontSize": {
+        "unit": "px",
+        "value": "16"
+      }
+    }
+  },
+  {
+    "path": "theme.headline",
+    "type": "typography",
+    "value": {
+      "fontFamily": "Inter",
+      "fontSize": {
+        "unit": "px",
+        "value": "24"
+      }
+    }
+  },
+  {
+    "path": "theme.stops",
+    "type": "gradient",
+    "value": [
+      {
+        "color": "#000000",
+        "position": "0%"
+      },
+      {
+        "color": "#ffffff",
+        "position": "100%"
+      }
+    ]
+  },
+  {
+    "path": "theme.variants.compact",
+    "type": "typography",
+    "value": {
+      "fontFamily": "Inter",
+      "fontSize": {
+        "unit": "px",
+        "value": "14"
+      }
+    }
+  }
+]

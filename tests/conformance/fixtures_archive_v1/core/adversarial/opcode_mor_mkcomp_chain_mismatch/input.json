@@ -1,0 +1,15 @@
+{
+  "node": {
+    "envSig": "0000000000000000000000000000000000000000000000000000000000000000",
+    "uid": "1111111111111111111111111111111111111111111111111111111111111111",
+    "sort": 4,
+    "opcode": 3,
+    "out": "0000000000000000000000000000000000000000000000000000000000000000",
+    "argsHex": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd02bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "deps": []
+  },
+  "morStore": {
+    "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb": "18aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb01eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc": "18ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd01ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+  }
+}

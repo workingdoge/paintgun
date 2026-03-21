@@ -1,0 +1,14 @@
+{
+  "brand colors": {
+    "$type": "number",
+    "primary": { "$value": 4 },
+    "aliasCurly": { "$value": "{brand colors.primary}" },
+    "aliasPointer": { "$value": "{#/brand colors/primary/$value}" }
+  },
+  "my/group~family": {
+    "$type": "number",
+    "token": { "$value": 8 },
+    "aliasCurly": { "$value": "{my/group~family.token}" },
+    "aliasPointer": { "$value": "{#/my~1group~0family/token}" }
+  }
+}

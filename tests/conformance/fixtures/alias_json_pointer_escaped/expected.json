@@ -1,0 +1,20 @@
+[
+  {
+    "path": "color.palette.alias",
+    "type": "color",
+    "value": {
+      "colorSpace": "srgb",
+      "components": ["0.2", "0.4", "0.6"],
+      "alpha": "1"
+    }
+  },
+  {
+    "path": "color.palette.brand/blue~cool",
+    "type": "color",
+    "value": {
+      "colorSpace": "srgb",
+      "components": ["0.2", "0.4", "0.6"],
+      "alpha": "1"
+    }
+  }
+]

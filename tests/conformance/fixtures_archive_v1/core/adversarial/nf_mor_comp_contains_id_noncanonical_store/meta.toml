@@ -1,0 +1,4 @@
+mode = "nf-mor"
+expect = "error"
+error_code = "nf_parse"
+error_contains = "contains Id part at index 0"

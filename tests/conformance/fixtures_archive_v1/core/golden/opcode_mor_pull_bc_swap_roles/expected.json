@@ -1,0 +1,13 @@
+{
+  "certId": "1b339883e16a78b867f5782b2784afe5913161eb97faa022cde9400469beab57",
+  "expOut": "3d1d28aa48e1e17789a45f8336710fe0044b77b05aa1341e958a87a0f72d0c9b",
+  "fPrimeOut": "f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4",
+  "gPrimeOut": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+  "inMorH": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "innerPullOut": "5a35745c6a15b42bf115e0beef8f02ea2977c10c55ffc9954dc90029743f32f1",
+  "kind": "M_PULL_BC_SWAP",
+  "out": "3d1d28aa48e1e17789a45f8336710fe0044b77b05aa1341e958a87a0f72d0c9b",
+  "overlayMorBytesHex": "17c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f45a35745c6a15b42bf115e0beef8f02ea2977c10c55ffc9954dc90029743f32f1",
+  "pId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "stepTag": 5
+}

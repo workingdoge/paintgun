@@ -1,0 +1,12 @@
+{
+  "witnessSchema": 1,
+  "profile": "full",
+  "result": "rejected",
+  "failures": [
+    {
+      "witnessId": "bad-001",
+      "class": "locality_failure",
+      "message": "law reference omitted"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+mode = "opcode-obj"
+expect = "error"
+error_code = "opcode_verify"
+error_contains = "required match missing"

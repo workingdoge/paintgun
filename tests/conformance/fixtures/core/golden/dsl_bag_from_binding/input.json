@@ -1,0 +1,23 @@
+{
+  "bindings": {
+    "authored": [
+      { "sort": 3, "opcode": 2, "meta": { "kind": "O_PRIM", "slot": "a" } },
+      { "sort": 3, "opcode": 2, "meta": { "kind": "O_PRIM", "slot": "b" } }
+    ]
+  },
+  "deps": [
+    { "sort": 3, "opcode": 2, "meta": { "kind": "O_PRIM", "slot": "b" } },
+    { "sort": 3, "opcode": 2, "meta": { "kind": "O_PRIM", "slot": "a" } },
+    { "sort": 3, "opcode": 2, "meta": { "kind": "O_PRIM", "slot": "c" } }
+  ],
+  "spec": {
+    "pred": { "sort": 3, "opcode": 2, "metaEq": { "kind": "O_PRIM" } },
+    "keyOf": { "meta": "slot" },
+    "expectedKeysFromBinding": {
+      "binding": "authored",
+      "keyOf": { "meta": "slot" }
+    },
+    "mode": "unordered",
+    "pos": "anywhere"
+  }
+}

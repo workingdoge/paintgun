@@ -1,0 +1,4 @@
+mode = "kcir-node"
+expect = "error"
+error_code = "kcir_parse"
+error_contains = "depsLen 1 runs past end of KCIR node"

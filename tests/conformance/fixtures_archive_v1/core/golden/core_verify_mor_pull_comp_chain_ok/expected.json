@@ -1,0 +1,65 @@
+{
+  "envSig": "0000000000000000000000000000000000000000000000000000000000000000",
+  "morOverlayCount": 1,
+  "nodes": [
+    {
+      "certId": "1b73f14997fef16f27b2cc1ff87a6012393435c43620268a958aa4564113b73d",
+      "meta": {
+        "inMorH": "59a9bca502a95955ac36a39421846a73e4d729d04553eb271d46507389b3b85a",
+        "pId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "stepTag": "2"
+      },
+      "opcode": 16,
+      "out": "542318819ec39e02243753808ebdf449036d7d23386835d843b793fd5bcae682",
+      "sort": 4
+    },
+    {
+      "certId": "1c96b81ead0ae448ce9b12f9a8097e2470b14a801db24fac73a5dca9c71a13d6",
+      "meta": {
+        "parts": "",
+        "srcH": "3131313131313131313131313131313131313131313131313131313131313131",
+        "tgtH": "3131313131313131313131313131313131313131313131313131313131313131"
+      },
+      "opcode": 3,
+      "out": "542318819ec39e02243753808ebdf449036d7d23386835d843b793fd5bcae682",
+      "sort": 4
+    },
+    {
+      "certId": "4511ed85da3cf237d9c214c2ba4ef06b35a08b0a676a6b60e6163497350536e1",
+      "meta": {
+        "inMorH": "8a8af44a32b3101b236373525c0fb121b876f007bfd82f32b190f0aaa984eb3e",
+        "pId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "stepTag": "2"
+      },
+      "opcode": 16,
+      "out": "542318819ec39e02243753808ebdf449036d7d23386835d843b793fd5bcae682",
+      "sort": 4
+    },
+    {
+      "certId": "995e60b9148505d694ee306057cea5d3cf79fd869c7f0696e15950a0d48374a7",
+      "meta": {
+        "parts": "",
+        "srcH": "3131313131313131313131313131313131313131313131313131313131313131",
+        "tgtH": "3131313131313131313131313131313131313131313131313131313131313131"
+      },
+      "opcode": 3,
+      "out": "542318819ec39e02243753808ebdf449036d7d23386835d843b793fd5bcae682",
+      "sort": 4
+    },
+    {
+      "certId": "b5b1bf73ef70eabc175390ecffa7e17955dd3c82ce33f97ca2ae64df12b6845a",
+      "meta": {
+        "inMorH": "8a8af44a32b3101b236373525c0fb121b876f007bfd82f32b190f0aaa984eb3e",
+        "pId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "stepTag": "2"
+      },
+      "opcode": 16,
+      "out": "542318819ec39e02243753808ebdf449036d7d23386835d843b793fd5bcae682",
+      "sort": 4
+    }
+  ],
+  "nodesVerified": 5,
+  "objOverlayCount": 0,
+  "rootCertId": "1b73f14997fef16f27b2cc1ff87a6012393435c43620268a958aa4564113b73d",
+  "uid": "1111111111111111111111111111111111111111111111111111111111111111"
+}

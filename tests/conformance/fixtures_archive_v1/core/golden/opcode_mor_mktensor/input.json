@@ -1,0 +1,11 @@
+{
+  "node": {
+    "envSig": "0000000000000000000000000000000000000000000000000000000000000000",
+    "uid": "1111111111111111111111111111111111111111111111111111111111111111",
+    "sort": 4,
+    "opcode": 2,
+    "out": "419150158c336c7b29c24dcd72d1c3626793f1bc8c37cfadc839d61724110286",
+    "argsHex": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc01bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "deps": []
+  }
+}

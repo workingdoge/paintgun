@@ -1,0 +1,10 @@
+{
+  "envSig": "0000000000000000000000000000000000000000000000000000000000000000",
+  "uid": "1111111111111111111111111111111111111111111111111111111111111111",
+  "key": "fdfce0b81482761f5e2cd404afccb72b872715a65494fcfb62719e26b98fa0ed",
+  "enforceCanonical": true,
+  "objBytesHex": "04cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc7060d5a26e41cc174a1921052928d27966f16e13e2adb2c67359e4735000a8f9",
+  "objStore": {
+    "7060d5a26e41cc174a1921052928d27966f16e13e2adb2c67359e4735000a8f9": "04aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  }
+}

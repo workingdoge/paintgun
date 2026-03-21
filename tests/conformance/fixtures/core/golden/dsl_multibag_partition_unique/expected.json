@@ -1,0 +1,48 @@
+{
+  "bindings": [
+    {
+      "matched": [
+        {
+          "meta": {
+            "kind": "O_PRIM",
+            "slot": "left"
+          },
+          "opcode": 2,
+          "sort": 3
+        }
+      ],
+      "name": "leftBag"
+    },
+    {
+      "matched": [
+        {
+          "meta": {
+            "kind": "O_PRIM",
+            "slot": "right"
+          },
+          "opcode": 2,
+          "sort": 3
+        }
+      ],
+      "name": "rightBag"
+    }
+  ],
+  "matchedIndices": [
+    0,
+    1
+  ],
+  "poolIndices": [
+    0,
+    1
+  ],
+  "remaining": [
+    {
+      "meta": {
+        "kind": "M_ID",
+        "slot": "ignore"
+      },
+      "opcode": 1,
+      "sort": 4
+    }
+  ]
+}

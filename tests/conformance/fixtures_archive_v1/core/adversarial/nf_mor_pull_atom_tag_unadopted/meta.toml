@@ -1,0 +1,4 @@
+mode = "nf-mor"
+expect = "error"
+error_code = "nf_parse"
+error_contains = "PullAtom (tag 0x16) is not adopted"

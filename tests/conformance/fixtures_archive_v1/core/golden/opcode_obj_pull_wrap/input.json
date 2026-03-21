@@ -1,0 +1,15 @@
+{
+  "node": {
+    "envSig": "0000000000000000000000000000000000000000000000000000000000000000",
+    "uid": "1111111111111111111111111111111111111111111111111111111111111111",
+    "sort": 3,
+    "opcode": 16,
+    "out": "7060d5a26e41cc174a1921052928d27966f16e13e2adb2c67359e4735000a8f9",
+    "argsHex": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb06",
+    "deps": []
+  },
+  "objStore": {
+    "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb": "029999999999999999999999999999999999999999999999999999999999999999"
+  },
+  "depRecords": []
+}

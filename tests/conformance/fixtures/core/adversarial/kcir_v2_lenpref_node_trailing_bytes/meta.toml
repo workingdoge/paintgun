@@ -1,0 +1,4 @@
+mode = "kcir-v2-node"
+expect = "error"
+error_code = "kcir_parse"
+error_contains = "trailing bytes"

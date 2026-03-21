@@ -1,0 +1,11 @@
+{
+  "certId": "bb5cf475a714c9a2fa840b2e0de5fd31e749c06f2a71fbde9daada1b172eb15b",
+  "expOut": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "kind": "M_MKCOMP",
+  "out": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "parts": [
+    "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  ],
+  "srcH": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "tgtH": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+}

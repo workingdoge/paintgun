@@ -1,0 +1,22 @@
+{
+  "rootCertId": "0e2aacc2288bba31dfa47f20fc7c7b3348e062b824d916a11dbd554a379169ec",
+  "certStore": {
+    "0e2aacc2288bba31dfa47f20fc7c7b3348e062b824d916a11dbd554a379169ec": "000000000000000000000000000000000000000000000000000000000000000011111111111111111111111111111111111111111111111111111111111111110410a20b29e9050a236de649a583756cbff0d8eb50d0ca01716a36cb0a3a81d662f041aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2f06cc87925c624b22dcdd7536bdd0828bf16403da5ae929304182974dcd77b20400"
+  },
+  "objStore": {},
+  "morStore": {
+    "2f06cc87925c624b22dcdd7536bdd0828bf16403da5ae929304182974dcd77b2": "1633333333333333333333333333333333333333333333333333333333333333334444444444444444444444444444444444444444444444444444444444444444bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb21864e56f31c6210ebc4d2e0327913af7e39e6975b8a949d79fc9849f4aa8f6d",
+    "21864e56f31c6210ebc4d2e0327913af7e39e6975b8a949d79fc9849f4aa8f6d": "1733333333333333333333333333333333333333333333333333333333333333334444444444444444444444444444444444444444444444444444444444444444aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa30486f7524c5d7047387197f61c390fc16b937f705ad818bfef90a8d84410d83"
+  },
+  "baseApi": {
+    "adoptPullAtomMor": true,
+    "enforceCanonicalNf": true,
+    "composeMaps": [
+      {
+        "outer": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "inner": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "out": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      }
+    ]
+  }
+}

@@ -1,0 +1,4 @@
+mode = "core-verify-v2"
+expect = "error"
+error_code = "core_verify"
+error_contains = "digest mismatch for domain kcir.node"

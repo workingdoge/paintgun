@@ -1,0 +1,14 @@
+{
+  "certId": "21eb9848ed3d76d4f398067723238b66d41729092045d2436e3bad96d9e43b5c",
+  "expOut": "bde94142600ca1ed31efeace0cd1e4134a82363a7e1fe69c306898fb28e0eb97",
+  "inObjH": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "kind": "O_PULL_TENSOR",
+  "mkOut": "bde94142600ca1ed31efeace0cd1e4134a82363a7e1fe69c306898fb28e0eb97",
+  "out": "bde94142600ca1ed31efeace0cd1e4134a82363a7e1fe69c306898fb28e0eb97",
+  "pId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "pulledFactors": [
+    "d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1",
+    "d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2"
+  ],
+  "stepTag": 2
+}

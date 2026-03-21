@@ -1,0 +1,25 @@
+{
+  "node": {
+    "envSig": "0000000000000000000000000000000000000000000000000000000000000000",
+    "uid": "1111111111111111111111111111111111111111111111111111111111111111",
+    "sort": 4,
+    "opcode": 16,
+    "out": "cf3de08ce57feee3158579e8c2d3c5ce2d5bb21e43a96641e0196fd4b0b4e727",
+    "argsHex": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaecbba799ccd3a947ac80e60d80835a5686cc6a85f9e156153570448c16e76a1804",
+    "deps": []
+  },
+  "morStore": {
+    "ecbba799ccd3a947ac80e60d80835a5686cc6a85f9e156153570448c16e76a18": "1633333333333333333333333333333333333333333333333333333333333333334444444444444444444444444444444444444444444444444444444444444444bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbec824d4aaf7aaefa4a2edca8ccf4024d8ba8e6bd42238dfe6f4cbfee3e754450"
+  },
+  "baseApi": {
+    "adoptPullAtomMor": true,
+    "composeMaps": [
+      {
+        "outer": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "inner": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "out": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      }
+    ]
+  },
+  "depRecords": []
+}

@@ -1,0 +1,100 @@
+{
+  "a": {
+    "$type": "dimension",
+    "scale": {
+      "md": {
+        "$value": {
+          "unit": "px",
+          "value": "16"
+        }
+      },
+      "sm": {
+        "$value": {
+          "unit": "px",
+          "value": "10"
+        }
+      },
+      "xs": {
+        "$value": {
+          "unit": "px",
+          "value": "4"
+        }
+      }
+    }
+  },
+  "b": {
+    "$type": "dimension",
+    "scale": {
+      "lg": {
+        "$value": {
+          "unit": "px",
+          "value": "24"
+        }
+      },
+      "sm": {
+        "$value": {
+          "unit": "px",
+          "value": "12"
+        }
+      },
+      "xs": {
+        "$value": {
+          "unit": "px",
+          "value": "4"
+        }
+      }
+    }
+  },
+  "base": {
+    "$type": "dimension",
+    "scale": {
+      "sm": {
+        "$value": {
+          "unit": "px",
+          "value": "8"
+        }
+      },
+      "xs": {
+        "$value": {
+          "unit": "px",
+          "value": "4"
+        }
+      }
+    }
+  },
+  "component": {
+    "$type": "dimension",
+    "scale": {
+      "lg": {
+        "$value": {
+          "unit": "px",
+          "value": "24"
+        }
+      },
+      "md": {
+        "$value": {
+          "unit": "px",
+          "value": "16"
+        }
+      },
+      "sm": {
+        "$value": {
+          "unit": "px",
+          "value": "12"
+        }
+      },
+      "xl": {
+        "$value": {
+          "unit": "px",
+          "value": "32"
+        }
+      },
+      "xs": {
+        "$value": {
+          "unit": "px",
+          "value": "4"
+        }
+      }
+    }
+  }
+}

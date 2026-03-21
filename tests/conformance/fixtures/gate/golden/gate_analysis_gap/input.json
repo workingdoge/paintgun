@@ -1,0 +1,26 @@
+{
+  "resolver": {
+    "name": "gate-analysis-gap",
+    "version": "2025.10",
+    "sets": {},
+    "modifiers": {
+      "theme": {
+        "contexts": {
+          "dark": {
+            "sources": [
+              { "$ref": "theme.dark.tokens.json" }
+            ]
+          },
+          "light": {
+            "sources": [
+              { "$ref": "theme.light.tokens.json" }
+            ]
+          }
+        }
+      }
+    },
+    "resolutionOrder": [
+      { "$ref": "#/modifiers/theme" }
+    ]
+  }
+}

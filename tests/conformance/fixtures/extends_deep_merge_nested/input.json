@@ -1,0 +1,21 @@
+{
+  "base": {
+    "$type": "typography",
+    "body": {
+      "$value": {
+        "fontFamily": "Inter",
+        "fontSize": { "value": 16, "unit": "px" },
+        "lineHeight": 1.4
+      }
+    }
+  },
+  "brand": {
+    "$extends": "base",
+    "body": {
+      "$description": "brand body",
+      "$value": {
+        "lineHeight": 1.6
+      }
+    }
+  }
+}

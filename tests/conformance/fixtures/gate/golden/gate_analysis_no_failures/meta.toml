@@ -1,0 +1,2 @@
+mode = "gate-analysis"
+expect = "ok"

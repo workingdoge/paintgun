@@ -1,0 +1,4 @@
+mode = "resolver"
+expect = "error"
+error_code = "invalid_resolver_ref"
+error_contains = "reference must start with '#/'"

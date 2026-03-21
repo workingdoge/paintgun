@@ -1,0 +1,20 @@
+[
+  {
+    "path": "color.base",
+    "type": "color",
+    "value": {
+      "colorSpace": "srgb",
+      "components": ["0", "0", "0"],
+      "alpha": "1"
+    }
+  },
+  {
+    "path": "color.surface",
+    "type": "color",
+    "value": {
+      "colorSpace": "srgb",
+      "components": ["0", "0", "0"],
+      "alpha": "1"
+    }
+  }
+]

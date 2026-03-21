@@ -1,0 +1,46 @@
+{
+  "node": {
+    "envSig": "0000000000000000000000000000000000000000000000000000000000000000",
+    "uid": "1111111111111111111111111111111111111111111111111111111111111111",
+    "sort": 4,
+    "opcode": 16,
+    "out": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "argsHex": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc02",
+    "deps": [
+      "1111111111111111111111111111111111111111111111111111111111111111",
+      "2222222222222222222222222222222222222222222222222222222222222222",
+      "3333333333333333333333333333333333333333333333333333333333333333"
+    ]
+  },
+  "morStore": {
+    "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc": "13e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e20211111111111111111111111111111111111111111111111111111111111111112222222222222222222222222222222222222222222222222222222222222222",
+    "432971f8576cc47bf13edb4e309d7a2fe30f6677feb4deed811c73c13d207779": "11e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1",
+    "d2374c3e003cd19c999e1468b6982ebbae12cffda8ed420e7b821a7ce27d12db": "11e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2"
+  },
+  "depRecords": [
+    {
+      "sort": 4,
+      "opcode": 3,
+      "out": "eb9e21d861399c09a1512399960ed42a584d80efb3048e2dc4b4d4cb0b45244f",
+      "meta": {}
+    },
+    {
+      "sort": 4,
+      "opcode": 16,
+      "out": "432971f8576cc47bf13edb4e309d7a2fe30f6677feb4deed811c73c13d207779",
+      "meta": {
+        "pId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "inMorH": "1111111111111111111111111111111111111111111111111111111111111111"
+      }
+    },
+    {
+      "sort": 4,
+      "opcode": 16,
+      "out": "d2374c3e003cd19c999e1468b6982ebbae12cffda8ed420e7b821a7ce27d12db",
+      "meta": {
+        "pId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "inMorH": "2222222222222222222222222222222222222222222222222222222222222222"
+      }
+    }
+  ]
+}

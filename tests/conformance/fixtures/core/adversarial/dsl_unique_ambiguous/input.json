@@ -1,0 +1,11 @@
+{
+  "deps": [
+    { "sort": 3, "opcode": 2, "meta": { "kind": "O_PRIM" } },
+    { "sort": 3, "opcode": 2, "meta": { "kind": "O_PRIM" } }
+  ],
+  "spec": {
+    "pred": { "sort": 3, "opcode": 2, "metaEq": { "kind": "O_PRIM" } },
+    "pos": "anywhere",
+    "optional": false
+  }
+}

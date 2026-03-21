@@ -1,0 +1,53 @@
+[package]
+name = "tbp"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", features = ["raw_value"] }
+clap = { version = "4.5", features = ["derive"] }
+thiserror = "1.0"
+sha2 = "0.10"
+hex = "0.4"
+premath-kcir = { path = "crates/premath-kcir" }
+premath-dsl = { path = "crates/premath-dsl" }
+premath-gate = { path = "crates/premath-gate" }
+premath-admissibility = { path = "crates/premath-admissibility" }
+premath-composability = { path = "crates/premath-composability" }
+premath-compose = { path = "crates/premath-compose" }
+tbp-dtcg = { path = "crates/tbp-dtcg" }
+tbp-policy = { path = "crates/tbp-policy" }
+tbp-ids = { path = "crates/tbp-ids" }
+tbp-emit = { path = "crates/tbp-emit" }
+tbp-resolver-model = { path = "crates/tbp-resolver-model" }
+tbp-resolver-kernel = { path = "crates/tbp-resolver-kernel" }
+
+[dev-dependencies]
+toml = "0.8"
+jsonschema = "0.18"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+
+[workspace]
+members = [
+    ".",
+    "crates/premath-kcir-kernel",
+    "crates/premath-kcir",
+    "crates/premath-dsl",
+    "crates/premath-gate",
+    "crates/premath-admissibility",
+    "crates/premath-composability",
+    "crates/premath-compose",
+    "crates/tbp-dtcg",
+    "crates/tbp-policy",
+    "crates/tbp-ids",
+    "crates/tbp-emit",
+    "crates/tbp-resolver-model",
+    "crates/tbp-resolver-kernel",
+]
+resolver = "2"

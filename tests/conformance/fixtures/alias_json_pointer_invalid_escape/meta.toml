@@ -1,0 +1,4 @@
+mode = "pipeline"
+expect = "error"
+error_code = "unsupported_alias_form"
+error_contains = "invalid JSON Pointer escape"

@@ -1,0 +1,4 @@
+mode = "extends"
+expect = "error"
+error_code = "circular_extends"
+error_contains = "circular $extends chain"

@@ -1,0 +1,4 @@
+mode = "pipeline"
+expect = "error"
+error_code = "invalid_type"
+error_contains = "alias type mismatch: source type number does not match target type dimension"

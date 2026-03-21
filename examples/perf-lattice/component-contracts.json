@@ -1,0 +1,16 @@
+{
+  "$description": "Contracts used for context-scaling metrics",
+  "perf-card": {
+    "component": "perf-card",
+    "slots": {
+      "bg": {
+        "token": "color.surface.bg",
+        "property": "background"
+      },
+      "padding": {
+        "token": "dimension.space.md",
+        "property": "padding"
+      }
+    }
+  }
+}

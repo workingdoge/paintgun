@@ -1,0 +1,14 @@
+{
+  "metric": {
+    "$type": "number",
+    "level": {
+      "$value": 0
+    }
+  },
+  "spacing": {
+    "$type": "number",
+    "base": {
+      "$value": 0
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "fixture": {
+    "resolver": "examples/perf-lattice/perf.resolver.json",
+    "contracts": "examples/perf-lattice/component-contracts.json"
+  },
+  "thresholds": {
+    "minFromContractsReductionRatio": 0.2,
+    "minPartialExpansionRatio": 1.1
+  },
+  "derived": {
+    "fromContractsReductionRatio": 0.696275,
+    "partialExpansionRatio": 2.934097
+  },
+  "results": [
+    {
+      "mode": "full-only",
+      "elapsedMs": 1558.93,
+      "analysisContexts": 243,
+      "resolvedContexts": 349,
+      "tokens": 1,
+      "kanGaps": 0,
+      "kanConflicts": 0,
+      "kanInherited": 243,
+      "bcViolations": 0,
+      "orthogonalityOverlaps": 0,
+      "outDir": "dist-perf-full_only"
+    },
+    {
+      "mode": "partial",
+      "elapsedMs": 1684.64,
+      "analysisContexts": 1024,
+      "resolvedContexts": 1024,
+      "tokens": 1,
+      "kanGaps": 0,
+      "kanConflicts": 0,
+      "kanInherited": 1020,
+      "bcViolations": 0,
+      "orthogonalityOverlaps": 0,
+      "outDir": "dist-perf-partial"
+    },
+    {
+      "mode": "from-contracts",
+      "elapsedMs": 1358.94,
+      "analysisContexts": 4,
+      "resolvedContexts": 106,
+      "tokens": 1,
+      "kanGaps": 0,
+      "kanConflicts": 0,
+      "kanInherited": 0,
+      "bcViolations": 0,
+      "orthogonalityOverlaps": 0,
+      "outDir": "dist-perf-from_contracts"
+    }
+  ]
+}

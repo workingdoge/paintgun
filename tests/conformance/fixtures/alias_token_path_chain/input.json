@@ -1,0 +1,14 @@
+{
+  "color": {
+    "$type": "color",
+    "base": {
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [0.1, 0.2, 0.3],
+        "alpha": 1
+      }
+    },
+    "surface": { "$value": "{color.base}" },
+    "surfaceStrong": { "$value": "{color.surface}" }
+  }
+}

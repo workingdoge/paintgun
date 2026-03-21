@@ -1,0 +1,4 @@
+mode = "resolver"
+expect = "error"
+error_code = "circular_resolver_ref"
+error_contains = "#/sets/base"

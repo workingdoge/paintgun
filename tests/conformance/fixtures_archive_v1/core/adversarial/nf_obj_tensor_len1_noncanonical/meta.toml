@@ -1,0 +1,4 @@
+mode = "nf-obj"
+expect = "error"
+error_code = "nf_parse"
+error_contains = "non-canonical ObjNF Tensor has 1 factor(s)"

@@ -1,0 +1,21 @@
+{
+  "envSig": "0000000000000000000000000000000000000000000000000000000000000000",
+  "morOverlayCount": 1,
+  "nodes": [
+    {
+      "certId": "8b296940cd5f09aada48049251e0945c97bb5156b5cb820d2f2ad75f28bffbdd",
+      "meta": {
+        "inMorH": "21864e56f31c6210ebc4d2e0327913af7e39e6975b8a949d79fc9849f4aa8f6d",
+        "pId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "stepTag": "7"
+      },
+      "opcode": 16,
+      "out": "da9947f7e77e828c82f88ec3af8c1f0aca9932c7567db6eb840554d44576aedd",
+      "sort": 4
+    }
+  ],
+  "nodesVerified": 1,
+  "objOverlayCount": 0,
+  "rootCertId": "8b296940cd5f09aada48049251e0945c97bb5156b5cb820d2f2ad75f28bffbdd",
+  "uid": "1111111111111111111111111111111111111111111111111111111111111111"
+}

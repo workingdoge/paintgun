@@ -1,0 +1,7 @@
+{
+  "size": {
+    "$type": "dimension",
+    "sm": { "$value": { "value": 4, "unit": "px" } },
+    "smAsNumber": { "$type": "number", "$value": "{size.sm}" }
+  }
+}

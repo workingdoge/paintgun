@@ -1,0 +1,4 @@
+mode = "opcode-mor"
+expect = "error"
+error_code = "opcode_verify"
+error_contains = "mk out mismatch"

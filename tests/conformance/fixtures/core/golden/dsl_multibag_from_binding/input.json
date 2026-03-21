@@ -1,0 +1,42 @@
+{
+  "bindings": {
+    "leftKeys": [
+      { "sort": 3, "opcode": 2, "meta": { "slot": "left" } }
+    ],
+    "rightKeys": [
+      { "sort": 3, "opcode": 2, "meta": { "slot": "right" } }
+    ]
+  },
+  "deps": [
+    { "sort": 3, "opcode": 2, "meta": { "kind": "O_PRIM", "slot": "left" } },
+    { "sort": 3, "opcode": 2, "meta": { "kind": "O_PRIM", "slot": "right" } }
+  ],
+  "spec": {
+    "pos": "anywhere",
+    "consumeAll": true,
+    "bags": [
+      {
+        "name": "leftBag",
+        "pred": { "sort": 3, "opcode": 2, "metaEq": { "kind": "O_PRIM" } },
+        "keyOf": { "meta": "slot" },
+        "expectedKeysFromBinding": {
+          "binding": "leftKeys",
+          "keyOf": { "meta": "slot" }
+        },
+        "mode": "unordered",
+        "pos": "anywhere"
+      },
+      {
+        "name": "rightBag",
+        "pred": { "sort": 3, "opcode": 2, "metaEq": { "kind": "O_PRIM" } },
+        "keyOf": { "meta": "slot" },
+        "expectedKeysFromBinding": {
+          "binding": "rightKeys",
+          "keyOf": { "meta": "slot" }
+        },
+        "mode": "unordered",
+        "pos": "anywhere"
+      }
+    ]
+  }
+}

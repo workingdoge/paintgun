@@ -1,0 +1,23 @@
+{
+  "rootCertId": "5217164fd1e527572ef63f62324cbe37e22613454709f875d2854b67c47dfaae",
+  "certStore": {
+    "5217164fd1e527572ef63f62324cbe37e22613454709f875d2854b67c47dfaae": "000000000000000000000000000000000000000000000000000000000000000011111111111111111111111111111111111111111111111111111111111111110410ec824d4aaf7aaefa4a2edca8ccf4024d8ba8e6bd42238dfe6f4cbfee3e75445041aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaecbba799ccd3a947ac80e60d80835a5686cc6a85f9e156153570448c16e76a180400"
+  },
+  "objStore": {},
+  "morStore": {
+    "ecbba799ccd3a947ac80e60d80835a5686cc6a85f9e156153570448c16e76a18": "1633333333333333333333333333333333333333333333333333333333333333334444444444444444444444444444444444444444444444444444444444444444bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbec824d4aaf7aaefa4a2edca8ccf4024d8ba8e6bd42238dfe6f4cbfee3e754450"
+  },
+  "baseApi": {
+    "adoptPullAtomMor": true,
+    "idMaps": [
+      "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    ],
+    "composeMaps": [
+      {
+        "outer": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "inner": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "out": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      }
+    ]
+  }
+}

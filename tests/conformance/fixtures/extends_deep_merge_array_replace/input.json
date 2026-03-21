@@ -1,0 +1,20 @@
+{
+  "base": {
+    "$type": "typography",
+    "headline": {
+      "$value": {
+        "fontFamily": "Inter",
+        "fontSize": { "value": 24, "unit": "px" },
+        "axis": ["wght", "opsz"]
+      }
+    }
+  },
+  "brand": {
+    "$extends": "base",
+    "headline": {
+      "$value": {
+        "axis": ["wght"]
+      }
+    }
+  }
+}

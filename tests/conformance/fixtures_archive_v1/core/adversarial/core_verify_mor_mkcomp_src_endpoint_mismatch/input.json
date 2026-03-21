@@ -1,0 +1,10 @@
+{
+  "rootCertId": "27b8bc202d8ac819ab6e7b45eedfa8ec82029189c957ffcd26276ec173138ba0",
+  "certStore": {
+    "27b8bc202d8ac819ab6e7b45eedfa8ec82029189c957ffcd26276ec173138ba0": "000000000000000000000000000000000000000000000000000000000000000011111111111111111111111111111111111111111111111111111111111111110403ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff61ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc01f2b45fca1fc16e96173a44841e05a45f4d4439182fcf71223761d1a4482ba7c600"
+  },
+  "objStore": {},
+  "morStore": {
+    "f2b45fca1fc16e96173a44841e05a45f4d4439182fcf71223761d1a4482ba7c6": "18aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc01eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+  }
+}

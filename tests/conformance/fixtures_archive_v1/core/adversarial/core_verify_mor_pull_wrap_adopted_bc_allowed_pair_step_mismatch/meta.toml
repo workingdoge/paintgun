@@ -1,0 +1,4 @@
+mode = "core-verify"
+expect = "error"
+error_code = "core_verify"
+error_contains = "stepTag mismatch: expected 0x05, got 0x07"

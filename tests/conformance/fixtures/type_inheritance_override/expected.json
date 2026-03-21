@@ -1,0 +1,23 @@
+[
+  {
+    "path": "size.ratio",
+    "type": "number",
+    "value": "1.5"
+  },
+  {
+    "path": "size.sm",
+    "type": "dimension",
+    "value": {
+      "value": "4",
+      "unit": "px"
+    }
+  },
+  {
+    "path": "size.smAlias",
+    "type": "dimension",
+    "value": {
+      "value": "4",
+      "unit": "px"
+    }
+  }
+]

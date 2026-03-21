@@ -1,0 +1,4 @@
+mode = "opcode-mor"
+expect = "error"
+error_code = "opcode_verify"
+error_contains = "stepTag mismatch: expected 0x07, got 0x04"

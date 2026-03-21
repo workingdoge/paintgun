@@ -1,0 +1,10 @@
+{
+  "base": {
+    "$type": "dimension",
+    "xs": { "$value": { "value": 4, "unit": "px" } }
+  },
+  "component": {
+    "$extends": "#/base",
+    "sm": { "$value": { "value": 8, "unit": "px" } }
+  }
+}

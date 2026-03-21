@@ -1,0 +1,70 @@
+{
+  "envSig": "0000000000000000000000000000000000000000000000000000000000000000",
+  "morOverlayCount": 1,
+  "nodes": [
+    {
+      "certId": "293f12fe266197cfd6bb9a783bde7b76eefd472e733cdc8dedf8b9e600da521c",
+      "meta": {
+        "inMorH": "ec824d4aaf7aaefa4a2edca8ccf4024d8ba8e6bd42238dfe6f4cbfee3e754450",
+        "pId": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "stepTag": "0"
+      },
+      "opcode": 16,
+      "out": "ec824d4aaf7aaefa4a2edca8ccf4024d8ba8e6bd42238dfe6f4cbfee3e754450",
+      "sort": 4
+    },
+    {
+      "certId": "3e786ae655de3a83c82662af1127d8a2799a116b77243014021b04589cb1e877",
+      "meta": {
+        "pullId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "pushId": "2424242424242424242424242424242424242424242424242424242424242424"
+      },
+      "opcode": 17,
+      "out": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+      "sort": 2
+    },
+    {
+      "certId": "47e390d0d43afbaa99b53d327dbedbb5cf1890d4343490888f46a38a2cbf66d7",
+      "meta": {
+        "mapId": "2424242424242424242424242424242424242424242424242424242424242424"
+      },
+      "opcode": 1,
+      "out": "2424242424242424242424242424242424242424242424242424242424242424",
+      "sort": 2
+    },
+    {
+      "certId": "75398a9ba3e6b19317297a697601af2aef07bdf7e358fd9255057355b5daa5ad",
+      "meta": {
+        "pullId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "pushId": "2424242424242424242424242424242424242424242424242424242424242424"
+      },
+      "opcode": 16,
+      "out": "f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4",
+      "sort": 2
+    },
+    {
+      "certId": "a6a300f6627f9704d2e858358905eba7308b99a402f327fff98fd7105b69bd64",
+      "meta": {
+        "mapId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "opcode": 1,
+      "out": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "sort": 2
+    },
+    {
+      "certId": "e40299a35826d2ed12e3cb24f7f326e3f493a63e8e886a52b78afc0150b0576d",
+      "meta": {
+        "inMorH": "24ce06ce862f3e26200ea5f023025a48a60dfeba995c2f741963ca0cec7a615e",
+        "pId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "stepTag": "5"
+      },
+      "opcode": 16,
+      "out": "8f4b9a7f37facb491e4e9221b093a42939565ca0d0301a20bb1fdda3bac6a79d",
+      "sort": 4
+    }
+  ],
+  "nodesVerified": 6,
+  "objOverlayCount": 0,
+  "rootCertId": "e40299a35826d2ed12e3cb24f7f326e3f493a63e8e886a52b78afc0150b0576d",
+  "uid": "1111111111111111111111111111111111111111111111111111111111111111"
+}

@@ -1,0 +1,200 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://tbp.dev/schemas/witness.schema.json",
+  "title": "TBP CTC Witnesses",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["witnessSchema", "conflictMode", "policyDigest", "gaps", "conflicts", "inherited", "bcViolations", "orthogonality"],
+  "properties": {
+    "witnessSchema": {
+      "type": "integer",
+      "enum": [1]
+    },
+    "conflictMode": {
+      "type": "string",
+      "enum": ["semantic", "normalized"]
+    },
+    "policyDigest": { "type": "string" },
+    "normalizerVersion": { "type": "string" },
+    "gaps": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/gapWitness" }
+    },
+    "conflicts": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/conflictWitness" }
+    },
+    "inherited": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/inheritedWitness" }
+    },
+    "bcViolations": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/bcWitness" }
+    },
+    "orthogonality": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/overlapWitness" }
+    }
+  },
+  "definitions": {
+    "tokenProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceId",
+        "resolutionLayerId",
+        "resolutionRank",
+        "packId",
+        "packHash",
+        "filePath",
+        "fileHash",
+        "jsonPointer"
+      ],
+      "properties": {
+        "sourceId": { "type": "string" },
+        "resolutionLayerId": { "type": "string" },
+        "resolutionRank": { "type": "integer", "minimum": 0 },
+        "packId": { "type": "string" },
+        "packVersion": { "type": "string" },
+        "packHash": { "type": "string" },
+        "filePath": { "type": "string" },
+        "fileHash": { "type": "string" },
+        "jsonPointer": { "type": "string" }
+      }
+    },
+    "gapWitness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["witnessId", "token_path", "target", "authored_sources"],
+      "properties": {
+        "witnessId": { "type": "string" },
+        "token_path": { "type": "string" },
+        "target": { "type": "string" },
+        "authored_sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/conflictCandidate" }
+        }
+      }
+    },
+    "conflictCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_context",
+        "source_id",
+        "resolutionLayerId",
+        "resolutionRank",
+        "packId",
+        "packHash",
+        "filePath",
+        "fileHash",
+        "jsonPointer",
+        "value_json",
+        "value_digest"
+      ],
+      "properties": {
+        "source_context": { "type": "string" },
+        "source_id": { "type": "string" },
+        "resolutionLayerId": { "type": "string" },
+        "resolutionRank": { "type": "integer", "minimum": 0 },
+        "packId": { "type": "string" },
+        "packVersion": { "type": "string" },
+        "packHash": { "type": "string" },
+        "filePath": { "type": "string" },
+        "fileHash": { "type": "string" },
+        "jsonPointer": { "type": "string" },
+        "value_json": { "type": "string" },
+        "value_digest": { "type": "string" }
+      }
+    },
+    "conflictWitness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["witnessId", "token_path", "target", "candidates"],
+      "properties": {
+        "witnessId": { "type": "string" },
+        "token_path": { "type": "string" },
+        "target": { "type": "string" },
+        "candidates": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/conflictCandidate" }
+        }
+      }
+    },
+    "inheritedWitness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "witnessId",
+        "token_path",
+        "target",
+        "inherited_from",
+        "sources",
+        "resolved_value_json",
+        "resolved_value_digest"
+      ],
+      "properties": {
+        "witnessId": { "type": "string" },
+        "token_path": { "type": "string" },
+        "target": { "type": "string" },
+        "inherited_from": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/conflictCandidate" }
+        },
+        "resolved_value_json": { "type": "string" },
+        "resolved_value_digest": { "type": "string" }
+      }
+    },
+    "bcWitness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "witnessId",
+        "token_path",
+        "axis_a",
+        "value_a",
+        "axis_b",
+        "value_b",
+        "left_value_json",
+        "right_value_json",
+        "fix"
+      ],
+      "properties": {
+        "witnessId": { "type": "string" },
+        "token_path": { "type": "string" },
+        "axis_a": { "type": "string" },
+        "value_a": { "type": "string" },
+        "axis_b": { "type": "string" },
+        "value_b": { "type": "string" },
+        "left_value_json": { "type": "string" },
+        "right_value_json": { "type": "string" },
+        "left_source": { "$ref": "#/definitions/tokenProvenance" },
+        "right_source": { "$ref": "#/definitions/tokenProvenance" },
+        "resolver_value_json": { "type": "string" },
+        "resolver_source": { "$ref": "#/definitions/tokenProvenance" },
+        "fix": { "type": "string" }
+      }
+    },
+    "overlapWitness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["witnessId", "axis_a", "axis_b", "overlap_token_paths"],
+      "properties": {
+        "witnessId": { "type": "string" },
+        "axis_a": { "type": "string" },
+        "axis_b": { "type": "string" },
+        "overlap_token_paths": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}

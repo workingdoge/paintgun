@@ -1,0 +1,46 @@
+{
+  "node": {
+    "envSig": "0000000000000000000000000000000000000000000000000000000000000000",
+    "uid": "1111111111111111111111111111111111111111111111111111111111111111",
+    "sort": 4,
+    "opcode": 16,
+    "out": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "argsHex": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd06",
+    "deps": [
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3"
+    ]
+  },
+  "morStore": {
+    "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd": "187a4b81f396e1ca5fd9dd546e6fad60940d5431f5d1fb0460c5f6cf3411626d537a4b81f396e1ca5fd9dd546e6fad60940d5431f5d1fb0460c5f6cf3411626d530233333333333333333333333333333333333333333333333333333333333333334444444444444444444444444444444444444444444444444444444444444444",
+    "d88d600c8da7209042045a2f98da341d8efb4867802378ddc107590b588ca617": "11f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1",
+    "fb48318b43221eed1f6f4ae1570d331a757349c6a4fa7e6989522306273965ff": "11f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2"
+  },
+  "depRecords": [
+    {
+      "sort": 4,
+      "opcode": 2,
+      "out": "4a649a48c431d64eee4684ec9310d798d9dad5fadd1c9564fe67e574bdb1d1c3",
+      "meta": {}
+    },
+    {
+      "sort": 4,
+      "opcode": 16,
+      "out": "d88d600c8da7209042045a2f98da341d8efb4867802378ddc107590b588ca617",
+      "meta": {
+        "pId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "inMorH": "3333333333333333333333333333333333333333333333333333333333333333"
+      }
+    },
+    {
+      "sort": 4,
+      "opcode": 16,
+      "out": "fb48318b43221eed1f6f4ae1570d331a757349c6a4fa7e6989522306273965ff",
+      "meta": {
+        "pId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "inMorH": "4444444444444444444444444444444444444444444444444444444444444444"
+      }
+    }
+  ]
+}

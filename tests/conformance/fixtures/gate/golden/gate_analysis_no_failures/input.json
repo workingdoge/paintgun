@@ -1,0 +1,17 @@
+{
+  "resolver": {
+    "name": "gate-analysis-no-failures",
+    "version": "2025.10",
+    "sets": {
+      "foundation": {
+        "sources": [
+          { "$ref": "base.tokens.json" }
+        ]
+      }
+    },
+    "modifiers": {},
+    "resolutionOrder": [
+      { "$ref": "#/sets/foundation" }
+    ]
+  }
+}

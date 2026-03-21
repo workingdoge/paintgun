@@ -1,0 +1,2 @@
+mode = "dsl-multibag"
+expect = "ok"

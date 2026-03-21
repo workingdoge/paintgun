@@ -1,0 +1,27 @@
+{
+  "node": {
+    "envSig": "0000000000000000000000000000000000000000000000000000000000000000",
+    "uid": "1111111111111111111111111111111111111111111111111111111111111111",
+    "sort": 4,
+    "opcode": 16,
+    "out": "f6fa9bbc7f02d4197816f6ebfe8ad930efc6cc7212cfa8b7939c9f66d4577870",
+    "argsHex": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc01",
+    "deps": [
+      "1111111111111111111111111111111111111111111111111111111111111111"
+    ]
+  },
+  "morStore": {
+    "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc": "113333333333333333333333333333333333333333333333333333333333333333"
+  },
+  "depRecords": [
+    {
+      "sort": 3,
+      "opcode": 16,
+      "out": "4444444444444444444444444444444444444444444444444444444444444444",
+      "meta": {
+        "pId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "inObjH": "3333333333333333333333333333333333333333333333333333333333333333"
+      }
+    }
+  ]
+}

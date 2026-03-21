@@ -1,0 +1,10 @@
+{
+  "tokens": {
+    "$type": "number",
+    "x": { "$value": 1 }
+  },
+  "aliasGroup": {
+    "$extends": "tokens.x",
+    "y": { "$value": 2 }
+  }
+}

@@ -1,0 +1,18 @@
+[
+  {
+    "path": "spacing",
+    "type": "dimension",
+    "value": {
+      "value": "12",
+      "unit": "px"
+    }
+  },
+  {
+    "path": "spacing.tight",
+    "type": "dimension",
+    "value": {
+      "value": "12",
+      "unit": "px"
+    }
+  }
+]

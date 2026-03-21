@@ -1,0 +1,21 @@
+{
+  "envSig": "0000000000000000000000000000000000000000000000000000000000000000",
+  "morOverlayCount": 0,
+  "nodes": [
+    {
+      "certId": "3bb87139dd364226563c3703cda6807a3a0f34a77be92e96302248f4e599ce06",
+      "meta": {
+        "inObjH": "98528f2bc5e7f1ef3c9964df853ed3adf4bdf0af00548e6d1c5bcd0c8ab2265b",
+        "pId": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "stepTag": "0"
+      },
+      "opcode": 16,
+      "out": "98528f2bc5e7f1ef3c9964df853ed3adf4bdf0af00548e6d1c5bcd0c8ab2265b",
+      "sort": 3
+    }
+  ],
+  "nodesVerified": 1,
+  "objOverlayCount": 0,
+  "rootCertId": "3bb87139dd364226563c3703cda6807a3a0f34a77be92e96302248f4e599ce06",
+  "uid": "1111111111111111111111111111111111111111111111111111111111111111"
+}

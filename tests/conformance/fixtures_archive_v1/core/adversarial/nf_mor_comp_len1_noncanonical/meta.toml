@@ -1,0 +1,4 @@
+mode = "nf-mor"
+expect = "error"
+error_code = "nf_parse"
+error_contains = "non-canonical MorNF Comp has 1 part(s)"

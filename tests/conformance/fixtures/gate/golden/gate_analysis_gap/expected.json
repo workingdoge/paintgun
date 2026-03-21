@@ -1,0 +1,48 @@
+{
+  "failures": [
+    {
+      "class": "descent_failure",
+      "context": "theme:light",
+      "details": {
+        "authoredSources": 1,
+        "sourceWitnessType": "kan_gap"
+      },
+      "lawRef": "GATE-3.3",
+      "message": "no gluable candidate for metric.level at theme:light",
+      "sources": [
+        {
+          "fileHash": "sha256:63e60779b4ae680174a2859d0505782e01b2076980200efba6c893d11e6f36dd",
+          "filePath": "theme.dark.tokens.json",
+          "jsonPointer": "/metric/level/$value",
+          "sourceId": "modifier:theme/dark"
+        }
+      ],
+      "tokenPath": "metric.level",
+      "witnessId": "gap-c0a1921635a8af5a"
+    },
+    {
+      "class": "locality_failure",
+      "context": "theme:dark",
+      "details": {
+        "reason": "restriction_missing",
+        "restrictedContext": "(base)",
+        "sourceWitnessType": "locality_check"
+      },
+      "lawRef": "GATE-3.2",
+      "message": "missing local restriction for metric.level from theme:dark to (base)",
+      "sources": [
+        {
+          "fileHash": "sha256:63e60779b4ae680174a2859d0505782e01b2076980200efba6c893d11e6f36dd",
+          "filePath": "theme.dark.tokens.json",
+          "jsonPointer": "/metric/level/$value",
+          "sourceId": "modifier:theme/dark"
+        }
+      ],
+      "tokenPath": "metric.level",
+      "witnessId": "locality:metric.level:theme:dark:(base):restriction_missing"
+    }
+  ],
+  "profile": "full",
+  "result": "rejected",
+  "witnessSchema": 1
+}

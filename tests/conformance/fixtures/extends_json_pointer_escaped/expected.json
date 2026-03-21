@@ -1,0 +1,26 @@
+{
+  "base/scale": {
+    "$type": "dimension",
+    "xs": {
+      "$value": {
+        "value": "2",
+        "unit": "px"
+      }
+    }
+  },
+  "component": {
+    "$type": "dimension",
+    "xs": {
+      "$value": {
+        "value": "2",
+        "unit": "px"
+      }
+    },
+    "sm": {
+      "$value": {
+        "value": "6",
+        "unit": "px"
+      }
+    }
+  }
+}

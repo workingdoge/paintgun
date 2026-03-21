@@ -1,0 +1,32 @@
+{
+  "theme": {
+    "$type": "typography",
+    "$root": {
+      "$value": {
+        "fontFamily": "Inter",
+        "fontSize": { "value": 16, "unit": "px" }
+      }
+    },
+    "headline": {
+      "$value": {
+        "fontFamily": "Inter",
+        "fontSize": { "value": 24, "unit": "px" }
+      }
+    },
+    "variants": {
+      "compact": {
+        "$value": {
+          "fontFamily": "Inter",
+          "fontSize": { "value": 14, "unit": "px" }
+        }
+      }
+    },
+    "stops": {
+      "$type": "gradient",
+      "$value": [
+        { "color": "#000000", "position": "0%" },
+        { "color": "#ffffff", "position": "100%" }
+      ]
+    }
+  }
+}

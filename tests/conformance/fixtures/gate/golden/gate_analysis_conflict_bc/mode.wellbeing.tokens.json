@@ -1,0 +1,8 @@
+{
+  "metric": {
+    "$type": "number",
+    "level": {
+      "$value": 2
+    }
+  }
+}

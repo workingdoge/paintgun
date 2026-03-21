@@ -1,0 +1,231 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  TZ: UTC
+  LANG: C.UTF-8
+  LC_ALL: C.UTF-8
+
+jobs:
+  conformance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Run conformance fixtures
+        run: cargo test --test conformance
+
+  witness-schema:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Validate per-pack witness schema
+        run: cargo test --test witness_schema
+
+      - name: Validate per-pack provenance completeness
+        run: cargo test --test provenance_witnesses
+
+      - name: Validate defining-leaf pointer precision
+        run: cargo test --test provenance_defining_leaf
+
+  compose-witness-schema:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Validate compose witness schema
+        run: cargo test --test compose_witness_schema
+
+      - name: Validate compose provenance completeness
+        run: cargo test --test compose_provenance
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Validate path-safety fixtures
+        run: cargo test --test path_safety
+
+      - name: Validate pack identity pinning
+        run: cargo test --test pack_identity_pinning
+
+      - name: Validate signing trust flow
+        run: cargo test --test signing
+
+  context-scaling-metrics:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Capture context-scaling metrics
+        run: python3 scripts/context_metrics.py
+
+      - name: Upload context metrics artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: context-scaling-metrics
+          path: perf-metrics/
+
+  build-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build example pack
+        run: |
+          cargo run -- build \
+            examples/charter-steel/charter-steel.resolver.json \
+            --contracts examples/charter-steel/component-contracts.json \
+            --out dist-ci \
+            --target css \
+            --policy examples/charter-steel/policy.json \
+            --format json
+
+      - name: Emit GitHub annotations (pack report)
+        if: always()
+        run: |
+          cargo run -- annotate-report dist-ci/validation.json \
+            --file-root examples/charter-steel \
+            --max 200
+
+      - name: Build example compose report
+        run: |
+          cargo run -- compose \
+            dist-ci \
+            dist-ci \
+            --out dist-compose-ci \
+            --target css \
+            --contracts examples/charter-steel/component-contracts.json \
+            --policy examples/charter-steel/policy.json \
+            --format json
+
+      - name: Emit GitHub annotations (compose report)
+        if: always()
+        run: |
+          cargo run -- annotate-report dist-compose-ci/compose.report.json \
+            --max 200
+
+      - name: Verify certificate
+        run: |
+          cargo run -- verify dist-ci/ctc.manifest.json
+
+  native-swift-integration:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build native Swift artifacts
+        run: |
+          cargo run -- build \
+            examples/charter-steel/charter-steel.resolver.json \
+            --out dist-native-swift \
+            --target swift
+
+      - name: Run generated Swift package tests (pack)
+        run: |
+          cd dist-native-swift/swift
+          swift test
+
+      - name: Build native Swift compose artifacts
+        run: |
+          cargo run -- compose \
+            dist-native-swift \
+            dist-native-swift \
+            --out dist-native-compose-swift \
+            --target swift \
+            --format text
+
+      - name: Run generated Swift package tests (compose)
+        run: |
+          cd dist-native-compose-swift/swift
+          swift test
+
+  native-kotlin-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build native Kotlin artifacts
+        run: |
+          cargo run -- build \
+            examples/charter-steel/charter-steel.resolver.json \
+            --out dist-native-kotlin \
+            --target kotlin
+
+      - name: Run generated Kotlin module tests (pack)
+        run: |
+          cd dist-native-kotlin/kotlin
+          gradle --no-daemon test
+
+      - name: Build native Kotlin compose artifacts
+        run: |
+          cargo run -- compose \
+            dist-native-kotlin \
+            dist-native-kotlin \
+            --out dist-native-compose-kotlin \
+            --target kotlin \
+            --format text
+
+      - name: Run generated Kotlin module tests (compose)
+        run: |
+          cd dist-native-compose-kotlin/kotlin
+          gradle --no-daemon test
+
+  all-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Run full test suite
+        run: cargo test --all

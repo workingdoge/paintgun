@@ -1,0 +1,8 @@
+{
+  "spacing": {
+    "$type": "number",
+    "base": {
+      "$value": 4
+    }
+  }
+}

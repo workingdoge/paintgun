@@ -1,0 +1,4 @@
+mode = "pipeline"
+expect = "error"
+error_code = "invalid_type"
+error_contains = "number token must be numeric"

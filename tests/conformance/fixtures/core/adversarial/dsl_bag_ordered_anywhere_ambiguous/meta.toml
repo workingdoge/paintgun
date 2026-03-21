@@ -1,0 +1,4 @@
+mode = "dsl-bag"
+expect = "error"
+error_code = "dsl_match"
+error_contains = "ambiguous"

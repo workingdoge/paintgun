@@ -1,0 +1,16 @@
+{
+  "resolver": {
+    "version": "2025.10",
+    "sets": {
+      "base": {
+        "sources": [
+          {}
+        ]
+      }
+    },
+    "modifiers": {},
+    "resolutionOrder": [
+      "#/sets/base"
+    ]
+  }
+}

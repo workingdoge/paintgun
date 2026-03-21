@@ -1,0 +1,34 @@
+{
+  "matched": [
+    {
+      "meta": {
+        "kind": "O_PRIM",
+        "slot": "b"
+      },
+      "opcode": 2,
+      "sort": 3
+    },
+    {
+      "meta": {
+        "kind": "O_PRIM",
+        "slot": "a"
+      },
+      "opcode": 2,
+      "sort": 3
+    }
+  ],
+  "matchedIndices": [
+    1,
+    0
+  ],
+  "remaining": [
+    {
+      "meta": {
+        "kind": "O_PRIM",
+        "slot": "c"
+      },
+      "opcode": 2,
+      "sort": 3
+    }
+  ]
+}

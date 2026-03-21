@@ -1,0 +1,15 @@
+{
+  "base": {
+    "$type": "dimension",
+    "$root": { "$value": { "value": 8, "unit": "px" } },
+    "sm": { "$value": { "value": 4, "unit": "px" } }
+  },
+  "brand": {
+    "$extends": "base",
+    "$root": { "$value": { "value": 10 } }
+  },
+  "component": {
+    "$extends": "brand",
+    "$root": { "$value": { "unit": "rem" } }
+  }
+}

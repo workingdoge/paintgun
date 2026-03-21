@@ -1,0 +1,10 @@
+{
+  "base/scale": {
+    "$type": "dimension",
+    "xs": { "$value": { "value": 2, "unit": "px" } }
+  },
+  "component": {
+    "$extends": "#/base~1scale",
+    "sm": { "$value": { "value": 6, "unit": "px" } }
+  }
+}

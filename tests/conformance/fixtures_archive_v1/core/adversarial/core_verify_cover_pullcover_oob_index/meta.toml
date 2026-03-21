@@ -1,0 +1,4 @@
+mode = "core-verify"
+expect = "error"
+error_code = "core_verify"
+error_contains = "mapWtoU[0]=2 out of range"

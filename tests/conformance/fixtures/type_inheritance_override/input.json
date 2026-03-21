@@ -1,0 +1,8 @@
+{
+  "size": {
+    "$type": "dimension",
+    "sm": { "$value": { "value": 4, "unit": "px" } },
+    "ratio": { "$type": "number", "$value": 1.5 },
+    "smAlias": { "$value": "{size.sm}" }
+  }
+}

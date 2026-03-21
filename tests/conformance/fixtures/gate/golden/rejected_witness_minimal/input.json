@@ -1,0 +1,19 @@
+{
+  "witnessSchema": 1,
+  "profile": "full",
+  "result": "rejected",
+  "failures": [
+    {
+      "witnessId": "locality-001",
+      "class": "locality_failure",
+      "lawRef": "GATE-3.2",
+      "message": "missing restriction for cover component"
+    },
+    {
+      "witnessId": "stability-001",
+      "class": "stability_failure",
+      "lawRef": "GATE-3.1",
+      "message": "reindex composition did not commute"
+    }
+  ]
+}

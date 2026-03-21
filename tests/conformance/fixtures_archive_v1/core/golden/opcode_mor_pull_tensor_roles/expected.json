@@ -1,0 +1,15 @@
+{
+  "certId": "efb399fc7c28ca10f0507c17343ee74156d3affb8723f40cb7abb3ea1ebe96cb",
+  "expOut": "4a649a48c431d64eee4684ec9310d798d9dad5fadd1c9564fe67e574bdb1d1c3",
+  "inMorH": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+  "kind": "M_PULL_TENSOR",
+  "mkOut": "4a649a48c431d64eee4684ec9310d798d9dad5fadd1c9564fe67e574bdb1d1c3",
+  "out": "4a649a48c431d64eee4684ec9310d798d9dad5fadd1c9564fe67e574bdb1d1c3",
+  "overlayMorBytesHex": "187a4b81f396e1ca5fd9dd546e6fad60940d5431f5d1fb0460c5f6cf3411626d537a4b81f396e1ca5fd9dd546e6fad60940d5431f5d1fb0460c5f6cf3411626d5302d88d600c8da7209042045a2f98da341d8efb4867802378ddc107590b588ca617fb48318b43221eed1f6f4ae1570d331a757349c6a4fa7e6989522306273965ff",
+  "pId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "pulledParts": [
+    "d88d600c8da7209042045a2f98da341d8efb4867802378ddc107590b588ca617",
+    "fb48318b43221eed1f6f4ae1570d331a757349c6a4fa7e6989522306273965ff"
+  ],
+  "stepTag": 6
+}

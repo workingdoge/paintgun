@@ -1,0 +1,4 @@
+mode = "core-verify"
+expect = "error"
+error_code = "core_verify"
+error_contains = "unsupported KCIR sort in core verifier"

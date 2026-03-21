@@ -1,0 +1,24 @@
+{
+  "envSig": "0000000000000000000000000000000000000000000000000000000000000000",
+  "morOverlayCount": 0,
+  "nodes": [
+    {
+      "certRefHex": "abb2ef787a1df2133de85bc6ad99737c4317c4315c7fc555b3ee8a7618764896",
+      "meta": {
+        "mapId": "4343434343434343434343434343434343434343434343434343434343434343"
+      },
+      "opcode": 1,
+      "outDomain": "kcir.opaque",
+      "outRefHex": "4343434343434343434343434343434343434343434343434343434343434343eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "outRefLen": 64,
+      "sort": 2
+    }
+  ],
+  "nodesVerified": 1,
+  "objOverlayCount": 0,
+  "paramsHash": "3c6a2e995999fa03a91aa9384c57792b1084333eed709e7a4e3ea2333c9a6234",
+  "rootCertRefHex": "abb2ef787a1df2133de85bc6ad99737c4317c4315c7fc555b3ee8a7618764896",
+  "schemeId": "hash",
+  "uid": "1111111111111111111111111111111111111111111111111111111111111111",
+  "wireFormatId": "kcir.wire.lenprefixed-ref.v1"
+}

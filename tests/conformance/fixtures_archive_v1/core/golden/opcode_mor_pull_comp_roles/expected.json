@@ -1,0 +1,15 @@
+{
+  "certId": "dddee544bcf0aad5246975fe648af31ad5859da80e9409bba4541f09f2a8b218",
+  "expOut": "eb9e21d861399c09a1512399960ed42a584d80efb3048e2dc4b4d4cb0b45244f",
+  "inMorH": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "kind": "M_PULL_COMP",
+  "mkOut": "eb9e21d861399c09a1512399960ed42a584d80efb3048e2dc4b4d4cb0b45244f",
+  "out": "eb9e21d861399c09a1512399960ed42a584d80efb3048e2dc4b4d4cb0b45244f",
+  "overlayMorBytesHex": "13e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e202432971f8576cc47bf13edb4e309d7a2fe30f6677feb4deed811c73c13d207779d2374c3e003cd19c999e1468b6982ebbae12cffda8ed420e7b821a7ce27d12db",
+  "pId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "pulledParts": [
+    "432971f8576cc47bf13edb4e309d7a2fe30f6677feb4deed811c73c13d207779",
+    "d2374c3e003cd19c999e1468b6982ebbae12cffda8ed420e7b821a7ce27d12db"
+  ],
+  "stepTag": 2
+}

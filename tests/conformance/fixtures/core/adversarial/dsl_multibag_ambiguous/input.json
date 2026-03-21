@@ -1,0 +1,28 @@
+{
+  "deps": [
+    { "sort": 3, "opcode": 2, "meta": { "kind": "O_PRIM", "slot": "x" } },
+    { "sort": 3, "opcode": 2, "meta": { "kind": "O_PRIM", "slot": "x" } }
+  ],
+  "spec": {
+    "pos": "anywhere",
+    "consumeAll": false,
+    "bags": [
+      {
+        "name": "a",
+        "pred": { "sort": 3, "opcode": 2, "metaEq": { "kind": "O_PRIM" } },
+        "keyOf": { "meta": "slot" },
+        "expectedKeys": ["x"],
+        "mode": "unordered",
+        "pos": "anywhere"
+      },
+      {
+        "name": "b",
+        "pred": { "sort": 3, "opcode": 2, "metaEq": { "kind": "O_PRIM" } },
+        "keyOf": { "meta": "slot" },
+        "expectedKeys": ["x"],
+        "mode": "unordered",
+        "pos": "anywhere"
+      }
+    ]
+  }
+}

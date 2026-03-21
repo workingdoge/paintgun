@@ -1,0 +1,7 @@
+{
+  "spacing": {
+    "$type": "dimension",
+    "$root": { "$value": { "value": 16, "unit": "px" } },
+    "tight": { "$value": { "value": 8, "unit": "px" } }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "node": {
+    "envSig": "0000000000000000000000000000000000000000000000000000000000000000",
+    "uid": "1111111111111111111111111111111111111111111111111111111111111111",
+    "sort": 3,
+    "opcode": 16,
+    "out": "fdfce0b81482761f5e2cd404afccb72b872715a65494fcfb62719e26b98fa0ed",
+    "argsHex": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5fdfce0b81482761f5e2cd404afccb72b872715a65494fcfb62719e26b98fa0ed00",
+    "deps": []
+  },
+  "objStore": {
+    "fdfce0b81482761f5e2cd404afccb72b872715a65494fcfb62719e26b98fa0ed": "04cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc7060d5a26e41cc174a1921052928d27966f16e13e2adb2c67359e4735000a8f9",
+    "7060d5a26e41cc174a1921052928d27966f16e13e2adb2c67359e4735000a8f9": "04aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "baseApi": {
+    "enforceCanonicalNf": true,
+    "idMaps": [
+      "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5"
+    ]
+  },
+  "depRecords": []
+}

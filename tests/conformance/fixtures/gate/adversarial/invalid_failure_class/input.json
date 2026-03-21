@@ -1,0 +1,13 @@
+{
+  "witnessSchema": 1,
+  "profile": "full",
+  "result": "rejected",
+  "failures": [
+    {
+      "witnessId": "bad-002",
+      "class": "sigma_pi_coherence_failure",
+      "lawRef": "GATE-3.5",
+      "message": "legacy class should be rejected"
+    }
+  ]
+}

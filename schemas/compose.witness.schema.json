@@ -1,0 +1,109 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://tbp.dev/schemas/compose.witness.schema.json",
+  "title": "TBP Compose Witnesses",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["witnessSchema", "conflictMode", "policyDigest", "conflicts"],
+  "properties": {
+    "witnessSchema": {
+      "type": "integer",
+      "enum": [1]
+    },
+    "conflictMode": {
+      "type": "string",
+      "enum": ["semantic", "normalized"]
+    },
+    "policyDigest": { "type": "string" },
+    "normalizerVersion": { "type": "string" },
+    "conflicts": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/conflictWitness" }
+    }
+  },
+  "definitions": {
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceId",
+        "resolutionLayerId",
+        "resolutionRank",
+        "packId",
+        "packHash",
+        "filePath",
+        "fileHash",
+        "jsonPointer"
+      ],
+      "properties": {
+        "sourceId": { "type": "string" },
+        "resolutionLayerId": { "type": "string" },
+        "resolutionRank": { "type": "integer", "minimum": 0 },
+        "packId": { "type": "string" },
+        "packVersion": { "type": "string" },
+        "packHash": { "type": "string" },
+        "filePath": { "type": "string" },
+        "fileHash": { "type": "string" },
+        "jsonPointer": { "type": "string" }
+      }
+    },
+    "candidateSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["context", "provenance"],
+      "properties": {
+        "context": { "type": "string" },
+        "provenance": { "$ref": "#/definitions/provenance" }
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pack", "valueType", "value_json", "value_digest", "sources"],
+      "properties": {
+        "pack": { "type": "string" },
+        "valueType": { "type": "string" },
+        "value_json": { "type": "string" },
+        "value_digest": { "type": "string" },
+        "inheritedFrom": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/witnessRef" }
+        },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/candidateSource" }
+        }
+      }
+    },
+    "witnessRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pack", "witnessType", "witnessId"],
+      "properties": {
+        "pack": { "type": "string" },
+        "witnessType": {
+          "type": "string",
+          "enum": ["inherited", "conflict"]
+        },
+        "witnessId": { "type": "string" }
+      }
+    },
+    "conflictWitness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["witnessId", "token_path", "context", "candidates", "winner_pack"],
+      "properties": {
+        "witnessId": { "type": "string" },
+        "token_path": { "type": "string" },
+        "context": { "type": "string" },
+        "candidates": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/definitions/candidate" }
+        },
+        "winner_pack": { "type": "string" }
+      }
+    }
+  }
+}

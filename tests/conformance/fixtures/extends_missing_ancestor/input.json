@@ -1,0 +1,6 @@
+{
+  "brand": {
+    "$extends": "base",
+    "sm": { "$value": { "value": 8, "unit": "px" } }
+  }
+}

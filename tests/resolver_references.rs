@@ -1,0 +1,366 @@
+use std::collections::BTreeMap;
+use std::fs;
+use std::path::{Path, PathBuf};
+use std::time::{SystemTime, UNIX_EPOCH};
+
+use tbp::dtcg::{DimensionUnit, DtcgValue};
+use tbp::resolver::{
+    build_token_store_for_inputs, read_json_file, Input, ResolverDoc, ResolverError,
+};
+
+fn temp_dir(prefix: &str) -> PathBuf {
+    let ts = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("clock")
+        .as_nanos();
+    let dir = std::env::temp_dir().join(format!("tbp-{prefix}-{}-{ts}", std::process::id()));
+    fs::create_dir_all(&dir).expect("create temp dir");
+    dir
+}
+
+fn write_json(path: &Path, value: serde_json::Value) {
+    let bytes = serde_json::to_vec_pretty(&value).expect("serialize json");
+    fs::write(path, bytes).expect("write json");
+}
+
+fn dimension_value(token: &tbp::resolver::ResolvedToken) -> (String, DimensionUnit) {
+    match &token.value {
+        DtcgValue::Dimension(d) => (d.value.0.clone(), d.unit.clone()),
+        other => panic!(
+            "expected dimension token, got {}",
+            other.to_canonical_json_string()
+        ),
+    }
+}
+
+fn set_input(axis: &str, value: &str) -> Input {
+    let mut input = BTreeMap::new();
+    input.insert(axis.to_string(), value.to_string());
+    input
+}
+
+#[test]
+fn resolution_order_reference_objects_are_supported() {
+    let root = temp_dir("resolver-order-ref-object");
+    let tokens = root.join("tokens");
+    fs::create_dir_all(&tokens).expect("tokens dir");
+
+    write_json(
+        &tokens.join("base.json"),
+        serde_json::json!({
+            "space": {
+                "$type": "dimension",
+                "md": { "$value": { "value": "4", "unit": "px" } }
+            }
+        }),
+    );
+    write_json(
+        &tokens.join("dark.json"),
+        serde_json::json!({
+            "space": {
+                "md": { "$value": { "value": "8", "unit": "px" } }
+            }
+        }),
+    );
+
+    let resolver_path = root.join("resolver.json");
+    write_json(
+        &resolver_path,
+        serde_json::json!({
+            "version": "2025.10",
+            "sets": {
+                "base": { "sources": [ { "$ref": "tokens/base.json" } ] }
+            },
+            "modifiers": {
+                "theme": {
+                    "contexts": {
+                        "dark": { "sources": [ { "$ref": "tokens/dark.json" } ] }
+                    }
+                }
+            },
+            "resolutionOrder": [
+                { "$ref": "#/sets/base" },
+                { "$ref": "#/modifiers/theme" }
+            ]
+        }),
+    );
+
+    let doc: ResolverDoc = read_json_file(&resolver_path).expect("resolver doc");
+    let input = set_input("theme", "dark");
+    let store = build_token_store_for_inputs(&doc, &resolver_path, &[input.clone()])
+        .expect("build token store");
+    let token = store
+        .token_at("space.md", &input)
+        .expect("resolved token space.md");
+    let (value, unit) = dimension_value(token);
+    assert_eq!(value, "8");
+    assert_eq!(unit, DimensionUnit::Px);
+}
+
+#[test]
+fn resolution_order_unknown_reference_is_error() {
+    let root = temp_dir("resolver-order-invalid-ref");
+    let resolver_path = root.join("resolver.json");
+    write_json(
+        &resolver_path,
+        serde_json::json!({
+            "version": "2025.10",
+            "sets": {
+                "base": { "sources": [ {} ] }
+            },
+            "modifiers": {},
+            "resolutionOrder": [ { "$ref": "#/sets/missing" } ]
+        }),
+    );
+
+    let doc: ResolverDoc = read_json_file(&resolver_path).expect("resolver doc");
+    let err = build_token_store_for_inputs(&doc, &resolver_path, &[Input::new()])
+        .expect_err("expected invalid resolver ref");
+    match err {
+        ResolverError::InvalidResolverRef { reference, reason } => {
+            assert_eq!(reference, "#/sets/missing");
+            assert!(
+                reason.contains("unknown set"),
+                "unexpected reason: {reason}"
+            );
+        }
+        other => panic!("expected invalid resolver ref error, got {other}"),
+    }
+}
+
+#[test]
+fn unknown_input_axis_or_value_is_error() {
+    let root = temp_dir("resolver-invalid-input");
+    let resolver_path = root.join("resolver.json");
+    write_json(
+        &resolver_path,
+        serde_json::json!({
+            "version": "2025.10",
+            "sets": {
+                "base": { "sources": [ {} ] }
+            },
+            "modifiers": {
+                "theme": {
+                    "contexts": {
+                        "light": { "sources": [ {} ] },
+                        "dark": { "sources": [ {} ] }
+                    }
+                }
+            },
+            "resolutionOrder": [
+                { "$ref": "#/sets/base" },
+                { "$ref": "#/modifiers/theme" }
+            ]
+        }),
+    );
+    let doc: ResolverDoc = read_json_file(&resolver_path).expect("resolver doc");
+
+    let bad_axis = set_input("unknown", "x");
+    let err = build_token_store_for_inputs(&doc, &resolver_path, &[bad_axis])
+        .expect_err("expected invalid resolver input");
+    match err {
+        ResolverError::InvalidResolverInput {
+            axis,
+            value,
+            reason,
+        } => {
+            assert_eq!(axis, "unknown");
+            assert_eq!(value, "x");
+            assert!(
+                reason.contains("unknown modifier axis"),
+                "unexpected reason: {reason}"
+            );
+        }
+        other => panic!("expected invalid resolver input error, got {other}"),
+    }
+
+    let bad_value = set_input("theme", "neon");
+    let err = build_token_store_for_inputs(&doc, &resolver_path, &[bad_value])
+        .expect_err("expected invalid resolver input");
+    match err {
+        ResolverError::InvalidResolverInput {
+            axis,
+            value,
+            reason,
+        } => {
+            assert_eq!(axis, "theme");
+            assert_eq!(value, "neon");
+            assert!(
+                reason.contains("unknown modifier context value"),
+                "unexpected reason: {reason}"
+            );
+        }
+        other => panic!("expected invalid resolver input error, got {other}"),
+    }
+}
+
+#[test]
+fn source_reference_to_set_with_local_overrides_is_supported() {
+    let root = temp_dir("resolver-source-local-set-ref");
+    let resolver_path = root.join("resolver.json");
+    write_json(
+        &resolver_path,
+        serde_json::json!({
+            "version": "2025.10",
+            "sets": {
+                "base": {
+                    "sources": [
+                        {
+                            "space": {
+                                "$type": "dimension",
+                                "md": { "$value": { "value": "4", "unit": "px" } }
+                            }
+                        }
+                    ]
+                }
+            },
+            "modifiers": {
+                "theme": {
+                    "contexts": {
+                        "dark": {
+                            "sources": [
+                                {
+                                    "$ref": "#/sets/base",
+                                    "space": {
+                                        "$type": "dimension",
+                                        "md": { "$value": { "value": "8", "unit": "px" } }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "resolutionOrder": [ { "$ref": "#/modifiers/theme" } ]
+        }),
+    );
+
+    let doc: ResolverDoc = read_json_file(&resolver_path).expect("resolver doc");
+    let input = set_input("theme", "dark");
+    let store = build_token_store_for_inputs(&doc, &resolver_path, &[input.clone()])
+        .expect("build token store");
+    let token = store
+        .token_at("space.md", &input)
+        .expect("resolved token space.md");
+    let (value, unit) = dimension_value(token);
+    assert_eq!(value, "8");
+    assert_eq!(unit, DimensionUnit::Px);
+}
+
+#[test]
+fn source_reference_to_modifier_is_rejected() {
+    let root = temp_dir("resolver-source-modifier-ref-rejected");
+    let resolver_path = root.join("resolver.json");
+    write_json(
+        &resolver_path,
+        serde_json::json!({
+            "version": "2025.10",
+            "sets": {
+                "base": { "sources": [ { "$ref": "#/modifiers/theme" } ] }
+            },
+            "modifiers": {
+                "theme": {
+                    "contexts": {
+                        "dark": { "sources": [ {} ] }
+                    }
+                }
+            },
+            "resolutionOrder": [ { "$ref": "#/sets/base" } ]
+        }),
+    );
+
+    let doc: ResolverDoc = read_json_file(&resolver_path).expect("resolver doc");
+    let err = build_token_store_for_inputs(&doc, &resolver_path, &[Input::new()])
+        .expect_err("expected invalid resolver ref");
+    match err {
+        ResolverError::InvalidResolverRef { reference, reason } => {
+            assert_eq!(reference, "#/modifiers/theme");
+            assert!(
+                reason.contains("sources may not reference modifiers"),
+                "unexpected reason: {reason}"
+            );
+        }
+        other => panic!("expected invalid resolver ref error, got {other}"),
+    }
+}
+
+#[test]
+fn token_store_build_fails_fast_on_alias_errors() {
+    let root = temp_dir("resolver-fail-fast-alias");
+    let resolver_path = root.join("resolver.json");
+    write_json(
+        &resolver_path,
+        serde_json::json!({
+            "version": "2025.10",
+            "sets": {
+                "base": {
+                    "sources": [
+                        {
+                            "color": {
+                                "$type": "number",
+                                "a": { "$value": "{color.missing}" }
+                            }
+                        }
+                    ]
+                }
+            },
+            "modifiers": {},
+            "resolutionOrder": [ { "$ref": "#/sets/base" } ]
+        }),
+    );
+
+    let doc: ResolverDoc = read_json_file(&resolver_path).expect("resolver doc");
+    let err = build_token_store_for_inputs(&doc, &resolver_path, &[Input::new()])
+        .expect_err("expected unresolved alias error");
+    match err {
+        ResolverError::UnresolvedAlias { path, r#ref } => {
+            assert_eq!(path, "color.a");
+            assert_eq!(r#ref, "color.missing");
+        }
+        other => panic!("expected unresolved alias error, got {other}"),
+    }
+}
+
+#[test]
+fn token_store_build_fails_fast_on_type_canonicalization_errors() {
+    let root = temp_dir("resolver-fail-fast-canonicalization");
+    let resolver_path = root.join("resolver.json");
+    write_json(
+        &resolver_path,
+        serde_json::json!({
+            "version": "2025.10",
+            "sets": {
+                "base": {
+                    "sources": [
+                        {
+                            "dimension": {
+                                "space": {
+                                    "md": {
+                                        "$type": "dimension",
+                                        "$value": { "value": "8" }
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "modifiers": {},
+            "resolutionOrder": [ { "$ref": "#/sets/base" } ]
+        }),
+    );
+
+    let doc: ResolverDoc = read_json_file(&resolver_path).expect("resolver doc");
+    let err = build_token_store_for_inputs(&doc, &resolver_path, &[Input::new()])
+        .expect_err("expected canonicalization invalid type error");
+    match err {
+        ResolverError::InvalidType { path, reason, .. } => {
+            assert_eq!(path, "dimension.space.md");
+            assert!(
+                reason.contains("missing unit"),
+                "unexpected reason: {reason}"
+            );
+        }
+        other => panic!("expected invalid type error, got {other}"),
+    }
+}

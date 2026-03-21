@@ -1,0 +1,12 @@
+{
+  "certId": "6871675111ccb74a72719cd1c583162f58e7ccec4835c29b14a80c8bc5a3db8b",
+  "expOut": "419150158c336c7b29c24dcd72d1c3626793f1bc8c37cfadc839d61724110286",
+  "kind": "M_MKTENSOR",
+  "out": "419150158c336c7b29c24dcd72d1c3626793f1bc8c37cfadc839d61724110286",
+  "overlayMorBytesHex": "18aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc01bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "parts": [
+    "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  ],
+  "srcH": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "tgtH": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+}

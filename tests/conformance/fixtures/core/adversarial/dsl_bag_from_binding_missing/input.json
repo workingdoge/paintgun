@@ -1,0 +1,15 @@
+{
+  "deps": [
+    { "sort": 3, "opcode": 2, "meta": { "kind": "O_PRIM", "slot": "a" } }
+  ],
+  "spec": {
+    "pred": { "sort": 3, "opcode": 2, "metaEq": { "kind": "O_PRIM" } },
+    "keyOf": { "meta": "slot" },
+    "expectedKeysFromBinding": {
+      "binding": "missing",
+      "keyOf": { "meta": "slot" }
+    },
+    "mode": "unordered",
+    "pos": "anywhere"
+  }
+}

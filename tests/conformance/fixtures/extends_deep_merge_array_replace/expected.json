@@ -1,0 +1,33 @@
+{
+  "base": {
+    "$type": "typography",
+    "headline": {
+      "$value": {
+        "axis": [
+          "wght",
+          "opsz"
+        ],
+        "fontFamily": "Inter",
+        "fontSize": {
+          "unit": "px",
+          "value": "24"
+        }
+      }
+    }
+  },
+  "brand": {
+    "$type": "typography",
+    "headline": {
+      "$value": {
+        "axis": [
+          "wght"
+        ],
+        "fontFamily": "Inter",
+        "fontSize": {
+          "unit": "px",
+          "value": "24"
+        }
+      }
+    }
+  }
+}

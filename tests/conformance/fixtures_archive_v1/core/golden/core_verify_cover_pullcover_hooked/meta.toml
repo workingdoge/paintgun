@@ -1,0 +1,2 @@
+mode = "core-verify"
+expect = "ok"

@@ -1,0 +1,32 @@
+[
+  {
+    "path": "brand colors.aliasCurly",
+    "type": "number",
+    "value": "4"
+  },
+  {
+    "path": "brand colors.aliasPointer",
+    "type": "number",
+    "value": "4"
+  },
+  {
+    "path": "brand colors.primary",
+    "type": "number",
+    "value": "4"
+  },
+  {
+    "path": "my/group~family.aliasCurly",
+    "type": "number",
+    "value": "8"
+  },
+  {
+    "path": "my/group~family.aliasPointer",
+    "type": "number",
+    "value": "8"
+  },
+  {
+    "path": "my/group~family.token",
+    "type": "number",
+    "value": "8"
+  }
+]

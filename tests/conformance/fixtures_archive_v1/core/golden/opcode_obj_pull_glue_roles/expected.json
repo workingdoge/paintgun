@@ -1,0 +1,15 @@
+{
+  "certId": "74fe22a32145ffc293455fdd8f1da0d35bd1ef3590e899e85fb040d07d46efde",
+  "coverOut": "8888888888888888888888888888888888888888888888888888888888888888",
+  "expOut": "84a610f9a5549046d2b41b31234201255358ca8f956fe85a7de3d412e86a3556",
+  "inObjH": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "kind": "O_PULL_GLUE",
+  "out": "84a610f9a5549046d2b41b31234201255358ca8f956fe85a7de3d412e86a3556",
+  "overlayObjBytesHex": "06888888888888888888888888888888888888888888888888888888888888888802d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1",
+  "pId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "pulledLocals": [
+    "d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2",
+    "d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1"
+  ],
+  "stepTag": 3
+}

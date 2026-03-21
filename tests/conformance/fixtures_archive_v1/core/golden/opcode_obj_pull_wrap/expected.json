@@ -1,0 +1,10 @@
+{
+  "certId": "46cd9ff0321a7f9077dee245968a47c5a09450b7efc9424d8cec74c800971b0f",
+  "expOut": "7060d5a26e41cc174a1921052928d27966f16e13e2adb2c67359e4735000a8f9",
+  "inObjH": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "kind": "O_PULL_WRAP",
+  "out": "7060d5a26e41cc174a1921052928d27966f16e13e2adb2c67359e4735000a8f9",
+  "overlayObjBytesHex": "04aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "pId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "stepTag": 6
+}

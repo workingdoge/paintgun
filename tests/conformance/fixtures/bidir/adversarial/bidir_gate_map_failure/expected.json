@@ -1,0 +1,92 @@
+{
+  "failures": [
+    {
+      "class": "adjoint_triple_coherence_failure",
+      "context": "mode:wellbeing,theme:dark",
+      "details": {
+        "axisA": "mode",
+        "axisB": "theme",
+        "sourceWitnessType": "bc_violation",
+        "valueA": "wellbeing",
+        "valueB": "dark"
+      },
+      "lawRef": "GATE-3.5",
+      "message": "context-change coherence failed for metric.level at mode:wellbeing,theme:dark",
+      "sources": [
+        {
+          "fileHash": "sha256:c4ae7bf9f61a4ee0e6d5e018b3fac48909151563f0e7755418945f458e026b11",
+          "filePath": "mode.wellbeing.tokens.json",
+          "jsonPointer": "/metric/level/$value",
+          "sourceId": "modifier:mode/wellbeing"
+        },
+        {
+          "fileHash": "sha256:63e60779b4ae680174a2859d0505782e01b2076980200efba6c893d11e6f36dd",
+          "filePath": "theme.dark.tokens.json",
+          "jsonPointer": "/metric/level/$value",
+          "sourceId": "modifier:theme/dark"
+        }
+      ],
+      "tokenPath": "metric.level",
+      "witnessId": "bc-f1cd2faef8d99798"
+    },
+    {
+      "class": "glue_non_contractible",
+      "context": "mode:wellbeing,theme:dark",
+      "details": {
+        "candidateCount": 2,
+        "sourceWitnessType": "kan_conflict"
+      },
+      "lawRef": "GATE-3.4",
+      "message": "non-unique glue for metric.level at mode:wellbeing,theme:dark",
+      "sources": [
+        {
+          "fileHash": "sha256:c4ae7bf9f61a4ee0e6d5e018b3fac48909151563f0e7755418945f458e026b11",
+          "filePath": "mode.wellbeing.tokens.json",
+          "jsonPointer": "/metric/level/$value",
+          "sourceId": "modifier:mode/wellbeing"
+        },
+        {
+          "fileHash": "sha256:63e60779b4ae680174a2859d0505782e01b2076980200efba6c893d11e6f36dd",
+          "filePath": "theme.dark.tokens.json",
+          "jsonPointer": "/metric/level/$value",
+          "sourceId": "modifier:theme/dark"
+        }
+      ],
+      "tokenPath": "metric.level",
+      "witnessId": "conflict-2b982baa67d6c1be"
+    },
+    {
+      "class": "stability_failure",
+      "context": "mode:wellbeing,theme:dark",
+      "details": {
+        "axisA": "mode",
+        "axisB": "theme",
+        "reason": "composition_non_commutative",
+        "sourceWitnessType": "stability_check",
+        "valueA": "wellbeing",
+        "valueB": "dark"
+      },
+      "lawRef": "GATE-3.1",
+      "message": "reindex composition does not commute for metric.level at mode:wellbeing,theme:dark",
+      "sources": [
+        {
+          "fileHash": "sha256:c4ae7bf9f61a4ee0e6d5e018b3fac48909151563f0e7755418945f458e026b11",
+          "filePath": "mode.wellbeing.tokens.json",
+          "jsonPointer": "/metric/level/$value",
+          "sourceId": "modifier:mode/wellbeing"
+        },
+        {
+          "fileHash": "sha256:63e60779b4ae680174a2859d0505782e01b2076980200efba6c893d11e6f36dd",
+          "filePath": "theme.dark.tokens.json",
+          "jsonPointer": "/metric/level/$value",
+          "sourceId": "modifier:theme/dark"
+        }
+      ],
+      "tokenPath": "metric.level",
+      "witnessId": "stability:metric.level:mode:wellbeing,theme:dark:composition_non_commutative"
+    }
+  ],
+  "profile": "full",
+  "result": "rejected",
+  "witnessSchema": 1
+}

@@ -1,0 +1,26 @@
+{
+  "matched": {
+    "meta": {
+      "kind": "O_PRIM"
+    },
+    "opcode": 2,
+    "sort": 3
+  },
+  "matchedIndex": 1,
+  "remaining": [
+    {
+      "meta": {
+        "kind": "O_UNIT"
+      },
+      "opcode": 1,
+      "sort": 3
+    },
+    {
+      "meta": {
+        "kind": "M_ID"
+      },
+      "opcode": 1,
+      "sort": 4
+    }
+  ]
+}

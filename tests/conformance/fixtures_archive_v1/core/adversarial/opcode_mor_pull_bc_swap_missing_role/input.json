@@ -1,0 +1,18 @@
+{
+  "node": {
+    "envSig": "0000000000000000000000000000000000000000000000000000000000000000",
+    "uid": "1111111111111111111111111111111111111111111111111111111111111111",
+    "sort": 4,
+    "opcode": 16,
+    "out": "abababababababababababababababababababababababababababababababab",
+    "argsHex": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb05",
+    "deps": [
+      "1111111111111111111111111111111111111111111111111111111111111111",
+      "3333333333333333333333333333333333333333333333333333333333333333"
+    ]
+  },
+  "depRecords": [
+    { "sort": 2, "opcode": 16, "out": "f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4" },
+    { "sort": 4, "opcode": 16, "out": "c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6c6" }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "node": {
+    "envSig": "0000000000000000000000000000000000000000000000000000000000000000",
+    "uid": "1111111111111111111111111111111111111111111111111111111111111111",
+    "sort": 4,
+    "opcode": 3,
+    "out": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "argsHex": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb01612a191a8a96e6002f0caae6f43bdeb26db3a1e2859afe8c53fc26508f23357d",
+    "deps": []
+  },
+  "morStore": {
+    "612a191a8a96e6002f0caae6f43bdeb26db3a1e2859afe8c53fc26508f23357d": "11aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  }
+}

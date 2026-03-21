@@ -1,0 +1,10 @@
+{
+  "space": {
+    "$type": "dimension",
+    "bad": {
+      "$value": {
+        "value": 8
+      }
+    }
+  }
+}

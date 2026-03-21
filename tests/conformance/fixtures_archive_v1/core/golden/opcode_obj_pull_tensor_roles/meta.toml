@@ -1,0 +1,2 @@
+mode = "opcode-obj"
+expect = "ok"

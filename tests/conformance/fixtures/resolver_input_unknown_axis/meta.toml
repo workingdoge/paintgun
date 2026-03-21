@@ -1,0 +1,4 @@
+mode = "resolver"
+expect = "error"
+error_code = "invalid_resolver_input"
+error_contains = "unknown modifier axis"

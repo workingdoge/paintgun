@@ -1,0 +1,69 @@
+{
+  "$description": "Component contracts — slot definitions that bind tokens to CSS properties",
+
+  "aas-button": {
+    "component": "aas-button",
+    "description": "Primary action button",
+    "slots": {
+      "bg": {
+        "token": "color.surface.bg",
+        "property": "background"
+      },
+      "fg": {
+        "token": "color.text.primary",
+        "property": "color"
+      },
+      "border": {
+        "token": "color.surface.border",
+        "property": "border-color"
+      },
+      "radius": {
+        "token": "dimension.radius.md",
+        "property": "border-radius"
+      },
+      "padding-x": {
+        "token": "dimension.space.md",
+        "property": "padding-inline"
+      },
+      "padding-y": {
+        "token": "dimension.space.sm",
+        "property": "padding-block"
+      },
+      "transition": {
+        "token": "duration.fast",
+        "property": "transition-duration"
+      }
+    }
+  },
+
+  "aas-card": {
+    "component": "aas-card",
+    "description": "Content card container",
+    "slots": {
+      "bg": {
+        "token": "color.surface.bg",
+        "property": "background"
+      },
+      "border": {
+        "token": "color.surface.border",
+        "property": "border-color"
+      },
+      "radius": {
+        "token": "dimension.radius.lg",
+        "property": "border-radius"
+      },
+      "padding": {
+        "token": "dimension.space.lg",
+        "property": "padding"
+      },
+      "text": {
+        "token": "color.text.primary",
+        "property": "color"
+      },
+      "muted": {
+        "token": "color.text.muted",
+        "property": "--card-muted"
+      }
+    }
+  }
+}

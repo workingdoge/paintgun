@@ -1,0 +1,44 @@
+{
+  "node": {
+    "envSig": "0000000000000000000000000000000000000000000000000000000000000000",
+    "uid": "1111111111111111111111111111111111111111111111111111111111111111",
+    "sort": 3,
+    "opcode": 16,
+    "out": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "argsHex": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb02",
+    "deps": [
+      "0101010101010101010101010101010101010101010101010101010101010101",
+      "0202020202020202020202020202020202020202020202020202020202020202",
+      "0303030303030303030303030303030303030303030303030303030303030303"
+    ]
+  },
+  "objStore": {
+    "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb": "030201010101010101010101010101010101010101010101010101010101010101010202020202020202020202020202020202020202020202020202020202020202"
+  },
+  "depRecords": [
+    {
+      "sort": 3,
+      "opcode": 3,
+      "out": "bde94142600ca1ed31efeace0cd1e4134a82363a7e1fe69c306898fb28e0eb97",
+      "meta": {}
+    },
+    {
+      "sort": 3,
+      "opcode": 16,
+      "out": "d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1",
+      "meta": {
+        "pId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "inObjH": "0101010101010101010101010101010101010101010101010101010101010101"
+      }
+    },
+    {
+      "sort": 3,
+      "opcode": 16,
+      "out": "d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2",
+      "meta": {
+        "pId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "inObjH": "0202020202020202020202020202020202020202020202020202020202020202"
+      }
+    }
+  ]
+}

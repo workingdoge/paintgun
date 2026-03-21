@@ -1,0 +1,10 @@
+{
+  "float_precision": 4,
+  "duration": {
+    "prefer": "ms"
+  },
+  "dimension": {
+    "rem_base_px": 16
+  },
+  "css_color": "preserve-space"
+}
