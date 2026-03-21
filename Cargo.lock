@@ -1250,6 +1250,8 @@ dependencies = [
 name = "tbp-resolver-kernel"
 version = "0.1.0"
 dependencies = [
+ "serde",
+ "serde_json",
  "tbp-dtcg",
  "tbp-resolver-model",
 ]

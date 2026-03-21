@@ -98,6 +98,59 @@ fn resolution_order_reference_objects_are_supported() {
 }
 
 #[test]
+fn resolution_order_reference_objects_support_local_overrides() {
+    let root = temp_dir("resolver-order-ref-overrides");
+    let tokens = root.join("tokens");
+    fs::create_dir_all(&tokens).expect("tokens dir");
+
+    write_json(
+        &tokens.join("base.json"),
+        serde_json::json!({
+            "space": {
+                "$type": "dimension",
+                "md": { "$value": { "value": "4", "unit": "px" } }
+            }
+        }),
+    );
+    write_json(
+        &tokens.join("override.json"),
+        serde_json::json!({
+            "space": {
+                "$type": "dimension",
+                "md": { "$value": { "value": "10", "unit": "px" } }
+            }
+        }),
+    );
+
+    let resolver_path = root.join("resolver.json");
+    write_json(
+        &resolver_path,
+        serde_json::json!({
+            "version": "2025.10",
+            "sets": {
+                "base": { "sources": [ { "$ref": "tokens/base.json" } ] }
+            },
+            "resolutionOrder": [
+                {
+                    "$ref": "#/sets/base",
+                    "sources": [ { "$ref": "tokens/override.json" } ]
+                }
+            ]
+        }),
+    );
+
+    let doc: ResolverDoc = read_json_file(&resolver_path).expect("resolver doc");
+    let store = build_token_store_for_inputs(&doc, &resolver_path, &[Input::new()])
+        .expect("build token store");
+    let token = store
+        .token_at("space.md", &Input::new())
+        .expect("resolved token space.md");
+    let (value, unit) = dimension_value(token);
+    assert_eq!(value, "10");
+    assert_eq!(unit, DimensionUnit::Px);
+}
+
+#[test]
 fn resolution_order_unknown_reference_is_error() {
     let root = temp_dir("resolver-order-invalid-ref");
     let resolver_path = root.join("resolver.json");

@@ -1,6 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::path::{Path, PathBuf};
 
+use serde::{de::DeserializeOwned, Serialize};
 use tbp_dtcg::{
     ColorComponent, ColorSpace, DimensionUnit, DtcgColor, DtcgDimension, DtcgDuration, DtcgType,
     DtcgValue, DurationUnit, JValue, NumLit,
@@ -288,6 +289,40 @@ where
     )
 }
 
+fn apply_resolution_order_overrides<T>(
+    pointer: &str,
+    kind: &str,
+    base: &T,
+    overrides: &BTreeMap<String, serde_json::Value>,
+) -> Result<T, FlattenError>
+where
+    T: Clone + DeserializeOwned + Serialize,
+{
+    if overrides.is_empty() {
+        return Ok(base.clone());
+    }
+
+    let mut value =
+        serde_json::to_value(base).map_err(|err| FlattenError::InvalidResolverRef {
+            reference: pointer.to_string(),
+            reason: format!("failed to serialize referenced {kind}: {err}"),
+        })?;
+    let obj = value
+        .as_object_mut()
+        .ok_or_else(|| FlattenError::InvalidResolverRef {
+            reference: pointer.to_string(),
+            reason: format!("referenced {kind} must serialize as an object"),
+        })?;
+    for (key, value) in overrides {
+        obj.insert(key.clone(), value.clone());
+    }
+
+    serde_json::from_value(value).map_err(|err| FlattenError::InvalidResolverRef {
+        reference: pointer.to_string(),
+        reason: format!("reference overrides do not produce a valid {kind}: {err}"),
+    })
+}
+
 fn resolve_order_entry<FResolvePath, FReadJson>(
     doc: &ResolverDoc,
     entry: &ResolverOrderEntry,
@@ -353,6 +388,12 @@ where
                             reference: pointer.to_string(),
                             reason: "points to unknown set".to_string(),
                         })?;
+                    let set = apply_resolution_order_overrides(
+                        pointer,
+                        "set",
+                        set,
+                        &entry.overrides,
+                    )?;
                     Ok(Some(load_sources(
                         doc,
                         &set.sources,
@@ -369,10 +410,16 @@ where
                                 reference: pointer.to_string(),
                                 reason: "points to unknown modifier".to_string(),
                             })?;
+                    let modifier = apply_resolution_order_overrides(
+                        pointer,
+                        "modifier",
+                        modifier,
+                        &entry.overrides,
+                    )?;
                     resolve_modifier(
                         doc,
                         mod_name,
-                        modifier,
+                        &modifier,
                         input,
                         base_dir,
                         resolve_existing_under,

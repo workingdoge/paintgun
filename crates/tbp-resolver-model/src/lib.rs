@@ -183,16 +183,9 @@ impl<'de> Deserialize<'de> for ResolverDoc {
                                 "resolutionOrder[{idx}].$ref must be a string"
                             ))
                         })?;
-                        if !obj.is_empty() {
-                            let mut keys: Vec<String> = obj.keys().cloned().collect();
-                            keys.sort();
-                            return Err(serde::de::Error::custom(format!(
-                                "resolutionOrder[{idx}] has unsupported field(s): {}; only \"$ref\" is allowed",
-                                keys.join(", ")
-                            )));
-                        }
                         ResolverOrderEntry::Ref(ResolverOrderRefObject {
                             r#ref: r.to_string(),
+                            overrides: obj.into_iter().collect(),
                         })
                     } else {
                         let kind = obj
@@ -285,6 +278,8 @@ impl<'de> Deserialize<'de> for ResolverDoc {
 pub struct ResolverOrderRefObject {
     #[serde(rename = "$ref")]
     pub r#ref: String,
+    #[serde(flatten)]
+    pub overrides: BTreeMap<String, JsonValue>,
 }
 
 impl ResolverOrderRefObject {
