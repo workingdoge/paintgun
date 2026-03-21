@@ -27,6 +27,8 @@ fn empty_doc() -> ResolverDoc {
         sets: HashMap::new(),
         modifiers: HashMap::new(),
         resolution_order: Vec::new(),
+        inline_sets: HashMap::new(),
+        inline_modifiers: HashMap::new(),
     }
 }
 

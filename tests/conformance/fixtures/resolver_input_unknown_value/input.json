@@ -1,20 +1,22 @@
 {
   "resolver": {
     "version": "2025.10",
-    "sets": {},
+    "sets": {
+    },
     "modifiers": {
       "theme": {
         "contexts": {
-          "dark": {
-            "sources": [
-              {}
-            ]
-          }
+          "dark": [
+            {
+            }
+          ]
         }
       }
     },
     "resolutionOrder": [
-      { "$ref": "#/modifiers/theme" }
+      {
+        "$ref": "#/modifiers/theme"
+      }
     ]
   },
   "input": {

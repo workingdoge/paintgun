@@ -44,12 +44,10 @@ pub fn build_explicit_index(
     let mut file_hash_cache: HashMap<PathBuf, String> = HashMap::new();
     let mut resolution_rank_by_layer: HashMap<String, u64> = HashMap::new();
     for (rank, entry) in doc.resolution_order.iter().enumerate() {
-        let ptr = entry.as_ref_str();
-        let segments: Vec<&str> = ptr.trim_start_matches("#/").split('/').collect();
-        if segments.len() >= 2 && segments[0] == "sets" {
-            resolution_rank_by_layer.insert(format!("set:{}", segments[1]), rank as u64);
-        } else if segments.len() >= 2 && segments[0] == "modifiers" {
-            resolution_rank_by_layer.insert(format!("modifier:{}", segments[1]), rank as u64);
+        if let Some(name) = entry.set_name() {
+            resolution_rank_by_layer.insert(format!("set:{name}"), rank as u64);
+        } else if let Some(name) = entry.modifier_name() {
+            resolution_rank_by_layer.insert(format!("modifier:{name}"), rank as u64);
         }
     }
 
@@ -156,61 +154,59 @@ pub fn build_explicit_index(
     let mut base_map: HashMap<String, TokenProvenance> = HashMap::new();
 
     for entry in &doc.resolution_order {
-        let ptr = entry.as_ref_str();
-        if let Some(rest) = ptr.strip_prefix("#/sets/") {
-            if let Some(set) = doc.sets.get(rest) {
-                for src in &set.sources {
-                    let tree = crate::resolver::load_source(doc, src, base_dir)?;
-                    let defs = collect_explicit_token_defs(&tree);
+        let Some(rest) = entry.set_name() else {
+            continue;
+        };
+        let set = if let Some((_, inline_set)) = entry.inline_set() {
+            inline_set
+        } else if let Some(root_set) = doc.sets.get(&rest) {
+            root_set
+        } else {
+            continue;
+        };
 
-                    for (p, json_pointer) in defs {
-                        base_map.insert(
-                            p.clone(),
-                            provenance_from_source(
-                                base_dir,
-                                src.r#ref.as_deref(),
-                                format!("set:{rest}"),
-                                Some(format!("set:{rest}")),
-                                resolution_rank_by_layer
-                                    .get(&format!("set:{rest}"))
-                                    .copied(),
-                                &p,
-                                Some(json_pointer),
-                                &mut file_hash_cache,
-                            ),
-                        );
-                    }
-                }
+        for src in &set.sources {
+            let tree = crate::resolver::load_source(doc, src, base_dir)?;
+            let defs = collect_explicit_token_defs(&tree);
+
+            for (p, json_pointer) in defs {
+                base_map.insert(
+                    p.clone(),
+                    provenance_from_source(
+                        base_dir,
+                        src.r#ref.as_deref(),
+                        format!("set:{rest}"),
+                        Some(format!("set:{rest}")),
+                        resolution_rank_by_layer.get(&format!("set:{rest}")).copied(),
+                        &p,
+                        Some(json_pointer),
+                        &mut file_hash_cache,
+                    ),
+                );
             }
         }
     }
 
     // Fallback: if resolutionOrder omits sets, include them in a deterministic order.
     if base_map.is_empty() {
-        let mut set_names: Vec<String> = doc.sets.keys().cloned().collect();
-        set_names.sort();
-        for rest in set_names {
-            if let Some(set) = doc.sets.get(&rest) {
-                for src in &set.sources {
-                    let tree = crate::resolver::load_source(doc, src, base_dir)?;
-                    let defs = collect_explicit_token_defs(&tree);
-                    for (p, json_pointer) in defs {
-                        base_map.insert(
-                            p.clone(),
-                            provenance_from_source(
-                                base_dir,
-                                src.r#ref.as_deref(),
-                                format!("set:{rest}"),
-                                Some(format!("set:{rest}")),
-                                resolution_rank_by_layer
-                                    .get(&format!("set:{rest}"))
-                                    .copied(),
-                                &p,
-                                Some(json_pointer),
-                                &mut file_hash_cache,
-                            ),
-                        );
-                    }
+        for (rest, set) in doc.all_sets() {
+            for src in &set.sources {
+                let tree = crate::resolver::load_source(doc, src, base_dir)?;
+                let defs = collect_explicit_token_defs(&tree);
+                for (p, json_pointer) in defs {
+                    base_map.insert(
+                        p.clone(),
+                        provenance_from_source(
+                            base_dir,
+                            src.r#ref.as_deref(),
+                            format!("set:{rest}"),
+                            Some(format!("set:{rest}")),
+                            resolution_rank_by_layer.get(&format!("set:{rest}")).copied(),
+                            &p,
+                            Some(json_pointer),
+                            &mut file_hash_cache,
+                        ),
+                    );
                 }
             }
         }
@@ -237,10 +233,10 @@ pub fn build_explicit_index(
     out.insert(base_key, base_map);
 
     // Single modifier contexts: scan only that modifier's sources (no sets) and attribute to the last writer.
-    for (axis, modifier) in &doc.modifiers {
+    for (axis, modifier) in doc.all_modifiers() {
         for (val, ctx) in &modifier.contexts {
             let mut map: HashMap<String, TokenProvenance> = HashMap::new();
-            for src in &ctx.sources {
+            for src in ctx {
                 let tree = crate::resolver::load_source(doc, src, base_dir)?;
                 let defs = collect_explicit_token_defs(&tree);
 
@@ -249,11 +245,11 @@ pub fn build_explicit_index(
                         p.clone(),
                         provenance_from_source(
                             base_dir,
-                            src.r#ref.as_deref(),
-                            format!("modifier:{axis}/{val}"),
-                            Some(format!("modifier:{axis}/{val}")),
-                            resolution_rank_by_layer
-                                .get(&format!("modifier:{axis}"))
+                                src.r#ref.as_deref(),
+                                format!("modifier:{axis}/{val}"),
+                                Some(format!("modifier:{axis}/{val}")),
+                                resolution_rank_by_layer
+                                    .get(&format!("modifier:{axis}"))
                                 .copied(),
                             &p,
                             Some(json_pointer),
@@ -264,7 +260,7 @@ pub fn build_explicit_index(
             }
 
             let mut input = Input::new();
-            input.insert(axis.clone(), val.clone());
+            input.insert(axis.to_string(), val.clone());
             out.insert(context_key(&input), map);
         }
     }
@@ -1307,7 +1303,7 @@ pub fn required_artifact_binding(
 
 fn collect_ref_paths(doc: &ResolverDoc, resolver_dir: &Path) -> Vec<PathBuf> {
     let mut out = Vec::new();
-    for set in doc.sets.values() {
+    for (_, set) in doc.all_sets() {
         for src in &set.sources {
             if let Some(r) = &src.r#ref {
                 if !r.starts_with("#/") {
@@ -1316,9 +1312,9 @@ fn collect_ref_paths(doc: &ResolverDoc, resolver_dir: &Path) -> Vec<PathBuf> {
             }
         }
     }
-    for modifier in doc.modifiers.values() {
+    for (_, modifier) in doc.all_modifiers() {
         for ctx in modifier.contexts.values() {
-            for src in &ctx.sources {
+            for src in ctx {
                 if let Some(r) = &src.r#ref {
                     if !r.starts_with("#/") {
                         out.push(resolver_dir.join(r));

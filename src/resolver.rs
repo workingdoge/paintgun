@@ -11,8 +11,9 @@ use crate::resolver_io::{
 };
 pub use tbp_resolver_model::{
     axes_from_doc, context_key, dedup_inputs_for_axes, parse_context_key, validate_input_selection,
-    Input, InputSelectionError, MaterializedToken, ResolvedToken, ResolverDoc, ResolverModifier,
-    ResolverModifierContext, ResolverOrderRefObject, ResolverSet, ResolverSource, TokenStore,
+    InlineResolverModifier, InlineResolverSet, Input, InputSelectionError, MaterializedToken,
+    ResolvedToken, ResolverDoc, ResolverModifier, ResolverModifierContext, ResolverOrderEntry,
+    ResolverOrderInlineType, ResolverOrderRefObject, ResolverSet, ResolverSource, TokenStore,
 };
 
 //──────────────────────────────────────────────────────────────────────────────

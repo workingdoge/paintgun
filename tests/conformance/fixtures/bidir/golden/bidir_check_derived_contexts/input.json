@@ -5,34 +5,42 @@
     "sets": {
       "foundation": {
         "sources": [
-          { "$ref": "base.tokens.json" }
+          {
+            "$ref": "base.tokens.json"
+          }
         ]
       }
     },
     "modifiers": {
       "theme": {
         "contexts": {
-          "dark": {
-            "sources": [
-              { "$ref": "theme.dark.tokens.json" }
-            ]
-          }
+          "dark": [
+            {
+              "$ref": "theme.dark.tokens.json"
+            }
+          ]
         }
       },
       "density": {
         "contexts": {
-          "compact": {
-            "sources": [
-              { "$ref": "density.compact.tokens.json" }
-            ]
-          }
+          "compact": [
+            {
+              "$ref": "density.compact.tokens.json"
+            }
+          ]
         }
       }
     },
     "resolutionOrder": [
-      { "$ref": "#/sets/foundation" },
-      { "$ref": "#/modifiers/theme" },
-      { "$ref": "#/modifiers/density" }
+      {
+        "$ref": "#/sets/foundation"
+      },
+      {
+        "$ref": "#/modifiers/theme"
+      },
+      {
+        "$ref": "#/modifiers/density"
+      }
     ]
   }
 }

@@ -2,20 +2,23 @@
   "resolver": {
     "name": "gate-analysis-locality-only",
     "version": "2025.10",
-    "sets": {},
+    "sets": {
+    },
     "modifiers": {
       "theme": {
         "contexts": {
-          "dark": {
-            "sources": [
-              { "$ref": "theme.dark.tokens.json" }
-            ]
-          }
+          "dark": [
+            {
+              "$ref": "theme.dark.tokens.json"
+            }
+          ]
         }
       }
     },
     "resolutionOrder": [
-      { "$ref": "#/modifiers/theme" }
+      {
+        "$ref": "#/modifiers/theme"
+      }
     ]
   }
 }

@@ -74,7 +74,7 @@ fn resolution_order_reference_objects_are_supported() {
             "modifiers": {
                 "theme": {
                     "contexts": {
-                        "dark": { "sources": [ { "$ref": "tokens/dark.json" } ] }
+                        "dark": [ { "$ref": "tokens/dark.json" } ]
                     }
                 }
             },
@@ -142,8 +142,8 @@ fn unknown_input_axis_or_value_is_error() {
             "modifiers": {
                 "theme": {
                     "contexts": {
-                        "light": { "sources": [ {} ] },
-                        "dark": { "sources": [ {} ] }
+                        "light": [ {} ],
+                        "dark": [ {} ]
                     }
                 }
             },
@@ -217,17 +217,15 @@ fn source_reference_to_set_with_local_overrides_is_supported() {
             "modifiers": {
                 "theme": {
                     "contexts": {
-                        "dark": {
-                            "sources": [
-                                {
-                                    "$ref": "#/sets/base",
-                                    "space": {
-                                        "$type": "dimension",
-                                        "md": { "$value": { "value": "8", "unit": "px" } }
-                                    }
+                        "dark": [
+                            {
+                                "$ref": "#/sets/base",
+                                "space": {
+                                    "$type": "dimension",
+                                    "md": { "$value": { "value": "8", "unit": "px" } }
                                 }
-                            ]
-                        }
+                            }
+                        ]
                     }
                 }
             },
@@ -261,7 +259,7 @@ fn source_reference_to_modifier_is_rejected() {
             "modifiers": {
                 "theme": {
                     "contexts": {
-                        "dark": { "sources": [ {} ] }
+                        "dark": [ {} ]
                     }
                 }
             },
@@ -319,6 +317,66 @@ fn token_store_build_fails_fast_on_alias_errors() {
         }
         other => panic!("expected unresolved alias error, got {other}"),
     }
+}
+
+#[test]
+fn inline_resolution_order_entries_and_optional_root_maps_are_supported() {
+    let root = temp_dir("resolver-inline-order");
+    let tokens = root.join("tokens");
+    fs::create_dir_all(&tokens).expect("tokens dir");
+
+    write_json(
+        &tokens.join("base.json"),
+        serde_json::json!({
+            "space": {
+                "$type": "dimension",
+                "md": { "$value": { "value": "4", "unit": "px" } }
+            }
+        }),
+    );
+    write_json(
+        &tokens.join("dark.json"),
+        serde_json::json!({
+            "space": {
+                "md": { "$value": { "value": "12", "unit": "px" } }
+            }
+        }),
+    );
+
+    let resolver_path = root.join("resolver.json");
+    write_json(
+        &resolver_path,
+        serde_json::json!({
+            "version": "2025.10",
+            "resolutionOrder": [
+                {
+                    "type": "set",
+                    "name": "base",
+                    "sources": [ { "$ref": "tokens/base.json" } ]
+                },
+                {
+                    "type": "modifier",
+                    "name": "theme",
+                    "contexts": {
+                        "dark": [ { "$ref": "tokens/dark.json" } ],
+                        "light": []
+                    },
+                    "default": "light"
+                }
+            ]
+        }),
+    );
+
+    let doc: ResolverDoc = read_json_file(&resolver_path).expect("resolver doc");
+    let input = set_input("theme", "dark");
+    let store = build_token_store_for_inputs(&doc, &resolver_path, &[input.clone()])
+        .expect("build token store");
+    let token = store
+        .token_at("space.md", &input)
+        .expect("resolved token space.md");
+    let (value, unit) = dimension_value(token);
+    assert_eq!(value, "12");
+    assert_eq!(unit, DimensionUnit::Px);
 }
 
 #[test]

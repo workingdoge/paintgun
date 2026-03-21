@@ -13,36 +13,32 @@ fn alias_derived_conflict_candidates_point_to_defining_leaves() {
         "modifiers": {
             "theme": {
                 "contexts": {
-                    "dark": {
-                        "sources": [
-                            {
-                                "color": {
-                                    "$type": "number",
-                                    "sourceA": { "$value": 1 },
-                                    "surface": {
-                                        "bg": { "$value": "{color.sourceA}" }
-                                    }
+                    "dark": [
+                        {
+                            "color": {
+                                "$type": "number",
+                                "sourceA": { "$value": 1 },
+                                "surface": {
+                                    "bg": { "$value": "{color.sourceA}" }
                                 }
                             }
-                        ]
-                    }
+                        }
+                    ]
                 }
             },
             "mode": {
                 "contexts": {
-                    "wellbeing": {
-                        "sources": [
-                            {
-                                "color": {
-                                    "$type": "number",
-                                    "sourceB": { "$value": 2 },
-                                    "surface": {
-                                        "bg": { "$value": "{color.sourceB}" }
-                                    }
+                    "wellbeing": [
+                        {
+                            "color": {
+                                "$type": "number",
+                                "sourceB": { "$value": 2 },
+                                "surface": {
+                                    "bg": { "$value": "{color.sourceB}" }
                                 }
                             }
-                        ]
-                    }
+                        }
+                    ]
                 }
             }
         },

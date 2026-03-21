@@ -26,34 +26,30 @@ fn duration_conflict_doc() -> ResolverDoc {
         "modifiers": {
             "theme": {
                 "contexts": {
-                    "dark": {
-                        "sources": [{
-                            "motion": {
-                                "duration": {
-                                    "fast": {
-                                        "$type": "duration",
-                                        "$value": { "value": 1, "unit": "s" }
-                                    }
+                    "dark": [{
+                        "motion": {
+                            "duration": {
+                                "fast": {
+                                    "$type": "duration",
+                                    "$value": { "value": 1, "unit": "s" }
                                 }
                             }
-                        }]
-                    }
+                        }
+                    }]
                 }
             },
             "mode": {
                 "contexts": {
-                    "wellbeing": {
-                        "sources": [{
-                            "motion": {
-                                "duration": {
-                                    "fast": {
-                                        "$type": "duration",
-                                        "$value": { "value": 1000, "unit": "ms" }
-                                    }
+                    "wellbeing": [{
+                        "motion": {
+                            "duration": {
+                                "fast": {
+                                    "$type": "duration",
+                                    "$value": { "value": 1000, "unit": "ms" }
                                 }
                             }
-                        }]
-                    }
+                        }
+                    }]
                 }
             }
         },

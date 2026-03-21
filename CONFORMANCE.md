@@ -24,7 +24,7 @@ Status labels:
 
 | Feature | Status | Evidence |
 |---|---|---|
-| Resolver `resolutionOrder` reference-object entries only (`{ "$ref": "#/..." }`) | supported | `tests/conformance/fixtures/resolver_resolution_order_string_entry_rejected`, `tests/resolver_references.rs` |
+| Resolver 2025.10 `resolutionOrder` entries (reference objects plus inline `set`/`modifier` objects), optional root `sets`/`modifiers`, and modifier context arrays | supported | `tests/conformance/fixtures/resolver_resolution_order_string_entry_rejected`, `tests/resolver_references.rs`, `tests/resolution_order_guardrail.rs` |
 | Resolver strict reference/input diagnostics (invalid refs, local source-ref cycles, invalid input axis/value, invalid modifier default) | supported | `tests/conformance/fixtures/resolver_resolution_order_bad_ref_shape`, `tests/conformance/fixtures/resolver_source_ref_cycle`, `tests/conformance/fixtures/resolver_default_missing_context`, `tests/conformance/fixtures/resolver_input_unknown_axis`, `tests/conformance/fixtures/resolver_input_unknown_value`, `tests/resolver_references.rs` |
 | Curly-brace token-path aliases (`{color.base}`) | supported | `tests/conformance/fixtures/alias_token_path_chain` |
 | Nested alias chain resolution | supported | `tests/conformance/fixtures/alias_token_path_chain` |

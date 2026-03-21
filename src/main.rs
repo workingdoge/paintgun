@@ -477,15 +477,14 @@ fn layer_order_from_doc(doc: &ResolverDoc) -> Vec<String> {
     // Respect resolver `resolutionOrder` to stabilize modifier order.
     let mut mods: Vec<String> = Vec::new();
     for entry in &doc.resolution_order {
-        let ptr = entry.as_ref_str();
-        if let Some(rest) = ptr.strip_prefix("#/modifiers/") {
-            if !mods.iter().any(|m| m == rest) {
-                mods.push(rest.to_string());
+        if let Some(name) = entry.modifier_name() {
+            if !mods.iter().any(|m| m == &name) {
+                mods.push(name);
             }
         }
     }
     if mods.is_empty() {
-        mods.extend(doc.modifiers.keys().cloned());
+        mods.extend(doc.all_modifiers().into_iter().map(|(name, _)| name.to_string()));
         mods.sort();
     }
     names.extend(mods.clone());

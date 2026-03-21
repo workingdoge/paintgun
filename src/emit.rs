@@ -14,18 +14,17 @@ pub use tbp_emit::{
 
 pub fn build_layer_defs(doc: &ResolverDoc) -> Vec<LayerDef> {
     let mut axes: BTreeMap<String, Vec<String>> = BTreeMap::new();
-    for (mod_name, modifier) in &doc.modifiers {
+    for (mod_name, modifier) in doc.all_modifiers() {
         let mut vals: Vec<String> = modifier.contexts.keys().cloned().collect();
         vals.sort();
-        axes.insert(mod_name.clone(), vals);
+        axes.insert(mod_name.to_string(), vals);
     }
 
     let mut mod_names: Vec<String> = Vec::new();
     for entry in &doc.resolution_order {
-        let ptr = entry.as_ref_str();
-        if let Some(rest) = ptr.strip_prefix("#/modifiers/") {
-            if !mod_names.iter().any(|m| m == rest) {
-                mod_names.push(rest.to_string());
+        if let Some(name) = entry.modifier_name() {
+            if !mod_names.iter().any(|m| m == &name) {
+                mod_names.push(name);
             }
         }
     }

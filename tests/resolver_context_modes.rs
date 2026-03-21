@@ -95,20 +95,20 @@ fn build_fixture(root: &Path) -> (ResolverDoc, PathBuf) {
           "modifiers": {
             "theme": {
               "contexts": {
-                "dark": { "sources": [ { "$ref": "tokens/theme.dark.tokens.json" } ] },
-                "light": { "sources": [ { "$ref": "tokens/theme.light.tokens.json" } ] }
+                "dark": [ { "$ref": "tokens/theme.dark.tokens.json" } ],
+                "light": [ { "$ref": "tokens/theme.light.tokens.json" } ]
               }
             },
             "density": {
               "contexts": {
-                "compact": { "sources": [ { "$ref": "tokens/density.compact.tokens.json" } ] },
-                "comfortable": { "sources": [ { "$ref": "tokens/density.comfortable.tokens.json" } ] }
+                "compact": [ { "$ref": "tokens/density.compact.tokens.json" } ],
+                "comfortable": [ { "$ref": "tokens/density.comfortable.tokens.json" } ]
               }
             },
             "motion": {
               "contexts": {
-                "reduced": { "sources": [ { "$ref": "tokens/motion.reduced.tokens.json" } ] },
-                "normal": { "sources": [ { "$ref": "tokens/motion.normal.tokens.json" } ] }
+                "reduced": [ { "$ref": "tokens/motion.reduced.tokens.json" } ],
+                "normal": [ { "$ref": "tokens/motion.normal.tokens.json" } ]
               }
             }
           },

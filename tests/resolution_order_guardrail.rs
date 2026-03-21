@@ -28,23 +28,40 @@ fn assert_resolution_order_object_entries(resolver: &Value, path: &Path) {
     for (idx, entry) in arr.iter().enumerate() {
         match entry {
             Value::Object(obj) => {
-                assert!(
-                    obj.get("$ref").and_then(|v| v.as_str()).is_some(),
-                    "{}: resolutionOrder[{idx}] must contain string \"$ref\"",
-                    path.display()
-                );
-                assert!(
-                    obj.len() == 1,
-                    "{}: resolutionOrder[{idx}] must only contain \"$ref\"",
-                    path.display()
-                );
+                if obj.get("$ref").is_some() {
+                    assert!(
+                        obj.get("$ref").and_then(|v| v.as_str()).is_some(),
+                        "{}: resolutionOrder[{idx}] must contain string \"$ref\"",
+                        path.display()
+                    );
+                } else {
+                    assert!(
+                        obj.get("name").and_then(|v| v.as_str()).is_some(),
+                        "{}: resolutionOrder[{idx}] inline entries must contain string \"name\"",
+                        path.display()
+                    );
+                    let ty = obj
+                        .get("type")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or_else(|| {
+                            panic!(
+                                "{}: resolutionOrder[{idx}] inline entries must contain string \"type\"",
+                                path.display()
+                            )
+                        });
+                    assert!(
+                        matches!(ty, "set" | "modifier"),
+                        "{}: resolutionOrder[{idx}] inline type must be \"set\" or \"modifier\"",
+                        path.display()
+                    );
+                }
             }
             Value::String(s) => panic!(
                 "{}: resolutionOrder[{idx}] uses legacy string entry {s:?}; use {{\"$ref\":\"...\"}}",
                 path.display()
             ),
             _ => panic!(
-                "{}: resolutionOrder[{idx}] must be an object with \"$ref\"",
+                "{}: resolutionOrder[{idx}] must be a reference object or inline set/modifier object",
                 path.display()
             ),
         }

@@ -7,7 +7,7 @@ use tbp_dtcg::{
 };
 use tbp_resolver_model::{
     validate_input_selection, Input, InputSelectionError, MaterializedToken, ResolvedToken,
-    ResolverDoc, ResolverOrderRefObject, ResolverSource,
+    ResolverDoc, ResolverModifier, ResolverOrderEntry, ResolverSource,
 };
 
 pub fn deep_merge(base: &JValue, overlay: &JValue) -> JValue {
@@ -290,7 +290,7 @@ where
 
 fn resolve_order_entry<FResolvePath, FReadJson>(
     doc: &ResolverDoc,
-    entry: &ResolverOrderRefObject,
+    entry: &ResolverOrderEntry,
     input: &Input,
     base_dir: &Path,
     resolve_existing_under: &FResolvePath,
@@ -300,64 +300,109 @@ where
     FResolvePath: Fn(&Path, &str) -> Result<PathBuf, String>,
     FReadJson: Fn(&Path) -> Result<JValue, LoadFileError>,
 {
-    let pointer = entry.as_ref_str();
-    let segments =
-        parse_json_pointer(pointer).map_err(|reason| FlattenError::InvalidResolverRef {
-            reference: pointer.to_string(),
-            reason,
-        })?;
-    match segments.as_slice() {
-        [head, set_name] if head == "sets" => {
-            let set = doc
-                .sets
-                .get(set_name)
-                .ok_or_else(|| FlattenError::InvalidResolverRef {
-                    reference: pointer.to_string(),
-                    reason: "points to unknown set".to_string(),
-                })?;
-            Ok(Some(load_sources(
-                doc,
-                &set.sources,
-                base_dir,
-                resolve_existing_under,
-                read_json_file,
-            )?))
-        }
-        [head, mod_name] if head == "modifiers" => {
-            let modifier =
-                doc.modifiers
-                    .get(mod_name)
-                    .ok_or_else(|| FlattenError::InvalidResolverRef {
-                        reference: pointer.to_string(),
-                        reason: "points to unknown modifier".to_string(),
-                    })?;
-            let ctx_name = match input.get(mod_name) {
+    fn resolve_modifier<FResolvePath, FReadJson>(
+        doc: &ResolverDoc,
+        mod_name: &str,
+        modifier: &ResolverModifier,
+        input: &Input,
+        base_dir: &Path,
+        resolve_existing_under: &FResolvePath,
+        read_json_file: &FReadJson,
+    ) -> Result<Option<JValue>, FlattenError>
+    where
+        FResolvePath: Fn(&Path, &str) -> Result<PathBuf, String>,
+        FReadJson: Fn(&Path) -> Result<JValue, LoadFileError>,
+    {
+        let ctx_name = match input.get(mod_name) {
+            Some(v) => v,
+            None => match &modifier.default {
                 Some(v) => v,
-                None => match &modifier.default {
-                    Some(v) => v,
-                    None => return Ok(None),
-                },
-            };
-            let ctx = modifier.contexts.get(ctx_name).ok_or_else(|| {
-                FlattenError::InvalidResolverRef {
-                    reference: pointer.to_string(),
-                    reason: format!("selected context value '{ctx_name}' does not exist"),
-                }
+                None => return Ok(None),
+            },
+        };
+        let ctx = modifier
+            .contexts
+            .get(ctx_name)
+            .ok_or_else(|| FlattenError::InvalidResolverRef {
+                reference: format!("#/modifiers/{mod_name}"),
+                reason: format!("selected context value '{ctx_name}' does not exist"),
             })?;
-            Ok(Some(load_sources(
-                doc,
-                &ctx.sources,
-                base_dir,
-                resolve_existing_under,
-                read_json_file,
-            )?))
+        Ok(Some(load_sources(
+            doc,
+            ctx,
+            base_dir,
+            resolve_existing_under,
+            read_json_file,
+        )?))
+    }
+
+    match entry {
+        ResolverOrderEntry::Ref(entry) => {
+            let pointer = entry.as_ref_str();
+            let segments =
+                parse_json_pointer(pointer).map_err(|reason| FlattenError::InvalidResolverRef {
+                    reference: pointer.to_string(),
+                    reason,
+                })?;
+            match segments.as_slice() {
+                [head, set_name] if head == "sets" => {
+                    let set = doc
+                        .sets
+                        .get(set_name)
+                        .ok_or_else(|| FlattenError::InvalidResolverRef {
+                            reference: pointer.to_string(),
+                            reason: "points to unknown set".to_string(),
+                        })?;
+                    Ok(Some(load_sources(
+                        doc,
+                        &set.sources,
+                        base_dir,
+                        resolve_existing_under,
+                        read_json_file,
+                    )?))
+                }
+                [head, mod_name] if head == "modifiers" => {
+                    let modifier =
+                        doc.modifiers
+                            .get(mod_name)
+                            .ok_or_else(|| FlattenError::InvalidResolverRef {
+                                reference: pointer.to_string(),
+                                reason: "points to unknown modifier".to_string(),
+                            })?;
+                    resolve_modifier(
+                        doc,
+                        mod_name,
+                        modifier,
+                        input,
+                        base_dir,
+                        resolve_existing_under,
+                        read_json_file,
+                    )
+                }
+                _ => Err(FlattenError::InvalidResolverRef {
+                    reference: pointer.to_string(),
+                    reason:
+                        "resolutionOrder entries must reference '#/sets/<name>' or '#/modifiers/<name>'"
+                            .to_string(),
+                }),
+            }
         }
-        _ => Err(FlattenError::InvalidResolverRef {
-            reference: pointer.to_string(),
-            reason:
-                "resolutionOrder entries must reference '#/sets/<name>' or '#/modifiers/<name>'"
-                    .to_string(),
-        }),
+        ResolverOrderEntry::InlineSet(entry) => Ok(Some(load_sources(
+            doc,
+            &entry.set.sources,
+            base_dir,
+            resolve_existing_under,
+            read_json_file,
+        )?)),
+        ResolverOrderEntry::InlineModifier(entry) => resolve_modifier(
+            doc,
+            &entry.name,
+            &entry.modifier,
+            input,
+            base_dir,
+            resolve_existing_under,
+            read_json_file,
+        ),
     }
 }
 
@@ -405,12 +450,12 @@ where
         return Ok(out);
     }
 
-    for (axis, modifier) in &doc.modifiers {
+    for (axis, modifier) in doc.all_modifiers() {
         let mut axis_relevant = false;
         for ctx in modifier.contexts.values() {
             let tree = load_sources(
                 doc,
-                &ctx.sources,
+                ctx,
                 base_dir,
                 resolve_existing_under,
                 read_json_file,
@@ -422,7 +467,7 @@ where
             }
         }
         if axis_relevant {
-            out.insert(axis.clone());
+            out.insert(axis.to_string());
         }
     }
 
