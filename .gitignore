@@ -1,0 +1,9 @@
+# Rust build artifacts
+/target/
+
+# Generated TBP output artifacts (build/compose/perf/test runs)
+/dist*/
+
+# Dolt database files (added by bd init)
+.dolt/
+*.db
