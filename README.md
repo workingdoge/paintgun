@@ -89,6 +89,14 @@ Generated output folders (`dist*`) are ignored by git.
 ./scripts/clean_dist.sh
 ```
 
+## External Adoption Example
+
+`examples/adoption-starter/README.md` shows the supported clean-clone flow for:
+- building two packs
+- verifying and signing each pack
+- composing them into a portable sibling bundle
+- strictly verifying the signed compose manifest and signed pack manifests
+
 ## Fixture tooling
 
 KCIR/NF conformance vectors can be built with:

@@ -1,0 +1,58 @@
+{
+  "name": "adoption-brand",
+  "version": "2025.10",
+  "description": "Second pack for the public external-adoption walkthrough",
+  "sets": {
+    "foundation": {
+      "description": "Base palette and typography scale",
+      "sources": [
+        {
+          "$ref": "sources/foundation.tokens.json"
+        }
+      ]
+    }
+  },
+  "modifiers": {
+    "theme": {
+      "description": "Color theme modifier",
+      "contexts": {
+        "light": [
+          {
+            "$ref": "sources/theme/light.tokens.json"
+          }
+        ],
+        "dark": [
+          {
+            "$ref": "sources/theme/dark.tokens.json"
+          }
+        ]
+      }
+    },
+    "mode": {
+      "description": "Docs versus wellbeing mode modifier",
+      "contexts": {
+        "docs": [
+          {
+            "$ref": "sources/mode/docs.tokens.json"
+          }
+        ],
+        "wellbeing": [
+          {
+            "$ref": "sources/mode/wellbeing.tokens.json"
+          }
+        ]
+      }
+    }
+  },
+  "resolutionOrder": [
+    {
+      "$ref": "#/sets/foundation"
+    },
+    {
+      "$ref": "#/modifiers/theme"
+    },
+    {
+      "$ref": "#/modifiers/mode"
+    }
+  ]
+}

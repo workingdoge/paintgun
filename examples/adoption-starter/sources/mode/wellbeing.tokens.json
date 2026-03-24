@@ -1,0 +1,31 @@
+{
+  "color": {
+    "$type": "color",
+    "surface": {
+      "bg": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.96, 0.02, 80],
+          "hex": "#fff8f0"
+        },
+        "$description": "Warm tint for wellbeing mode"
+      },
+      "border": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.85, 0.02, 80],
+          "hex": "#e8d5c0"
+        }
+      }
+    },
+    "text": {
+      "muted": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.5, 0.03, 60],
+          "hex": "#8b7355"
+        }
+      }
+    }
+  }
+}
