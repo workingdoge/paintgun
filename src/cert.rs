@@ -376,13 +376,17 @@ pub struct ToolInfo {
 
 pub const NORMALIZER_VERSION: &str = "paintgun-policy-v1";
 
-pub use premath_composability::{
-    ConflictMode, CtcConflictCandidate, CtcConflictWitness, CtcGapWitness, CtcInheritedWitness,
-    CtcOverlapWitness, CtcSummary, PACK_WITNESS_SCHEMA_VERSION,
-};
-pub type CtcBcWitness = premath_composability::CtcBcWitness<TokenProvenance>;
-pub type CtcWitnesses = premath_composability::CtcWitnesses<TokenProvenance>;
-pub type CtcAnalysis = premath_composability::CtcAnalysis<TokenProvenance>;
+pub use premath_composability::ConflictMode;
+pub const PACK_WITNESS_SCHEMA_VERSION: u32 = premath_composability::WITNESS_SCHEMA_VERSION;
+pub type CtcConflictCandidate = premath_composability::ConflictCandidate;
+pub type CtcConflictWitness = premath_composability::ConflictWitness;
+pub type CtcGapWitness = premath_composability::GapWitness;
+pub type CtcInheritedWitness = premath_composability::InheritedWitness;
+pub type CtcOverlapWitness = premath_composability::OverlapWitness;
+pub type CtcSummary = premath_composability::AnalysisSummary;
+pub type CtcBcWitness = premath_composability::BcWitness<TokenProvenance>;
+pub type CtcWitnesses = premath_composability::AnalysisWitnesses<TokenProvenance>;
+pub type CtcAnalysis = premath_composability::Analysis<TokenProvenance>;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CtcSemantics {

@@ -31,10 +31,10 @@ impl std::fmt::Display for ConflictMode {
     }
 }
 
-pub const PACK_WITNESS_SCHEMA_VERSION: u32 = 1;
+pub const WITNESS_SCHEMA_VERSION: u32 = 1;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CtcSummary {
+pub struct AnalysisSummary {
     pub tokens: usize,
     pub contexts: usize,
     pub kan_gaps: usize,
@@ -45,7 +45,7 @@ pub struct CtcSummary {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CtcConflictCandidate {
+pub struct ConflictCandidate {
     pub source_context: String,
     pub source_id: String,
     #[serde(rename = "resolutionLayerId")]
@@ -69,37 +69,37 @@ pub struct CtcConflictCandidate {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CtcGapWitness {
+pub struct GapWitness {
     #[serde(rename = "witnessId")]
     pub witness_id: String,
     pub token_path: String,
     pub target: String,
-    pub authored_sources: Vec<CtcConflictCandidate>,
+    pub authored_sources: Vec<ConflictCandidate>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CtcConflictWitness {
+pub struct ConflictWitness {
     #[serde(rename = "witnessId")]
     pub witness_id: String,
     pub token_path: String,
     pub target: String,
-    pub candidates: Vec<CtcConflictCandidate>,
+    pub candidates: Vec<ConflictCandidate>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CtcInheritedWitness {
+pub struct InheritedWitness {
     #[serde(rename = "witnessId")]
     pub witness_id: String,
     pub token_path: String,
     pub target: String,
     pub inherited_from: Vec<String>,
-    pub sources: Vec<CtcConflictCandidate>,
+    pub sources: Vec<ConflictCandidate>,
     pub resolved_value_json: String,
     pub resolved_value_digest: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CtcBcWitness<S> {
+pub struct BcWitness<S> {
     #[serde(rename = "witnessId")]
     pub witness_id: String,
     pub token_path: String,
@@ -126,7 +126,7 @@ pub struct CtcBcWitness<S> {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CtcOverlapWitness {
+pub struct OverlapWitness {
     #[serde(rename = "witnessId")]
     pub witness_id: String,
     pub axis_a: String,
@@ -135,7 +135,7 @@ pub struct CtcOverlapWitness {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CtcWitnesses<S> {
+pub struct AnalysisWitnesses<S> {
     #[serde(rename = "witnessSchema")]
     pub witness_schema: u32,
     #[serde(rename = "conflictMode", default)]
@@ -144,20 +144,20 @@ pub struct CtcWitnesses<S> {
     pub policy_digest: Option<String>,
     #[serde(rename = "normalizerVersion", skip_serializing_if = "Option::is_none")]
     pub normalizer_version: Option<String>,
-    pub gaps: Vec<CtcGapWitness>,
-    pub conflicts: Vec<CtcConflictWitness>,
-    pub inherited: Vec<CtcInheritedWitness>,
+    pub gaps: Vec<GapWitness>,
+    pub conflicts: Vec<ConflictWitness>,
+    pub inherited: Vec<InheritedWitness>,
     #[serde(rename = "bcViolations")]
-    pub bc_violations: Vec<CtcBcWitness<S>>,
-    pub orthogonality: Vec<CtcOverlapWitness>,
+    pub bc_violations: Vec<BcWitness<S>>,
+    pub orthogonality: Vec<OverlapWitness>,
 }
 
-impl<S> CtcWitnesses<S> {
+impl<S> AnalysisWitnesses<S> {
     pub fn validate_schema_version(&self) -> Result<(), String> {
-        if self.witness_schema != PACK_WITNESS_SCHEMA_VERSION {
+        if self.witness_schema != WITNESS_SCHEMA_VERSION {
             return Err(format!(
                 "unsupported pack witness schema version: expected {}, got {}",
-                PACK_WITNESS_SCHEMA_VERSION, self.witness_schema
+                WITNESS_SCHEMA_VERSION, self.witness_schema
             ));
         }
         Ok(())
@@ -165,9 +165,9 @@ impl<S> CtcWitnesses<S> {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct CtcAnalysis<S> {
-    pub summary: CtcSummary,
-    pub witnesses: CtcWitnesses<S>,
+pub struct Analysis<S> {
+    pub summary: AnalysisSummary,
+    pub witnesses: AnalysisWitnesses<S>,
 }
 
 fn witness_id(kind: &str, seed: &str) -> String {
@@ -178,7 +178,7 @@ fn witness_id(kind: &str, seed: &str) -> String {
     format!("{kind}-{}", &hex[..16])
 }
 
-fn cmp_conflict_candidate(a: &CtcConflictCandidate, b: &CtcConflictCandidate) -> Ordering {
+fn cmp_conflict_candidate(a: &ConflictCandidate, b: &ConflictCandidate) -> Ordering {
     a.source_context
         .cmp(&b.source_context)
         .then(a.resolution_rank.cmp(&b.resolution_rank))
@@ -192,7 +192,7 @@ fn cmp_conflict_candidate(a: &CtcConflictCandidate, b: &CtcConflictCandidate) ->
 ///
 /// This kernel is target-agnostic and operates over contextual assignments.
 /// Callers provide mapping closures for:
-/// - authored entries -> `CtcConflictCandidate`
+/// - authored entries -> `ConflictCandidate`
 /// - values -> canonical JSON string / digest
 /// - optional resolver winner lookup for BC witnesses
 pub fn analyze_assignments<E, V, S, FCand, FValueJson, FValueDigest, FResolverValue>(
@@ -206,19 +206,19 @@ pub fn analyze_assignments<E, V, S, FCand, FValueJson, FValueDigest, FResolverVa
     value_to_json: FValueJson,
     value_digest: FValueDigest,
     resolver_value_json: FResolverValue,
-) -> CtcAnalysis<S>
+) -> Analysis<S>
 where
     E: premath_admissibility::EntryOps<V, S> + Clone,
     V: Clone + Eq,
     S: Clone,
-    FCand: Fn(&str, &E) -> CtcConflictCandidate,
+    FCand: Fn(&str, &E) -> ConflictCandidate,
     FValueJson: Fn(&V) -> String,
     FValueDigest: Fn(&V) -> String,
     FResolverValue: Fn(&str, &str, &str, &str, &str) -> Option<String>,
 {
-    let mut gaps: Vec<CtcGapWitness> = Vec::new();
-    let mut conflicts: Vec<CtcConflictWitness> = Vec::new();
-    let mut inherited: Vec<CtcInheritedWitness> = Vec::new();
+    let mut gaps: Vec<GapWitness> = Vec::new();
+    let mut conflicts: Vec<ConflictWitness> = Vec::new();
+    let mut inherited: Vec<InheritedWitness> = Vec::new();
     let mut inherited_total: usize = 0;
 
     for asn in assignments {
@@ -226,13 +226,13 @@ where
             let target_key = premath_admissibility::context_key(ctx);
             match premath_admissibility::kan_diag::<E, V, S>(&asn.entries, ctx) {
                 premath_admissibility::KanDiag::Gap => {
-                    let mut authored_sources: Vec<CtcConflictCandidate> = asn
+                    let mut authored_sources: Vec<ConflictCandidate> = asn
                         .entries
                         .iter()
                         .map(|(ctx_key, entry)| candidate_from_entry(ctx_key, entry))
                         .collect();
                     authored_sources.sort_by(cmp_conflict_candidate);
-                    gaps.push(CtcGapWitness {
+                    gaps.push(GapWitness {
                         witness_id: witness_id(
                             "gap",
                             &format!("{}|{}", asn.token_path, target_key),
@@ -243,12 +243,12 @@ where
                     });
                 }
                 premath_admissibility::KanDiag::Conflict { candidates: cs } => {
-                    let mut candidates: Vec<CtcConflictCandidate> = cs
+                    let mut candidates: Vec<ConflictCandidate> = cs
                         .iter()
                         .map(|(ctx_key, entry)| candidate_from_entry(ctx_key, entry))
                         .collect();
                     candidates.sort_by(cmp_conflict_candidate);
-                    conflicts.push(CtcConflictWitness {
+                    conflicts.push(ConflictWitness {
                         witness_id: witness_id(
                             "conflict",
                             &format!("{}|{}", asn.token_path, target_key),
@@ -265,7 +265,7 @@ where
                         if nontrivial {
                             let mut srcs = sources.clone();
                             srcs.sort();
-                            let mut rich_sources: Vec<CtcConflictCandidate> = srcs
+                            let mut rich_sources: Vec<ConflictCandidate> = srcs
                                 .iter()
                                 .filter_map(|ctx_key| {
                                     asn.entries
@@ -274,7 +274,7 @@ where
                                 })
                                 .collect();
                             rich_sources.sort_by(cmp_conflict_candidate);
-                            inherited.push(CtcInheritedWitness {
+                            inherited.push(InheritedWitness {
                                 witness_id: witness_id(
                                     "inherited",
                                     &format!(
@@ -299,7 +299,7 @@ where
     }
 
     let bc = premath_admissibility::bc_violations::<E, V, S>(assignments, axes);
-    let mut bc_witnesses: Vec<CtcBcWitness<S>> = Vec::new();
+    let mut bc_witnesses: Vec<BcWitness<S>> = Vec::new();
     for v in &bc {
         let left_json = value_to_json(&v.left);
         let right_json = value_to_json(&v.right);
@@ -310,7 +310,7 @@ where
             "{}|{}:{}|{}:{}|{}|{}",
             v.token_path, v.axis_a, v.value_a, v.axis_b, v.value_b, left_json, right_json
         );
-        bc_witnesses.push(CtcBcWitness {
+        bc_witnesses.push(BcWitness {
             witness_id: witness_id("bc", &bc_seed),
             token_path: v.token_path.clone(),
             axis_a: v.axis_a.clone(),
@@ -331,12 +331,12 @@ where
     }
 
     let overlaps = premath_admissibility::orthogonality_overlaps(assignments, axes);
-    let mut overlap_witnesses: Vec<CtcOverlapWitness> = overlaps
+    let mut overlap_witnesses: Vec<OverlapWitness> = overlaps
         .iter()
         .filter(|o| !o.overlap_paths.is_empty())
         .map(|o| {
             let seed = format!("{}|{}|{}", o.axis_a, o.axis_b, o.overlap_paths.join(","));
-            CtcOverlapWitness {
+            OverlapWitness {
                 witness_id: witness_id("orthogonality", &seed),
                 axis_a: o.axis_a.clone(),
                 axis_b: o.axis_b.clone(),
@@ -379,7 +379,7 @@ where
             .then(a.witness_id.cmp(&b.witness_id))
     });
 
-    let summary = CtcSummary {
+    let summary = AnalysisSummary {
         tokens: assignments.len(),
         contexts: contexts.len(),
         kan_gaps: gaps.len(),
@@ -389,10 +389,10 @@ where
         orthogonality_overlaps: overlap_witnesses.len(),
     };
 
-    CtcAnalysis {
+    Analysis {
         summary,
-        witnesses: CtcWitnesses {
-            witness_schema: PACK_WITNESS_SCHEMA_VERSION,
+        witnesses: AnalysisWitnesses {
+            witness_schema: WITNESS_SCHEMA_VERSION,
             conflict_mode,
             policy_digest,
             normalizer_version,
