@@ -94,7 +94,7 @@ fn verify_compose_format_json_success_emits_contract_shape() {
     let pack_b = bundle_root.join("pack-b");
     let compose_out = bundle_root.join("dist-compose");
 
-    let build_a = Command::new(env!("CARGO_BIN_EXE_tbp"))
+    let build_a = Command::new(env!("CARGO_BIN_EXE_paint"))
         .current_dir(env!("CARGO_MANIFEST_DIR"))
         .arg("build")
         .arg(&resolver_a)
@@ -106,7 +106,7 @@ fn verify_compose_format_json_success_emits_contract_shape() {
         .expect("run tbp build pack-a");
     assert_success(&build_a, "tbp build pack-a");
 
-    let build_b = Command::new(env!("CARGO_BIN_EXE_tbp"))
+    let build_b = Command::new(env!("CARGO_BIN_EXE_paint"))
         .current_dir(env!("CARGO_MANIFEST_DIR"))
         .arg("build")
         .arg(&resolver_b)
@@ -118,7 +118,7 @@ fn verify_compose_format_json_success_emits_contract_shape() {
         .expect("run tbp build pack-b");
     assert_success(&build_b, "tbp build pack-b");
 
-    let compose = Command::new(env!("CARGO_BIN_EXE_tbp"))
+    let compose = Command::new(env!("CARGO_BIN_EXE_paint"))
         .current_dir(env!("CARGO_MANIFEST_DIR"))
         .arg("compose")
         .arg(&pack_a)
@@ -132,7 +132,7 @@ fn verify_compose_format_json_success_emits_contract_shape() {
     assert_success(&compose, "tbp compose");
 
     let manifest_path = compose_out.join("compose.manifest.json");
-    let output = Command::new(env!("CARGO_BIN_EXE_tbp"))
+    let output = Command::new(env!("CARGO_BIN_EXE_paint"))
         .current_dir(env!("CARGO_MANIFEST_DIR"))
         .arg("verify-compose")
         .arg(&manifest_path)

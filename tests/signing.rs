@@ -205,12 +205,12 @@ fn write_compose_fixture_with_pack(root: &PathBuf, pack_dir: &Path) -> PathBuf {
     let manifest = ComposeManifest {
         compose_version: "0.1".to_string(),
         tool: ToolInfo {
-            name: "tbp-rs".to_string(),
+            name: "paintgun".to_string(),
             version: "0.1.0".to_string(),
         },
         axes: BTreeMap::new(),
         pack_order: vec![pack_manifest.pack_identity.pack_id.clone()],
-        packs: vec![tbp::compose::ComposePackEntry {
+        packs: vec![paintgun::compose::ComposePackEntry {
             name: pack_manifest.pack_identity.pack_id.clone(),
             dir: pack_dir_rel,
             pack_identity: pack_manifest.pack_identity.clone(),

@@ -6,6 +6,10 @@ use clap::{Parser, Subcommand, ValueEnum};
 use paintgun::allowlist::Allowlist;
 use paintgun::annotations::{build_github_annotations, read_report};
 use paintgun::artifact::write_resolved_json;
+use paintgun::backend::{
+    resolve_target_backend, supported_target_names, BackendArtifactKind, BackendEmission,
+    BackendRequest, BackendSource, LegacyTargetSlot, TargetBackend,
+};
 use paintgun::cert::{
     analyze_composability_with_mode_and_contexts, build_assignments, build_authored_export,
     build_ctc_manifest, build_explicit_index, build_manifest_rel, render_validation_report,
@@ -17,11 +21,7 @@ use paintgun::compose::{
     compose_store_with_context_mode, load_pack, relevant_axes_for_contract_tokens,
     render_compose_report, union_axes, verify_compose_with_signing, ComposeManifest,
 };
-use paintgun::emit::{
-    build_layer_defs_from_axes, compile_component_css, compile_component_css_with_layers,
-    emit_kotlin_module_scaffold, emit_store_kotlin, emit_store_swift, emit_swift_package_scaffold,
-    emit_tokens_d_ts, Contract, CssEmitter, KOTLIN_EMITTER_API_VERSION, SWIFT_EMITTER_API_VERSION,
-};
+use paintgun::emit::Contract;
 use paintgun::explain::{explain_compose_witness, explain_ctc_witness};
 use paintgun::gate::GateResult;
 use paintgun::ids::{TokenPathId, WitnessId};
@@ -132,7 +132,7 @@ enum Command {
         #[arg(short, long, default_value = "dist")]
         out: PathBuf,
 
-        /// Target emitter: css | swift | kotlin
+        /// Target backend (built-ins: css | swift | kotlin)
         #[arg(long, default_value = "css")]
         target: String,
 
@@ -305,7 +305,7 @@ enum Command {
         #[arg(short, long, default_value = "dist-compose")]
         out: PathBuf,
 
-        /// Target emitter: css | swift | kotlin
+        /// Target backend (built-ins: css | swift | kotlin)
         #[arg(long, default_value = "css")]
         target: String,
 
@@ -371,11 +371,6 @@ fn read_json_arg<T: for<'de> serde::Deserialize<'de>>(path: &Path, label: &str) 
 fn create_dir(path: &Path, label: &str) -> CliResult<()> {
     fs::create_dir_all(path)
         .map_err(|e| CliError::new(format!("failed to create {label} {}: {e}", path.display())))
-}
-
-fn read_text(path: &Path, label: &str) -> CliResult<String> {
-    fs::read_to_string(path)
-        .map_err(|e| CliError::new(format!("failed to read {label} {}: {e}", path.display())))
 }
 
 fn write_bytes(path: &Path, label: &str, bytes: impl AsRef<[u8]>) -> CliResult<()> {
@@ -506,6 +501,46 @@ fn merge_planned_inputs(mut planned: Vec<Input>, mut required: Vec<Input>) -> Ve
     out
 }
 
+fn resolve_backend(target: &str) -> CliResult<&'static dyn TargetBackend> {
+    resolve_target_backend(target).ok_or_else(|| {
+        CliError::new(format!(
+            "unknown --target {target}. Supported: {}",
+            supported_target_names().join(" | ")
+        ))
+    })
+}
+
+fn emission_path(
+    out_dir: &Path,
+    emission: &BackendEmission,
+    kind: BackendArtifactKind,
+) -> Option<PathBuf> {
+    emission
+        .artifact(kind)
+        .map(|artifact| out_dir.join(&artifact.relative_path))
+}
+
+fn primary_emission_path(out_dir: &Path, emission: &BackendEmission) -> CliResult<PathBuf> {
+    emission
+        .primary_output()
+        .map(|artifact| out_dir.join(&artifact.relative_path))
+        .ok_or_else(|| CliError::new("backend emission missing primary output artifact"))
+}
+
+fn native_versions_for_backend(backend: &dyn TargetBackend) -> Option<NativeApiVersions> {
+    match backend.spec().legacy_slot {
+        LegacyTargetSlot::Css => None,
+        LegacyTargetSlot::Swift => Some(NativeApiVersions {
+            swift: backend.spec().api_version.map(str::to_string),
+            kotlin: None,
+        }),
+        LegacyTargetSlot::Kotlin => Some(NativeApiVersions {
+            swift: None,
+            kotlin: backend.spec().api_version.map(str::to_string),
+        }),
+    }
+}
+
 fn trace_mode_name(mode: CliContexts) -> &'static str {
     match mode {
         CliContexts::FullOnly => "full-only",
@@ -595,52 +630,6 @@ fn build_planner_trace(
         "resolverIncluded": make_trace_entries(resolver_extra, "required-for-supporting-ops", "resolver"),
         "excluded": make_trace_entries(excluded, "not-selected-by-mode", "analysis")
     })
-}
-
-fn layer_order_from_axes(axes: &std::collections::BTreeMap<String, Vec<String>>) -> Vec<String> {
-    let mut out = Vec::new();
-    out.push("base".to_string());
-    let mut mods: Vec<String> = axes.keys().cloned().collect();
-    mods.sort();
-    out.extend(mods.clone());
-    for i in 0..mods.len() {
-        for j in (i + 1)..mods.len() {
-            out.push(format!("{}-{}", mods[i], mods[j]));
-        }
-    }
-    out
-}
-
-fn layer_order_from_doc(doc: &ResolverDoc) -> Vec<String> {
-    let mut names = Vec::new();
-    names.push("base".to_string());
-
-    // Respect resolver `resolutionOrder` to stabilize modifier order.
-    let mut mods: Vec<String> = Vec::new();
-    for entry in &doc.resolution_order {
-        if let Some(name) = entry.modifier_name() {
-            if !mods.iter().any(|m| m == &name) {
-                mods.push(name);
-            }
-        }
-    }
-    if mods.is_empty() {
-        mods.extend(
-            doc.all_modifiers()
-                .into_iter()
-                .map(|(name, _)| name.to_string()),
-        );
-        mods.sort();
-    }
-    names.extend(mods.clone());
-
-    for i in 0..mods.len() {
-        for j in (i + 1)..mods.len() {
-            names.push(format!("{}-{}", mods[i], mods[j]));
-        }
-    }
-
-    names
 }
 
 fn parse_anchor_root_bytes(raw: &str) -> Result<Vec<u8>, String> {
@@ -829,6 +818,7 @@ fn run_build(
     profile: CliProfile,
     kcir_wire_format_id: String,
 ) -> CliResult<()> {
+    let backend = resolve_backend(&target)?;
     let doc: ResolverDoc = read_json_arg(&resolver, "resolver JSON")?;
     let contracts_loaded = contracts.as_ref().map(|p| load_contracts(p)).transpose()?;
     if matches!(contexts, CliContexts::FromContracts) && contracts_loaded.is_none() {
@@ -836,8 +826,11 @@ fn run_build(
             "--contexts from-contracts requires --contracts",
         ));
     }
-    if target == "css" && contracts_loaded.is_none() {
-        return Err(CliError::new("--contracts is required for --target css"));
+    if backend.spec().capabilities.requires_contracts && contracts_loaded.is_none() {
+        return Err(CliError::new(format!(
+            "--contracts is required for --target {}",
+            backend.spec().id
+        )));
     }
     let contract_tokens = contracts_loaded
         .as_ref()
@@ -854,14 +847,7 @@ fn run_build(
     let planned_inputs =
         paintgun::contexts::plan_inputs(contexts.into(), &axes, relevant_axes.as_ref());
     let analysis_inputs = planned_inputs.clone();
-    let required_inputs = if target == "css" {
-        paintgun::contexts::layered_inputs(&axes, None)
-    } else {
-        paintgun::contexts::layered_inputs(&axes, None)
-            .into_iter()
-            .filter(|i| i.len() <= 1)
-            .collect()
-    };
+    let required_inputs = backend.required_inputs(&axes);
     let store_inputs = merge_planned_inputs(planned_inputs, required_inputs);
     let planner_trace_payload = if planner_trace {
         Some(build_planner_trace(
@@ -907,62 +893,29 @@ fn run_build(
     let mut tokens_css_path: Option<PathBuf> = None;
     let mut tokens_swift_path: Option<PathBuf> = None;
     let mut tokens_kotlin_path: Option<PathBuf> = None;
-    let mut tokens_dts_path: Option<PathBuf> = None;
 
-    match target.as_str() {
-        "css" => {
-            let contracts = contracts_loaded
-                .as_ref()
-                .ok_or_else(|| CliError::new("--contracts is required for --target css"))?;
-            let emitter = CssEmitter {
-                color_policy: policy.css_color.clone(),
-            };
+    let emission = backend
+        .emit(&BackendRequest {
+            source: BackendSource::Build { doc: &doc },
+            store: &store,
+            policy: &policy,
+            contracts: contracts_loaded.as_deref(),
+            out_dir: &out,
+        })
+        .map_err(|e| CliError::new(format!("failed to emit {} backend: {e}", backend.spec().id)))?;
 
-            let preamble = format!("@layer {};\n\n", layer_order_from_doc(&doc).join(", "));
-            let mut css = String::new();
-            css.push_str(&preamble);
-
-            for c in contracts {
-                css.push_str(&format!("/* ═ {} ═ */\n\n", c.component));
-                css.push_str(&compile_component_css(c, &doc, &store, &policy, &emitter));
-                css.push('\n');
-            }
-
-            let css_path = out.join("tokens.css");
-            write_bytes(&css_path, "tokens.css", css.as_bytes())?;
-            tokens_css_path = Some(css_path);
-
-            let dts = emit_tokens_d_ts(contracts);
-            let dts_path = out.join("tokens.d.ts");
-            write_bytes(&dts_path, "tokens.d.ts", dts.as_bytes())?;
-            tokens_dts_path = Some(dts_path);
+    match backend.spec().legacy_slot {
+        LegacyTargetSlot::Css => {
+            tokens_css_path = Some(primary_emission_path(&out, &emission)?);
         }
-        "swift" => {
-            let swift = emit_store_swift(&store, &policy);
-            let path = out.join("tokens.swift");
-            write_bytes(&path, "tokens.swift", swift.as_bytes())?;
-            let swift_src = read_text(&path, "tokens.swift")?;
-            emit_swift_package_scaffold(&out, &swift_src).map_err(|e| {
-                CliError::new(format!("failed to write swift package scaffold: {e}"))
-            })?;
-            tokens_swift_path = Some(path);
+        LegacyTargetSlot::Swift => {
+            tokens_swift_path = Some(primary_emission_path(&out, &emission)?);
         }
-        "kotlin" => {
-            let kt = emit_store_kotlin(&store, &policy);
-            let path = out.join("tokens.kt");
-            write_bytes(&path, "tokens.kt", kt.as_bytes())?;
-            let kotlin_src = read_text(&path, "tokens.kt")?;
-            emit_kotlin_module_scaffold(&out, &kotlin_src).map_err(|e| {
-                CliError::new(format!("failed to write kotlin module scaffold: {e}"))
-            })?;
-            tokens_kotlin_path = Some(path);
-        }
-        other => {
-            return Err(CliError::new(format!(
-                "unknown --target {other}. Supported: css | swift | kotlin"
-            )))
+        LegacyTargetSlot::Kotlin => {
+            tokens_kotlin_path = Some(primary_emission_path(&out, &emission)?);
         }
     }
+    let tokens_dts_path = emission_path(&out, &emission, BackendArtifactKind::TypeDeclarations);
 
     let contract_token_ids = contract_tokens.as_ref().map(|tokens| {
         tokens
@@ -1122,6 +1075,7 @@ fn run_compose(
     require_packs_composable: bool,
     require_composable: bool,
 ) -> CliResult<()> {
+    let backend = resolve_backend(&target)?;
     let policy: Policy = match &policy {
         None => Policy::default(),
         Some(p) => read_json_arg(p, "policy JSON")?,
@@ -1132,8 +1086,11 @@ fn run_compose(
             "--contexts from-contracts requires --contracts",
         ));
     }
-    if target == "css" && contracts_loaded.is_none() {
-        return Err(CliError::new("--contracts is required for --target css"));
+    if backend.spec().capabilities.requires_contracts && contracts_loaded.is_none() {
+        return Err(CliError::new(format!(
+            "--contracts is required for --target {}",
+            backend.spec().id
+        )));
     }
     let contract_tokens = contracts_loaded
         .as_ref()
@@ -1181,63 +1138,18 @@ fn run_compose(
     write_resolved_json(&resolved_path, &composed)
         .map_err(|e| CliError::new(format!("failed to write resolved.json: {e}")))?;
 
-    match target.as_str() {
-        "css" => {
-            let contracts = contracts_loaded
-                .as_ref()
-                .ok_or_else(|| CliError::new("--contracts is required for --target css"))?;
-            let emitter = CssEmitter {
-                color_policy: policy.css_color.clone(),
-            };
-
-            let layer_defs = build_layer_defs_from_axes(&composed.axes);
-            let preamble = format!(
-                "@layer {};\n\n",
-                layer_order_from_axes(&composed.axes).join(", ")
-            );
-            let mut css = String::new();
-            css.push_str(&preamble);
-            for c in contracts {
-                css.push_str(&format!("/* ═ {} ═ */\n\n", c.component));
-                css.push_str(&compile_component_css_with_layers(
-                    c,
-                    &composed,
-                    &policy,
-                    &emitter,
-                    &layer_defs,
-                ));
-                css.push('\n');
-            }
-            let css_path = out.join("tokens.css");
-            write_bytes(&css_path, "tokens.css", css.as_bytes())?;
-
-            let dts = emit_tokens_d_ts(contracts);
-            write_bytes(&out.join("tokens.d.ts"), "tokens.d.ts", dts.as_bytes())?;
-        }
-        "swift" => {
-            let swift = emit_store_swift(&composed, &policy);
-            let path = out.join("tokens.swift");
-            write_bytes(&path, "tokens.swift", swift.as_bytes())?;
-            let swift_src = read_text(&path, "tokens.swift")?;
-            emit_swift_package_scaffold(&out, &swift_src).map_err(|e| {
-                CliError::new(format!("failed to write swift package scaffold: {e}"))
-            })?;
-        }
-        "kotlin" => {
-            let kt = emit_store_kotlin(&composed, &policy);
-            let path = out.join("tokens.kt");
-            write_bytes(&path, "tokens.kt", kt.as_bytes())?;
-            let kotlin_src = read_text(&path, "tokens.kt")?;
-            emit_kotlin_module_scaffold(&out, &kotlin_src).map_err(|e| {
-                CliError::new(format!("failed to write kotlin module scaffold: {e}"))
-            })?;
-        }
-        other => {
-            return Err(CliError::new(format!(
-                "unknown --target {other}. Supported: css | swift | kotlin"
-            )))
-        }
-    }
+    let emission = backend
+        .emit(&BackendRequest {
+            source: BackendSource::Compose {
+                axes: &composed.axes,
+            },
+            store: &composed,
+            policy: &policy,
+            contracts: contracts_loaded.as_deref(),
+            out_dir: &out,
+        })
+        .map_err(|e| CliError::new(format!("failed to emit {} backend: {e}", backend.spec().id)))?;
+    let _ = primary_emission_path(&out, &emission)?;
 
     let witnesses = analyze_cross_pack_conflicts_with_mode_and_contexts(
         &loaded,
@@ -1251,17 +1163,7 @@ fn run_compose(
     let witnesses_bytes = json_bytes(&witnesses, "compose.witnesses.json")?;
     write_bytes(&witnesses_path, "compose.witnesses.json", &witnesses_bytes)?;
     let witnesses_sha256 = format!("sha256:{}", paintgun::util::sha256_hex(&witnesses_bytes));
-    let native_api_versions = match target.as_str() {
-        "swift" => Some(NativeApiVersions {
-            swift: Some(SWIFT_EMITTER_API_VERSION.to_string()),
-            kotlin: None,
-        }),
-        "kotlin" => Some(NativeApiVersions {
-            swift: None,
-            kotlin: Some(KOTLIN_EMITTER_API_VERSION.to_string()),
-        }),
-        _ => None,
-    };
+    let native_api_versions = native_versions_for_backend(backend);
 
     let manifest = build_compose_manifest_with_context_count(
         &loaded,

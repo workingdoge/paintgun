@@ -40,3 +40,17 @@ fn paintgun_emit_crate_hosts_emission_kernel_types() {
         assert!(src.contains(symbol), "paintgun-emit should host {symbol}");
     }
 }
+
+#[test]
+fn backend_module_hosts_target_registry_contract() {
+    let src = read_from_manifest("src/backend.rs");
+    for symbol in [
+        "pub trait TargetBackend",
+        "pub struct BackendRequest",
+        "pub struct BackendEmission",
+        "pub fn resolve_target_backend",
+        "pub fn supported_target_names",
+    ] {
+        assert!(src.contains(symbol), "src/backend.rs should host {symbol}");
+    }
+}

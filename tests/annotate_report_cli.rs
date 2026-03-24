@@ -3,15 +3,15 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use tbp::cert::{analyze_composability, build_validation_report_json};
-use tbp::resolver::{build_token_store, read_json_file, ResolverDoc};
+use paintgun::cert::{analyze_composability, build_validation_report_json};
+use paintgun::resolver::{build_token_store, read_json_file, ResolverDoc};
 
 fn temp_dir(prefix: &str) -> PathBuf {
     let ts = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .expect("clock")
         .as_nanos();
-    let dir = std::env::temp_dir().join(format!("tbp-{prefix}-{}-{ts}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("paintgun-{prefix}-{}-{ts}", std::process::id()));
     fs::create_dir_all(&dir).expect("create temp dir");
     dir
 }
@@ -35,7 +35,7 @@ fn annotate_report_emits_annotations_and_summary_notice() {
     )
     .expect("write report");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_tbp"))
+    let output = Command::new(env!("CARGO_BIN_EXE_paint"))
         .current_dir(env!("CARGO_MANIFEST_DIR"))
         .arg("annotate-report")
         .arg(&report_path)
@@ -64,7 +64,7 @@ fn annotate_report_emits_annotations_and_summary_notice() {
     );
     assert!(
         lines.iter().any(|line| {
-            line.starts_with("::notice title=tbp/report::reportKind=pack")
+            line.starts_with("::notice title=paintgun/report::reportKind=pack")
                 && line.contains("conflictMode=semantic")
                 && line.contains("emitted=1")
         }),
@@ -78,7 +78,7 @@ fn annotate_report_invalid_json_exits_nonzero() {
     let report_path = temp.join("broken.json");
     fs::write(&report_path, "{").expect("write broken report");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_tbp"))
+    let output = Command::new(env!("CARGO_BIN_EXE_paint"))
         .current_dir(env!("CARGO_MANIFEST_DIR"))
         .arg("annotate-report")
         .arg(&report_path)

@@ -3,14 +3,14 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use tbp::verify::error_codes as verify_error_codes;
+use paintgun::verify::error_codes as verify_error_codes;
 
 fn temp_dir(prefix: &str) -> PathBuf {
     let ts = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .expect("clock")
         .as_nanos();
-    let dir = std::env::temp_dir().join(format!("tbp-{prefix}-{}-{ts}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("paintgun-{prefix}-{}-{ts}", std::process::id()));
     fs::create_dir_all(&dir).expect("create temp dir");
     dir
 }
@@ -75,7 +75,7 @@ fn assert_success(output: &Output, context: &str) {
 fn build_pack(root: &Path, name: &str, value: i32) -> PathBuf {
     let resolver = create_source_tree(&root.join("source"), name, value);
     let out = root.join("bundle").join(name);
-    let build = Command::new(env!("CARGO_BIN_EXE_tbp"))
+    let build = Command::new(env!("CARGO_BIN_EXE_paint"))
         .current_dir(env!("CARGO_MANIFEST_DIR"))
         .arg("build")
         .arg(&resolver)
@@ -94,7 +94,7 @@ fn verify_format_json_success_emits_contract_shape() {
     let root = temp_dir("verify-json-success");
     let manifest_path = build_pack(&root, "pack-a", 1);
 
-    let output = Command::new(env!("CARGO_BIN_EXE_tbp"))
+    let output = Command::new(env!("CARGO_BIN_EXE_paint"))
         .current_dir(env!("CARGO_MANIFEST_DIR"))
         .arg("verify")
         .arg(&manifest_path)
@@ -134,7 +134,7 @@ fn verify_format_json_failure_preserves_error_code_and_exit_status() {
     let root = temp_dir("verify-json-failure");
     let manifest_path = build_pack(&root, "pack-a", 1);
 
-    let output = Command::new(env!("CARGO_BIN_EXE_tbp"))
+    let output = Command::new(env!("CARGO_BIN_EXE_paint"))
         .current_dir(env!("CARGO_MANIFEST_DIR"))
         .arg("verify")
         .arg(&manifest_path)

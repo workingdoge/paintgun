@@ -122,3 +122,26 @@ fn build_output_path_file_fails_without_panic() {
     assert!(stderr.contains("failed to create output directory"));
     assert_nonpanic_failure(&stderr);
 }
+
+#[test]
+fn build_unknown_target_fails_via_registry_without_panic() {
+    let root = temp_dir("build-unknown-target");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_paint"))
+        .arg("build")
+        .arg(example_resolver())
+        .arg("--target")
+        .arg("wat")
+        .arg("--out")
+        .arg(root.join("dist"))
+        .output()
+        .expect("run paint build");
+
+    assert!(!output.status.success(), "expected build to fail");
+    let stderr = String::from_utf8(output.stderr).expect("stderr utf8");
+    assert!(stderr.contains("unknown --target wat"));
+    assert!(stderr.contains("css"));
+    assert!(stderr.contains("swift"));
+    assert!(stderr.contains("kotlin"));
+    assert_nonpanic_failure(&stderr);
+}
