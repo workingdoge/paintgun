@@ -7,6 +7,7 @@ bd.sock
 bd.sock.startlock
 sync-state.json
 last-touched
+interactions.jsonl
 
 # Local version tracking (prevents upgrade notification spam after git ops)
 .local_version
@@ -27,12 +28,14 @@ ephemeral.sqlite3-wal
 ephemeral.sqlite3-shm
 
 # Dolt server management (auto-started by bd)
+dolt-config.log
 dolt-server.pid
 dolt-server.log
 dolt-server.lock
 dolt-server.port
 dolt-server.activity
 dolt-monitor.pid
+dolt-monitor.pid.lock
 
 # Backup data (auto-exported JSONL, local-only)
 backup/
@@ -47,5 +50,5 @@ db.sqlite
 bd.db
 # NOTE: Do NOT add negation patterns here.
 # They would override fork protection in .git/info/exclude.
-# Config files (metadata.json, config.yaml) are tracked by git by default
-# since no pattern above ignores them.
+# Team-wide defaults live in config.yaml. Local metadata is machine-specific.
+metadata.json
