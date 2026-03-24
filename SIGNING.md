@@ -1,6 +1,6 @@
 # Signing and Trust Metadata
 
-`tbp` supports detached manifest signatures for `ctc.manifest.json` and `compose.manifest.json`.
+`Paintgun` supports detached manifest signatures for `ctc.manifest.json` and `compose.manifest.json`.
 
 For the current public release line, signing is optional by default. Unsigned manifests remain valid unless a verifier opts into `--require-signed` or `--require-packs-signed`. Once a manifest declares `trust.status = "signed"`, `tbp` always verifies the detached signature and trust metadata consistency.
 
@@ -8,7 +8,7 @@ The public verifier policy and compatibility contract are documented in `docs/tr
 
 Current scheme:
 
-- `tbp-detached-sha256-v1`
+- `paintgun-detached-sha256-v1`
 - Detached JSON sidecar (`*.sig.json`)
 - Claims hash binding (`claimsSha256`) over canonical manifest claims
 
@@ -56,7 +56,7 @@ Signed:
 {
   "trust": {
     "status": "signed",
-    "signatureScheme": "tbp-detached-sha256-v1",
+    "signatureScheme": "paintgun-detached-sha256-v1",
     "signatureFile": "ctc.manifest.sig.json",
     "signer": "ci@example",
     "claimsSha256": "sha256:..."

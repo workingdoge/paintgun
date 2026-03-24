@@ -8,7 +8,7 @@ fn temp_dir(prefix: &str) -> PathBuf {
         .duration_since(UNIX_EPOCH)
         .expect("clock")
         .as_nanos();
-    let dir = std::env::temp_dir().join(format!("tbp-{prefix}-{}-{ts}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("paintgun-{prefix}-{}-{ts}", std::process::id()));
     fs::create_dir_all(&dir).expect("create temp dir");
     dir
 }
@@ -40,7 +40,7 @@ fn build_invalid_resolver_json_fails_without_panic() {
     let resolver = root.join("broken.resolver.json");
     fs::write(&resolver, "{").expect("write broken resolver");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_tbp"))
+    let output = Command::new(env!("CARGO_BIN_EXE_paint"))
         .arg("build")
         .arg(&resolver)
         .arg("--target")
@@ -48,7 +48,7 @@ fn build_invalid_resolver_json_fails_without_panic() {
         .arg("--out")
         .arg(root.join("dist"))
         .output()
-        .expect("run tbp build");
+        .expect("run paint build");
 
     assert!(!output.status.success(), "expected build to fail");
     let stderr = String::from_utf8(output.stderr).expect("stderr utf8");
@@ -62,7 +62,7 @@ fn build_invalid_contracts_shape_fails_without_panic() {
     let contracts = root.join("contracts.json");
     fs::write(&contracts, "[]").expect("write contracts");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_tbp"))
+    let output = Command::new(env!("CARGO_BIN_EXE_paint"))
         .arg("build")
         .arg(example_resolver())
         .arg("--contracts")
@@ -70,7 +70,7 @@ fn build_invalid_contracts_shape_fails_without_panic() {
         .arg("--out")
         .arg(root.join("dist"))
         .output()
-        .expect("run tbp build");
+        .expect("run paint build");
 
     assert!(!output.status.success(), "expected build to fail");
     let stderr = String::from_utf8(output.stderr).expect("stderr utf8");
@@ -83,7 +83,7 @@ fn build_missing_policy_file_fails_without_panic() {
     let root = temp_dir("build-missing-policy");
     let missing_policy = root.join("missing-policy.json");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_tbp"))
+    let output = Command::new(env!("CARGO_BIN_EXE_paint"))
         .arg("build")
         .arg(example_resolver())
         .arg("--target")
@@ -93,7 +93,7 @@ fn build_missing_policy_file_fails_without_panic() {
         .arg("--out")
         .arg(root.join("dist"))
         .output()
-        .expect("run tbp build");
+        .expect("run paint build");
 
     assert!(!output.status.success(), "expected build to fail");
     let stderr = String::from_utf8(output.stderr).expect("stderr utf8");
@@ -107,7 +107,7 @@ fn build_output_path_file_fails_without_panic() {
     let out_path = root.join("not-a-dir");
     fs::write(&out_path, "occupied").expect("write output file");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_tbp"))
+    let output = Command::new(env!("CARGO_BIN_EXE_paint"))
         .arg("build")
         .arg(example_resolver())
         .arg("--target")
@@ -115,7 +115,7 @@ fn build_output_path_file_fails_without_panic() {
         .arg("--out")
         .arg(&out_path)
         .output()
-        .expect("run tbp build");
+        .expect("run paint build");
 
     assert!(!output.status.success(), "expected build to fail");
     let stderr = String::from_utf8(output.stderr).expect("stderr utf8");

@@ -2,13 +2,13 @@ use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use tbp::artifact::write_resolved_json;
-use tbp::cert::{
+use paintgun::artifact::write_resolved_json;
+use paintgun::cert::{
     analyze_composability, build_ctc_manifest, render_validation_report, ConflictMode,
 };
-use tbp::policy::Policy;
-use tbp::resolver::{build_token_store, read_json_file, ResolverDoc};
-use tbp::verify::verify_ctc;
+use paintgun::policy::Policy;
+use paintgun::resolver::{build_token_store, read_json_file, ResolverDoc};
+use paintgun::verify::verify_ctc;
 
 fn temp_dir(prefix: &str) -> PathBuf {
     let ts = SystemTime::now()
@@ -51,7 +51,7 @@ fn verify_enforces_pinned_pack_identity_content_hash() {
     let witnesses_bytes =
         serde_json::to_vec_pretty(&analysis.witnesses).expect("serialize witnesses");
     fs::write(&witnesses_path, &witnesses_bytes).expect("write witnesses");
-    let witnesses_sha = format!("sha256:{}", tbp::util::sha256_hex(&witnesses_bytes));
+    let witnesses_sha = format!("sha256:{}", paintgun::util::sha256_hex(&witnesses_bytes));
 
     let manifest = build_ctc_manifest(
         &doc,

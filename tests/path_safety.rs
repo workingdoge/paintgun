@@ -3,29 +3,29 @@ use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use tbp::cert::{
+use paintgun::cert::{
     ConflictMode, CtcInputs, CtcManifest, CtcOutputs, CtcSemantics, CtcSummary, ManifestEntry,
     PackIdentity, ToolInfo, TrustMetadata,
 };
-use tbp::compose::{
+use paintgun::compose::{
     error_codes as compose_error_codes, verify_compose, ComposeManifest, ComposePackEntry,
     ComposeSummary, ComposeWitnesses,
 };
-use tbp::resolver::{build_token_store, read_json_file, ResolverDoc, ResolverError};
-use tbp::verify::verify_ctc;
+use paintgun::resolver::{build_token_store, read_json_file, ResolverDoc, ResolverError};
+use paintgun::verify::verify_ctc;
 
 fn temp_dir(prefix: &str) -> PathBuf {
     let ts = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .expect("clock")
         .as_nanos();
-    let dir = std::env::temp_dir().join(format!("tbp-{prefix}-{}-{ts}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("paintgun-{prefix}-{}-{ts}", std::process::id()));
     fs::create_dir_all(&dir).expect("create temp dir");
     dir
 }
 
 fn sha256_prefixed(bytes: &[u8]) -> String {
-    format!("sha256:{}", tbp::util::sha256_hex(bytes))
+    format!("sha256:{}", paintgun::util::sha256_hex(bytes))
 }
 
 #[test]
@@ -97,7 +97,7 @@ fn verify_ctc_rejects_unsafe_manifest_entry_paths() {
         ctc_version: "0.1".to_string(),
         kcir_version: "2".to_string(),
         tool: ToolInfo {
-            name: "tbp-rs".to_string(),
+            name: "paintgun".to_string(),
             version: "0.1.0".to_string(),
         },
         spec: "2025.10".to_string(),
@@ -107,7 +107,7 @@ fn verify_ctc_rejects_unsafe_manifest_entry_paths() {
             content_hash: sha256_prefixed(resolved_bytes),
         },
         trust: TrustMetadata::unsigned(),
-        profile: Some(tbp::kcir_v2::default_kcir_profile_binding()),
+        profile: Some(paintgun::kcir_v2::default_kcir_profile_binding()),
         axes: BTreeMap::new(),
         semantics: CtcSemantics {
             eq_value_id: "dtcg-2025.10-typed-structural".to_string(),
@@ -177,7 +177,7 @@ fn verify_ctc_rejects_unsafe_manifest_entry_paths() {
         report
             .error_details
             .iter()
-            .any(|e| e.code == tbp::verify::error_codes::PATH_UNSAFE),
+            .any(|e| e.code == paintgun::verify::error_codes::PATH_UNSAFE),
         "expected structured path safety code, got: {:?}",
         report.error_details
     );
@@ -202,7 +202,7 @@ fn verify_compose_rejects_unsafe_pack_dirs() {
     let manifest = ComposeManifest {
         compose_version: "0.1".to_string(),
         tool: ToolInfo {
-            name: "tbp-rs".to_string(),
+            name: "paintgun".to_string(),
             version: "0.1.0".to_string(),
         },
         trust: TrustMetadata::unsigned(),

@@ -1,23 +1,23 @@
 use std::collections::{BTreeMap, HashMap};
 use std::path::PathBuf;
 
-use tbp::cert::{
+use paintgun::cert::{
     ConflictMode, CtcConflictCandidate, CtcConflictWitness, CtcInheritedWitness, CtcInputs,
     CtcManifest, CtcOutputs, CtcSemantics, CtcSummary, CtcWitnesses, ManifestEntry, PackIdentity,
     ToolInfo, TrustMetadata,
 };
-use tbp::compose::{analyze_cross_pack_conflicts, Pack};
-use tbp::dtcg::{DtcgType, DtcgValue, NumLit, TypedValue};
-use tbp::provenance::{AuthoredValue, TokenProvenance};
-use tbp::resolver::{ResolvedToken, TokenStore};
-use tbp::util::sha256_hex;
+use paintgun::compose::{analyze_cross_pack_conflicts, Pack};
+use paintgun::dtcg::{DtcgType, DtcgValue, NumLit, TypedValue};
+use paintgun::provenance::{AuthoredValue, TokenProvenance};
+use paintgun::resolver::{ResolvedToken, TokenStore};
+use paintgun::util::sha256_hex;
 
 fn dummy_manifest(resolver_sha: &str) -> CtcManifest {
     CtcManifest {
         ctc_version: "0.1".to_string(),
         kcir_version: "2".to_string(),
         tool: ToolInfo {
-            name: "tbp-rs".to_string(),
+            name: "paintgun".to_string(),
             version: "0.1.0".to_string(),
         },
         spec: "2025.10".to_string(),
@@ -27,7 +27,7 @@ fn dummy_manifest(resolver_sha: &str) -> CtcManifest {
             content_hash: "sha256:resolved".to_string(),
         },
         trust: TrustMetadata::unsigned(),
-        profile: Some(tbp::kcir_v2::default_kcir_profile_binding()),
+        profile: Some(paintgun::kcir_v2::default_kcir_profile_binding()),
         axes: BTreeMap::new(),
         semantics: CtcSemantics {
             eq_value_id: "dtcg-2025.10-structural".to_string(),

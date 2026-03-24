@@ -1,4 +1,4 @@
-//! Artifact I/O for tbp-rs.
+//! Artifact I/O for paintgun.
 //!
 //! The key artifact is `resolved.json`: a platform-neutral export of the
 //! spec-resolved token sets per context.
@@ -71,7 +71,7 @@ impl ResolvedExport {
 
         ResolvedExport {
             spec: "DTCG 2025.10".to_string(),
-            tool: "tbp-rs".to_string(),
+            tool: "paintgun".to_string(),
             axes: store.axes.clone(),
             contexts,
         }

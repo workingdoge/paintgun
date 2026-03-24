@@ -8,7 +8,7 @@ use crate::cert::{CtcManifest, TrustMetadata, TrustStatus};
 use crate::compose::ComposeManifest;
 use crate::util::sha256_hex;
 
-pub const SIGNATURE_SCHEME: &str = "tbp-detached-sha256-v1";
+pub const SIGNATURE_SCHEME: &str = "paintgun-detached-sha256-v1";
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DetachedSignature {

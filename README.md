@@ -1,4 +1,4 @@
-# tbp-rs
+# Paintgun
 
 A Rust refactor of the **Token Bridge Project (TBP)** prototype:
 
@@ -56,7 +56,7 @@ Outputs:
 - `dist/tokens.css` — emitted CSS
 - `dist/tokens.swift` — emitted Swift token map (when `--target swift`)
 - `dist/tokens.kt` — emitted Kotlin token map (when `--target kotlin`)
-  - Native API markers are embedded as `TBPEmitterAPI.swiftVersion` (Swift) and `TBP_EMITTER_API_VERSION` (Kotlin).
+  - Native API markers are embedded as `PaintgunEmitterAPI.swiftVersion` (Swift) and `PAINTGUN_EMITTER_API_VERSION` (Kotlin).
 - `dist/swift/` — Swift Package scaffold (`Package.swift`, module source, tests) when `--target swift`
 - `dist/kotlin/` — Kotlin Gradle module scaffold (`build.gradle.kts`, source, tests) when `--target kotlin`
 - `dist/resolved.json` — platform-neutral resolved IR (structured values)
@@ -224,7 +224,7 @@ cargo run -- sign dist/ctc.manifest.json --out dist/ctc.signature.json
 
 Signed manifests record:
 - `trust.status = "signed"`
-- `trust.signatureScheme = "tbp-detached-sha256-v1"`
+- `trust.signatureScheme = "paintgun-detached-sha256-v1"`
 - `trust.signatureFile`
 - `trust.claimsSha256`
 
@@ -306,7 +306,7 @@ python3 scripts/spec_watch.py check \
   --artifact-dir spec-watch-artifacts
 ```
 
-If drift is intentional and tbp should adopt it, update code/docs as needed, then refresh the lock:
+If drift is intentional and Paintgun should adopt it, update code/docs as needed, then refresh the lock:
 
 ```bash
 python3 scripts/spec_watch.py refresh \

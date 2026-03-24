@@ -100,7 +100,7 @@ pub fn build_github_annotations(
         }
 
         let command = severity_command(&f.severity);
-        let title = format!("tbp/{} {}", f.kind, f.witness_id);
+        let title = format!("paintgun/{} {}", f.kind, f.witness_id);
         let mut msg = f.message.clone();
         if let Some(tp) = &f.token_path {
             msg.push_str(&format!(" | tokenPath={tp}"));

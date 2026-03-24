@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://tbp.dev/schemas/witness.schema.json",
-  "title": "TBP CTC Witnesses",
+  "$id": "https://paintgun.dev/schemas/witness.schema.json",
+  "title": "Paintgun CTC Witnesses",
   "type": "object",
   "additionalProperties": false,
   "required": ["witnessSchema", "conflictMode", "policyDigest", "gaps", "conflicts", "inherited", "bcViolations", "orthogonality"],

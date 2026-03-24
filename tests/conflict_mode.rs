@@ -2,9 +2,9 @@ use std::path::PathBuf;
 
 use serde_json::json;
 
-use tbp::cert::{analyze_composability_with_mode, ConflictMode};
-use tbp::policy::Policy;
-use tbp::resolver::{build_token_store, ResolverDoc};
+use paintgun::cert::{analyze_composability_with_mode, ConflictMode};
+use paintgun::policy::Policy;
+use paintgun::resolver::{build_token_store, ResolverDoc};
 
 fn duration_conflict_doc() -> ResolverDoc {
     serde_json::from_value(json!({

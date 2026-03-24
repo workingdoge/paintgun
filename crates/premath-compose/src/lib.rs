@@ -921,7 +921,7 @@ mod tests {
     fn compose_report_json_builder_produces_findings() {
         let manifest = ComposeManifest::<String, String, String, String, String, String> {
             compose_version: "0.1".to_string(),
-            tool: "tbp".to_string(),
+            tool: "paintgun".to_string(),
             axes: BTreeMap::new(),
             pack_order: vec!["pack-a".to_string(), "pack-b".to_string()],
             packs: Vec::new(),
@@ -976,7 +976,7 @@ mod tests {
     fn compose_text_report_builder_includes_inherited_refs() {
         let manifest = ComposeManifest::<String, String, String, String, String, String> {
             compose_version: "0.1".to_string(),
-            tool: "tbp".to_string(),
+            tool: "paintgun".to_string(),
             axes: BTreeMap::new(),
             pack_order: vec!["pack-a".to_string(), "pack-b".to_string()],
             packs: Vec::new(),

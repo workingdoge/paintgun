@@ -374,7 +374,7 @@ pub struct ToolInfo {
     pub version: String,
 }
 
-pub const NORMALIZER_VERSION: &str = "tbp-policy-v1";
+pub const NORMALIZER_VERSION: &str = "paintgun-policy-v1";
 
 pub use premath_composability::{
     ConflictMode, CtcConflictCandidate, CtcConflictWitness, CtcGapWitness, CtcInheritedWitness,
@@ -789,7 +789,7 @@ pub fn build_authored_export(
 
     AuthoredExport {
         spec: doc.version.clone(),
-        tool: "tbp-rs".to_string(),
+        tool: "paintgun".to_string(),
         axes: store.axes.clone(),
         contexts,
     }
@@ -1091,7 +1091,7 @@ pub fn build_ctc_manifest(
         ctc_version: "0.1".to_string(),
         kcir_version: KCIR_VERSION.to_string(),
         tool: ToolInfo {
-            name: "tbp-rs".to_string(),
+            name: "paintgun".to_string(),
             version: env!("CARGO_PKG_VERSION").to_string(),
         },
         spec: doc.version.clone(),

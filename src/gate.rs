@@ -40,7 +40,7 @@ fn gate_input_source_from_candidate(
     }
 }
 
-/// Adapter from tbp analysis/certificate structures to the generic
+/// Adapter from Paintgun analysis/certificate structures to the generic
 /// admissibility evaluator housed in `premath-gate`.
 pub fn evaluate_from_analysis(
     analysis: &CtcAnalysis,

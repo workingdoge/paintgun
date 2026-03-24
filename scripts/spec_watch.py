@@ -11,7 +11,7 @@ import urllib.error
 import urllib.request
 
 
-USER_AGENT = "tbp-spec-watch/1"
+USER_AGENT = "paintgun-spec-watch/1"
 DEFAULT_TIMEOUT = 20.0
 LOCK_VERSION = 1
 
@@ -196,7 +196,7 @@ def build_summary(report: dict) -> str:
             "",
             "Triage:",
             "1. Inspect `spec-watch-artifacts/report.json` and any uploaded payloads.",
-            "2. Decide whether tbp code, tests, docs, or pinned expectations need updates.",
+            "2. Decide whether Paintgun code, tests, docs, or pinned expectations need updates.",
             "3. Open or update a `bd` follow-up issue in the canonical repo root.",
             "4. If the upstream change is accepted, run `python3 scripts/spec_watch.py refresh` and commit the updated lock file.",
             "",

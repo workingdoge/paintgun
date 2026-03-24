@@ -3,8 +3,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use tbp::contexts::{plan_inputs, ContextMode};
-use tbp::resolver::{
+use paintgun::contexts::{plan_inputs, ContextMode};
+use paintgun::resolver::{
     axes_from_doc, axes_relevant_to_tokens, build_token_store, build_token_store_for_inputs,
     read_json_file, ResolverDoc,
 };
@@ -14,7 +14,7 @@ fn temp_dir(prefix: &str) -> PathBuf {
         .duration_since(UNIX_EPOCH)
         .expect("clock")
         .as_nanos();
-    let dir = std::env::temp_dir().join(format!("tbp-{prefix}-{}-{ts}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("paintgun-{prefix}-{}-{ts}", std::process::id()));
     fs::create_dir_all(&dir).expect("create temp dir");
     dir
 }

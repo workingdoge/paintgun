@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use tbp::contexts::{plan_inputs, ContextMode};
+use paintgun::contexts::{plan_inputs, ContextMode};
 
 fn axes_three_by_two() -> BTreeMap<String, Vec<String>> {
     BTreeMap::from([

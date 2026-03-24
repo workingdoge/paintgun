@@ -2,8 +2,8 @@ use std::path::PathBuf;
 
 use serde_json::json;
 
-use tbp::cert::analyze_composability;
-use tbp::resolver::{build_token_store, ResolverDoc};
+use paintgun::cert::analyze_composability;
+use paintgun::resolver::{build_token_store, ResolverDoc};
 
 #[test]
 fn alias_derived_conflict_candidates_point_to_defining_leaves() {

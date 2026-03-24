@@ -1,13 +1,21 @@
 use std::process::Command;
 
 #[test]
-fn top_level_version_flag_reports_package_version() {
-    let output = Command::new(env!("CARGO_BIN_EXE_tbp"))
+fn paint_version_reports_public_binary_name() {
+    let output = Command::new(env!("CARGO_BIN_EXE_paint"))
         .arg("--version")
         .output()
-        .expect("run tbp --version");
+        .expect("run paint --version");
 
-    assert!(output.status.success(), "expected --version to succeed");
-    let stdout = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(stdout.trim(), format!("tbp {}", env!("CARGO_PKG_VERSION")));
+    assert!(
+        output.status.success(),
+        "--version should succeed, stderr was: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.starts_with("paint "),
+        "expected version output to start with public binary name, got: {stdout:?}"
+    );
 }

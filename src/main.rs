@@ -3,39 +3,39 @@ use std::path::{Path, PathBuf};
 
 use clap::{Parser, Subcommand, ValueEnum};
 
-use tbp::allowlist::Allowlist;
-use tbp::annotations::{build_github_annotations, read_report};
-use tbp::artifact::write_resolved_json;
-use tbp::cert::{
+use paintgun::allowlist::Allowlist;
+use paintgun::annotations::{build_github_annotations, read_report};
+use paintgun::artifact::write_resolved_json;
+use paintgun::cert::{
     analyze_composability_with_mode_and_contexts, build_assignments, build_authored_export,
     build_ctc_manifest, build_explicit_index, build_manifest_rel, render_validation_report,
     required_artifact_binding, ConflictMode, CtcManifest, NativeApiVersions, RequiredArtifactKind,
     NORMALIZER_VERSION,
 };
-use tbp::compose::{
+use paintgun::compose::{
     analyze_cross_pack_conflicts_with_mode_and_contexts, build_compose_manifest_with_context_count,
     compose_store_with_context_mode, load_pack, relevant_axes_for_contract_tokens,
     render_compose_report, union_axes, verify_compose_with_signing, ComposeManifest,
 };
-use tbp::emit::{
+use paintgun::emit::{
     build_layer_defs_from_axes, compile_component_css, compile_component_css_with_layers,
     emit_kotlin_module_scaffold, emit_store_kotlin, emit_store_swift, emit_swift_package_scaffold,
     emit_tokens_d_ts, Contract, CssEmitter, KOTLIN_EMITTER_API_VERSION, SWIFT_EMITTER_API_VERSION,
 };
-use tbp::explain::{explain_compose_witness, explain_ctc_witness};
-use tbp::gate::GateResult;
-use tbp::ids::{TokenPathId, WitnessId};
-use tbp::kcir_v2::{
+use paintgun::explain::{explain_compose_witness, explain_ctc_witness};
+use paintgun::gate::GateResult;
+use paintgun::ids::{TokenPathId, WitnessId};
+use paintgun::kcir_v2::{
     kcir_profile_binding_for_scheme_and_wire, KcirProfileBinding, ProfileAnchors, HASH_SCHEME_ID,
 };
-use tbp::pipeline::{run_full_profile_pipeline, FullProfilePipelineRequest};
-use tbp::policy::Policy;
-use tbp::resolver::{
+use paintgun::pipeline::{run_full_profile_pipeline, FullProfilePipelineRequest};
+use paintgun::policy::Policy;
+use paintgun::resolver::{
     axes_from_doc, axes_relevant_to_tokens, build_token_store_for_inputs, context_key,
     read_json_file, Input, ResolverDoc, ResolverError,
 };
-use tbp::signing::sign_manifest_file;
-use tbp::verify::{verify_ctc_with_options, CtcVerifyOptions, VerifyProfile};
+use paintgun::signing::sign_manifest_file;
+use paintgun::verify::{verify_ctc_with_options, CtcVerifyOptions, VerifyProfile};
 
 #[derive(Debug)]
 struct CliError(String);
@@ -57,8 +57,7 @@ impl std::error::Error for CliError {}
 type CliResult<T> = Result<T, CliError>;
 
 #[derive(Parser, Debug)]
-#[command(name = "tbp")]
-#[command(version = env!("CARGO_PKG_VERSION"))]
+#[command(name = "paint", version)]
 #[command(about = "DTCG 2025.10 resolver + composability certificates", long_about = None)]
 struct Cli {
     #[command(subcommand)]
@@ -99,12 +98,12 @@ impl From<CliConflictMode> for ConflictMode {
     }
 }
 
-impl From<CliContexts> for tbp::contexts::ContextMode {
+impl From<CliContexts> for paintgun::contexts::ContextMode {
     fn from(value: CliContexts) -> Self {
         match value {
-            CliContexts::FullOnly => tbp::contexts::ContextMode::FullOnly,
-            CliContexts::Partial => tbp::contexts::ContextMode::Partial,
-            CliContexts::FromContracts => tbp::contexts::ContextMode::FromContracts,
+            CliContexts::FullOnly => paintgun::contexts::ContextMode::FullOnly,
+            CliContexts::Partial => paintgun::contexts::ContextMode::Partial,
+            CliContexts::FromContracts => paintgun::contexts::ContextMode::FromContracts,
         }
     }
 }
@@ -449,7 +448,7 @@ fn stage_portable_inputs(
 
     let resolver_dir = resolver_path.parent().unwrap_or_else(|| Path::new("."));
     for raw in collect_external_source_refs(doc) {
-        let rel = tbp::path_safety::validate_relative_path(&raw)
+        let rel = paintgun::path_safety::validate_relative_path(&raw)
             .map_err(|e| format!("invalid source ref {raw}: {e}"))?;
         let src = resolver_dir.join(&rel);
         let dest = bundle_root.join(&rel);
@@ -539,7 +538,7 @@ fn build_planner_trace(
     const TRACE_MAX_ENTRIES: usize = 200;
 
     let partial_universe_keys: std::collections::BTreeSet<String> =
-        tbp::contexts::partial_inputs(axes)
+        paintgun::contexts::partial_inputs(axes)
             .into_iter()
             .map(|i| context_key(&i))
             .collect();
@@ -724,7 +723,7 @@ fn validate_semantics(
     let mut errors = Vec::new();
 
     if let Some(policy) = policy {
-        let expected_digest = tbp::policy::policy_digest(policy);
+        let expected_digest = paintgun::policy::policy_digest(policy);
         if manifest_policy_digest != Some(&expected_digest) {
             errors.push(format!(
                 "policyDigest mismatch: manifest has {:?}, expected {}",
@@ -852,12 +851,13 @@ fn run_build(
         ),
         _ => None,
     };
-    let planned_inputs = tbp::contexts::plan_inputs(contexts.into(), &axes, relevant_axes.as_ref());
+    let planned_inputs =
+        paintgun::contexts::plan_inputs(contexts.into(), &axes, relevant_axes.as_ref());
     let analysis_inputs = planned_inputs.clone();
     let required_inputs = if target == "css" {
-        tbp::contexts::layered_inputs(&axes, None)
+        paintgun::contexts::layered_inputs(&axes, None)
     } else {
-        tbp::contexts::layered_inputs(&axes, None)
+        paintgun::contexts::layered_inputs(&axes, None)
             .into_iter()
             .filter(|i| i.len() <= 1)
             .collect()
@@ -1009,7 +1009,7 @@ fn run_build(
         validation_txt.as_bytes(),
     )?;
     if matches!(format, CliFormat::Json) {
-        let mut validation_json = tbp::cert::build_validation_report_json(&analysis);
+        let mut validation_json = paintgun::cert::build_validation_report_json(&analysis);
         if let Some(trace) = planner_trace_payload.clone() {
             let obj = validation_json.as_object_mut().ok_or_else(|| {
                 CliError::new("internal error: validation report JSON must be an object")
@@ -1038,7 +1038,7 @@ fn run_build(
     let witnesses_path = out.join("ctc.witnesses.json");
     let witnesses_bytes = json_bytes(&analysis.witnesses, "ctc.witnesses.json")?;
     write_bytes(&witnesses_path, "ctc.witnesses.json", &witnesses_bytes)?;
-    let witnesses_sha256 = format!("sha256:{}", tbp::util::sha256_hex(&witnesses_bytes));
+    let witnesses_sha256 = format!("sha256:{}", paintgun::util::sha256_hex(&witnesses_bytes));
 
     let mut admissibility_path: Option<PathBuf> = None;
     let mut admissibility_sha256: Option<String> = None;
@@ -1049,7 +1049,7 @@ fn run_build(
         write_bytes(&path, "admissibility.witnesses.json", &admissibility_bytes)?;
         admissibility_sha256 = Some(format!(
             "sha256:{}",
-            tbp::util::sha256_hex(&admissibility_bytes)
+            paintgun::util::sha256_hex(&admissibility_bytes)
         ));
         admissibility_path = Some(path);
         if admissibility.result == GateResult::Rejected {
@@ -1158,7 +1158,7 @@ fn run_compose(
         _ => None,
     };
     let planned_inputs =
-        tbp::contexts::plan_inputs(contexts.into(), &compose_axes, relevant_axes.as_ref());
+        paintgun::contexts::plan_inputs(contexts.into(), &compose_axes, relevant_axes.as_ref());
     let planner_trace_payload = if planner_trace {
         Some(build_planner_trace(
             "compose",
@@ -1250,7 +1250,7 @@ fn run_compose(
     let witnesses_path = out.join("compose.witnesses.json");
     let witnesses_bytes = json_bytes(&witnesses, "compose.witnesses.json")?;
     write_bytes(&witnesses_path, "compose.witnesses.json", &witnesses_bytes)?;
-    let witnesses_sha256 = format!("sha256:{}", tbp::util::sha256_hex(&witnesses_bytes));
+    let witnesses_sha256 = format!("sha256:{}", paintgun::util::sha256_hex(&witnesses_bytes));
     let native_api_versions = match target.as_str() {
         "swift" => Some(NativeApiVersions {
             swift: Some(SWIFT_EMITTER_API_VERSION.to_string()),
@@ -1288,7 +1288,7 @@ fn run_compose(
         report.as_bytes(),
     )?;
     if matches!(format, CliFormat::Json) {
-        let mut report_json = tbp::compose::build_compose_report_json(&manifest, &witnesses);
+        let mut report_json = paintgun::compose::build_compose_report_json(&manifest, &witnesses);
         if let Some(trace) = planner_trace_payload {
             let obj = report_json.as_object_mut().ok_or_else(|| {
                 CliError::new("internal error: compose report JSON must be an object")
@@ -1614,7 +1614,7 @@ fn run(cli: Cli) -> CliResult<()> {
                     }
                 };
 
-                if let Ok(ctc) = serde_json::from_slice::<tbp::cert::CtcWitnesses>(&wb) {
+                if let Ok(ctc) = serde_json::from_slice::<paintgun::cert::CtcWitnesses>(&wb) {
                     if let Some(expl) =
                         explain_ctc_witness(&ctc, &witness_id, &wf.display().to_string())
                     {
@@ -1623,7 +1623,9 @@ fn run(cli: Cli) -> CliResult<()> {
                     continue;
                 }
 
-                if let Ok(compose) = serde_json::from_slice::<tbp::compose::ComposeWitnesses>(&wb) {
+                if let Ok(compose) =
+                    serde_json::from_slice::<paintgun::compose::ComposeWitnesses>(&wb)
+                {
                     if let Some(expl) =
                         explain_compose_witness(&compose, &witness_id, &wf.display().to_string())
                     {
@@ -1681,7 +1683,7 @@ fn run(cli: Cli) -> CliResult<()> {
                 println!("{line}");
             }
             println!(
-                "::notice title=tbp/report::reportKind={} conflictMode={} findings={} emitted={} truncated={}",
+                "::notice title=paintgun/report::reportKind={} conflictMode={} findings={} emitted={} truncated={}",
                 parsed.report_kind,
                 parsed.conflict_mode,
                 parsed.counts.total,

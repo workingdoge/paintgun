@@ -4,8 +4,10 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use tbp::cert::{ConflictMode, CtcSemantics, ManifestEntry, PackIdentity, ToolInfo, TrustMetadata};
-use tbp::compose::{
+use paintgun::cert::{
+    ConflictMode, CtcSemantics, ManifestEntry, PackIdentity, ToolInfo, TrustMetadata,
+};
+use paintgun::compose::{
     error_codes as compose_error_codes, ComposeManifest, ComposePackEntry, ComposeSummary,
     ComposeWitnesses,
 };
@@ -15,13 +17,13 @@ fn temp_dir(prefix: &str) -> PathBuf {
         .duration_since(UNIX_EPOCH)
         .expect("clock")
         .as_nanos();
-    let dir = std::env::temp_dir().join(format!("tbp-{prefix}-{}-{ts}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("paintgun-{prefix}-{}-{ts}", std::process::id()));
     fs::create_dir_all(&dir).expect("create temp dir");
     dir
 }
 
 fn sha256_prefixed(bytes: &[u8]) -> String {
-    format!("sha256:{}", tbp::util::sha256_hex(bytes))
+    format!("sha256:{}", paintgun::util::sha256_hex(bytes))
 }
 
 fn write_file(path: &Path, contents: &str) {
@@ -180,7 +182,7 @@ fn verify_compose_format_json_emits_error_details() {
     let manifest = ComposeManifest {
         compose_version: "0.1".to_string(),
         tool: ToolInfo {
-            name: "tbp-rs".to_string(),
+            name: "paintgun".to_string(),
             version: "0.1.0".to_string(),
         },
         trust: TrustMetadata::unsigned(),
@@ -234,13 +236,13 @@ fn verify_compose_format_json_emits_error_details() {
     )
     .expect("write compose manifest");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_tbp"))
+    let output = Command::new(env!("CARGO_BIN_EXE_paint"))
         .arg("verify-compose")
         .arg(&manifest_path)
         .arg("--format")
         .arg("json")
         .output()
-        .expect("run tbp verify-compose");
+        .expect("run paint verify-compose");
     assert!(
         !output.status.success(),
         "expected verify-compose to fail for unsafe pack dir"

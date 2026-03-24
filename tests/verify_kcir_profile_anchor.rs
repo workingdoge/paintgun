@@ -3,28 +3,28 @@ use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use tbp::cert::{
+use paintgun::cert::{
     ConflictMode, CtcInputs, CtcManifest, CtcOutputs, CtcSemantics, CtcSummary, ManifestEntry,
     PackIdentity, ToolInfo, TrustMetadata, PACK_WITNESS_SCHEMA_VERSION,
 };
-use tbp::kcir_v2::{
+use paintgun::kcir_v2::{
     KcirProfileAnchor, KcirProfileBinding, MerkleProfile, ProfileAnchors,
     WIRE_FORMAT_LENPREFIXED_REF_V1,
 };
-use tbp::verify::{verify_ctc_with_options, CtcVerifyOptions};
+use paintgun::verify::{verify_ctc_with_options, CtcVerifyOptions};
 
 fn temp_dir(prefix: &str) -> PathBuf {
     let ts = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .expect("clock")
         .as_nanos();
-    let dir = std::env::temp_dir().join(format!("tbp-{prefix}-{}-{ts}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("paintgun-{prefix}-{}-{ts}", std::process::id()));
     fs::create_dir_all(&dir).expect("create temp dir");
     dir
 }
 
 fn sha256_prefixed(bytes: &[u8]) -> String {
-    format!("sha256:{}", tbp::util::sha256_hex(bytes))
+    format!("sha256:{}", paintgun::util::sha256_hex(bytes))
 }
 
 fn write_json(path: &PathBuf, value: &impl serde::Serialize) {
@@ -60,7 +60,7 @@ fn write_pack_with_profile_anchor(
         ctc_version: "0.1".to_string(),
         kcir_version: "2".to_string(),
         tool: ToolInfo {
-            name: "tbp-rs".to_string(),
+            name: "paintgun".to_string(),
             version: "0.1.0".to_string(),
         },
         spec: "2025.10".to_string(),
@@ -74,7 +74,7 @@ fn write_pack_with_profile_anchor(
             scheme_id: "hash".to_string(),
             params_hash: format!(
                 "sha256:{}",
-                hex::encode(tbp::kcir_v2::HashProfile::default_params_hash())
+                hex::encode(paintgun::kcir_v2::HashProfile::default_params_hash())
             ),
             wire_format_id: "kcir.wire.legacy-fixed32.v1".to_string(),
             wire_format_version: Some("1".to_string()),
@@ -197,7 +197,7 @@ fn verify_ctc_rejects_mismatched_expected_profile_anchor() {
         report
             .error_details
             .iter()
-            .any(|e| e.code == tbp::kcir_v2::error_codes::ANCHOR_MISMATCH),
+            .any(|e| e.code == paintgun::kcir_v2::error_codes::ANCHOR_MISMATCH),
         "expected structured anchor mismatch code, got: {:?}",
         report.error_details
     );
@@ -225,7 +225,7 @@ fn verify_ctc_rejects_kcir_version_mismatch() {
         report
             .error_details
             .iter()
-            .any(|e| e.code == tbp::verify::error_codes::KCIR_VERSION_MISMATCH),
+            .any(|e| e.code == paintgun::verify::error_codes::KCIR_VERSION_MISMATCH),
         "expected structured kcir version mismatch code, got: {:?}",
         report.error_details
     );
@@ -253,7 +253,7 @@ fn verify_ctc_rejects_missing_manifest_profile_binding() {
         report
             .error_details
             .iter()
-            .any(|e| e.code == tbp::kcir_v2::error_codes::PROFILE_MISMATCH),
+            .any(|e| e.code == paintgun::kcir_v2::error_codes::PROFILE_MISMATCH),
         "expected structured profile mismatch code, got: {:?}",
         report.error_details
     );
@@ -281,7 +281,7 @@ fn verify_ctc_rejects_profile_params_hash_mismatch() {
         report
             .error_details
             .iter()
-            .any(|e| e.code == tbp::kcir_v2::error_codes::PARAMS_HASH_MISMATCH),
+            .any(|e| e.code == paintgun::kcir_v2::error_codes::PARAMS_HASH_MISMATCH),
         "expected structured params hash mismatch code, got: {:?}",
         report.error_details
     );
@@ -309,7 +309,7 @@ fn verify_ctc_rejects_missing_profile_evidence_format_version() {
         report
             .error_details
             .iter()
-            .any(|e| e.code == tbp::kcir_v2::error_codes::EVIDENCE_MALFORMED),
+            .any(|e| e.code == paintgun::kcir_v2::error_codes::EVIDENCE_MALFORMED),
         "expected structured evidence malformed code, got: {:?}",
         report.error_details
     );
@@ -375,7 +375,7 @@ fn verify_ctc_rejects_unsupported_wire_format_binding() {
         report
             .error_details
             .iter()
-            .any(|e| e.code == tbp::verify::error_codes::PROFILE_UNSUPPORTED),
+            .any(|e| e.code == paintgun::verify::error_codes::PROFILE_UNSUPPORTED),
         "expected structured profile unsupported code, got: {:?}",
         report.error_details
     );

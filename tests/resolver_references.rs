@@ -3,8 +3,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use tbp::dtcg::{DimensionUnit, DtcgValue};
-use tbp::resolver::{
+use paintgun::dtcg::{DimensionUnit, DtcgValue};
+use paintgun::resolver::{
     build_token_store_for_inputs, read_json_file, Input, ResolverDoc, ResolverError,
 };
 
@@ -13,7 +13,7 @@ fn temp_dir(prefix: &str) -> PathBuf {
         .duration_since(UNIX_EPOCH)
         .expect("clock")
         .as_nanos();
-    let dir = std::env::temp_dir().join(format!("tbp-{prefix}-{}-{ts}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("paintgun-{prefix}-{}-{ts}", std::process::id()));
     fs::create_dir_all(&dir).expect("create temp dir");
     dir
 }
@@ -23,7 +23,7 @@ fn write_json(path: &Path, value: serde_json::Value) {
     fs::write(path, bytes).expect("write json");
 }
 
-fn dimension_value(token: &tbp::resolver::ResolvedToken) -> (String, DimensionUnit) {
+fn dimension_value(token: &paintgun::resolver::ResolvedToken) -> (String, DimensionUnit) {
     match &token.value {
         DtcgValue::Dimension(d) => (d.value.0.clone(), d.unit.clone()),
         other => panic!(

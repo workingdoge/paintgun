@@ -1,7 +1,7 @@
 //! Multi-pack composition.
 //!
 //! Composition model (v1):
-//! - Each pack is a standard `tbp` build output directory containing:
+//! - Each pack is a standard `paint` build output directory containing:
 //!   - `resolved.json`
 //!   - `ctc.manifest.json`
 //!   - `ctc.witnesses.json`
@@ -767,7 +767,7 @@ pub fn build_compose_manifest_with_context_count(
     Ok(ComposeManifest {
         compose_version: "0.1".to_string(),
         tool: crate::cert::ToolInfo {
-            name: "tbp-rs".to_string(),
+            name: "paintgun".to_string(),
             version: env!("CARGO_PKG_VERSION").to_string(),
         },
         axes: axes.clone(),

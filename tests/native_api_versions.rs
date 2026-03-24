@@ -3,18 +3,18 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use tbp::cert::{build_ctc_manifest, ConflictMode, CtcSummary, NativeApiVersions};
-use tbp::compose::{build_compose_manifest, ComposeWitnesses};
-use tbp::emit::{KOTLIN_EMITTER_API_VERSION, SWIFT_EMITTER_API_VERSION};
-use tbp::policy::{policy_digest, Policy};
-use tbp::resolver::{ResolverDoc, TokenStore};
+use paintgun::cert::{build_ctc_manifest, ConflictMode, CtcSummary, NativeApiVersions};
+use paintgun::compose::{build_compose_manifest, ComposeWitnesses};
+use paintgun::emit::{KOTLIN_EMITTER_API_VERSION, SWIFT_EMITTER_API_VERSION};
+use paintgun::policy::{policy_digest, Policy};
+use paintgun::resolver::{ResolverDoc, TokenStore};
 
 fn temp_dir(prefix: &str) -> PathBuf {
     let ts = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .expect("clock")
         .as_nanos();
-    let dir = std::env::temp_dir().join(format!("tbp-{prefix}-{}-{ts}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("paintgun-{prefix}-{}-{ts}", std::process::id()));
     fs::create_dir_all(&dir).expect("create temp dir");
     dir
 }

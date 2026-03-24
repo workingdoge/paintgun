@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
-use tbp::cert::analyze_composability;
-use tbp::resolver::{build_token_store, read_json_file, ResolverDoc};
+use paintgun::cert::analyze_composability;
+use paintgun::resolver::{build_token_store, read_json_file, ResolverDoc};
 
 #[test]
 fn conflict_witnesses_carry_file_blame_metadata() {

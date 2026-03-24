@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://tbp.dev/schemas/compose.witness.schema.json",
-  "title": "TBP Compose Witnesses",
+  "$id": "https://paintgun.dev/schemas/compose.witness.schema.json",
+  "title": "Paintgun Compose Witnesses",
   "type": "object",
   "additionalProperties": false,
   "required": ["witnessSchema", "conflictMode", "policyDigest", "conflicts"],

@@ -5,16 +5,16 @@ use jsonschema::{Draft, JSONSchema};
 use serde::Deserialize;
 use serde_json::{json, Value};
 
-use tbp::analysis::{locality_failures, stability_failures, PartialAssignment};
-use tbp::cert::{analyze_composability, build_assignments, build_explicit_index};
-use tbp::contexts::partial_inputs;
-use tbp::dtcg::JValue;
-use tbp::kcir_v2::{
+use paintgun::analysis::{locality_failures, stability_failures, PartialAssignment};
+use paintgun::cert::{analyze_composability, build_assignments, build_explicit_index};
+use paintgun::contexts::partial_inputs;
+use paintgun::dtcg::JValue;
+use paintgun::kcir_v2::{
     DecodedNodeRefs, ProfileAnchors, WireCodec, DOMAIN_MOR_NF, DOMAIN_NODE, DOMAIN_OBJ_NF,
     DOMAIN_OPAQUE, LEGACY_FIXED32_WIRE_CODEC, LEN_PREFIXED_REF_WIRE_CODEC,
 };
-use tbp::provenance::TokenProvenance;
-use tbp::resolver::{
+use paintgun::provenance::TokenProvenance;
+use paintgun::resolver::{
     build_token_store, canonicalize_token, flatten, materialize, read_json_file, resolve_aliases,
     resolve_extends, Input, ResolverDoc, ResolverError,
 };
@@ -226,7 +226,7 @@ fn gate_source_from_provenance(prov: &TokenProvenance) -> Option<Value> {
 }
 
 fn gate_witness_from_analysis(
-    analysis: &tbp::cert::CtcAnalysis,
+    analysis: &paintgun::cert::CtcAnalysis,
     assignments: &[PartialAssignment],
     axes: &std::collections::BTreeMap<String, Vec<String>>,
     contexts: &[Input],
@@ -482,7 +482,7 @@ fn parse_usize_value(v: &Value, field: &str) -> Result<usize, String> {
 fn parse_dsl_deps(
     root: &serde_json::Map<String, Value>,
     field: &str,
-) -> Result<Vec<tbp::dsl::DepShape>, String> {
+) -> Result<Vec<paintgun::dsl::DepShape>, String> {
     let deps_val = root
         .get(field)
         .and_then(Value::as_array)
@@ -506,14 +506,14 @@ fn parse_dsl_deps(
                 meta.insert(k.clone(), s.to_string());
             }
         }
-        deps.push(tbp::dsl::DepShape { sort, opcode, meta });
+        deps.push(paintgun::dsl::DepShape { sort, opcode, meta });
     }
     Ok(deps)
 }
 
-fn parse_dsl_pred(value: Option<&Value>, field: &str) -> Result<tbp::dsl::UniquePred, String> {
+fn parse_dsl_pred(value: Option<&Value>, field: &str) -> Result<paintgun::dsl::UniquePred, String> {
     let Some(v) = value else {
-        return Ok(tbp::dsl::UniquePred {
+        return Ok(paintgun::dsl::UniquePred {
             sort: None,
             opcode: None,
             meta_eq: std::collections::BTreeMap::new(),
@@ -542,43 +542,46 @@ fn parse_dsl_pred(value: Option<&Value>, field: &str) -> Result<tbp::dsl::Unique
             meta_eq.insert(k.clone(), s.to_string());
         }
     }
-    Ok(tbp::dsl::UniquePred {
+    Ok(paintgun::dsl::UniquePred {
         sort,
         opcode,
         meta_eq,
     })
 }
 
-fn parse_dsl_pos(value: Option<&Value>, field: &str) -> Result<tbp::dsl::UniquePos, String> {
+fn parse_dsl_pos(value: Option<&Value>, field: &str) -> Result<paintgun::dsl::UniquePos, String> {
     let Some(v) = value else {
-        return Ok(tbp::dsl::UniquePos::Anywhere);
+        return Ok(paintgun::dsl::UniquePos::Anywhere);
     };
     if let Some(s) = v.as_str() {
         return match s {
-            "first" => Ok(tbp::dsl::UniquePos::First),
-            "last" => Ok(tbp::dsl::UniquePos::Last),
-            "anywhere" => Ok(tbp::dsl::UniquePos::Anywhere),
+            "first" => Ok(paintgun::dsl::UniquePos::First),
+            "last" => Ok(paintgun::dsl::UniquePos::Last),
+            "anywhere" => Ok(paintgun::dsl::UniquePos::Anywhere),
             other => {
                 if let Some(rest) = other.strip_prefix("suffix:") {
-                    return Ok(tbp::dsl::UniquePos::Index(rest.parse::<usize>().map_err(
-                        |e| format!("{field} invalid suffix index {other:?}: {e}"),
-                    )?));
+                    return Ok(paintgun::dsl::UniquePos::Index(
+                        rest.parse::<usize>()
+                            .map_err(|e| format!("{field} invalid suffix index {other:?}: {e}"))?,
+                    ));
                 }
-                Ok(tbp::dsl::UniquePos::Index(other.parse::<usize>().map_err(
-                    |e| format!("{field} unsupported pos {other:?}: {e}"),
-                )?))
+                Ok(paintgun::dsl::UniquePos::Index(
+                    other
+                        .parse::<usize>()
+                        .map_err(|e| format!("{field} unsupported pos {other:?}: {e}"))?,
+                ))
             }
         };
     }
     if let Some(n) = v.as_u64() {
-        return Ok(tbp::dsl::UniquePos::Index(
+        return Ok(paintgun::dsl::UniquePos::Index(
             usize::try_from(n).map_err(|_| format!("{field} out of range: {n}"))?,
         ));
     }
     if let Some(arr) = v.as_array() {
         if arr.len() == 2 && arr[0].as_str() == Some("suffix") {
             let idx = parse_usize_value(&arr[1], &format!("{field}[1]"))?;
-            return Ok(tbp::dsl::UniquePos::Index(idx));
+            return Ok(paintgun::dsl::UniquePos::Index(idx));
         }
     }
     Err(format!(
@@ -586,17 +589,20 @@ fn parse_dsl_pos(value: Option<&Value>, field: &str) -> Result<tbp::dsl::UniqueP
     ))
 }
 
-fn parse_dsl_key_selector(value: &Value, field: &str) -> Result<tbp::dsl::KeySelector, String> {
+fn parse_dsl_key_selector(
+    value: &Value,
+    field: &str,
+) -> Result<paintgun::dsl::KeySelector, String> {
     if let Some(s) = value.as_str() {
         return match s {
-            "sort" => Ok(tbp::dsl::KeySelector::Sort),
-            "opcode" => Ok(tbp::dsl::KeySelector::Opcode),
+            "sort" => Ok(paintgun::dsl::KeySelector::Sort),
+            "opcode" => Ok(paintgun::dsl::KeySelector::Opcode),
             _ => {
                 if let Some(key) = s.strip_prefix("meta:") {
                     if key.is_empty() {
                         return Err(format!("{field} meta key cannot be empty"));
                     }
-                    Ok(tbp::dsl::KeySelector::Meta(key.to_string()))
+                    Ok(paintgun::dsl::KeySelector::Meta(key.to_string()))
                 } else {
                     Err(format!(
                         "{field} must be sort|opcode|meta:<field>, got {s:?}"
@@ -615,13 +621,13 @@ fn parse_dsl_key_selector(value: &Value, field: &str) -> Result<tbp::dsl::KeySel
         if key.is_empty() {
             return Err(format!("{field}.meta cannot be empty"));
         }
-        return Ok(tbp::dsl::KeySelector::Meta(key.to_string()));
+        return Ok(paintgun::dsl::KeySelector::Meta(key.to_string()));
     }
     if obj.contains_key("sort") {
-        return Ok(tbp::dsl::KeySelector::Sort);
+        return Ok(paintgun::dsl::KeySelector::Sort);
     }
     if obj.contains_key("opcode") {
-        return Ok(tbp::dsl::KeySelector::Opcode);
+        return Ok(paintgun::dsl::KeySelector::Opcode);
     }
     Err(format!(
         "{field} object form must contain one of: meta|sort|opcode"
@@ -651,7 +657,7 @@ fn parse_dsl_expected_keys_spec(
     obj: &serde_json::Map<String, Value>,
     expected_keys_field: &str,
     expected_keys_from_binding_field: &str,
-) -> Result<tbp::dsl::ExpectedKeysSpec, String> {
+) -> Result<paintgun::dsl::ExpectedKeysSpec, String> {
     let has_literal = obj.contains_key(expected_keys_field);
     let has_from_binding = obj.contains_key(expected_keys_from_binding_field);
     if has_literal == has_from_binding {
@@ -662,7 +668,7 @@ fn parse_dsl_expected_keys_spec(
 
     if let Some(v) = obj.get(expected_keys_field) {
         let keys = parse_dsl_expected_keys(v, expected_keys_field)?;
-        return Ok(tbp::dsl::ExpectedKeysSpec::Literal(keys));
+        return Ok(paintgun::dsl::ExpectedKeysSpec::Literal(keys));
     }
 
     let from_obj = obj
@@ -676,41 +682,47 @@ fn parse_dsl_expected_keys_spec(
             .ok_or_else(|| format!("{expected_keys_from_binding_field}.keyOf is required"))?,
         &format!("{expected_keys_from_binding_field}.keyOf"),
     )?;
-    Ok(tbp::dsl::ExpectedKeysSpec::FromBinding {
+    Ok(paintgun::dsl::ExpectedKeysSpec::FromBinding {
         binding,
         key_selector,
     })
 }
 
-fn parse_dsl_bag_mode(value: Option<&Value>, field: &str) -> Result<tbp::dsl::BagMode, String> {
+fn parse_dsl_bag_mode(
+    value: Option<&Value>,
+    field: &str,
+) -> Result<paintgun::dsl::BagMode, String> {
     let Some(v) = value else {
-        return Ok(tbp::dsl::BagMode::Unordered);
+        return Ok(paintgun::dsl::BagMode::Unordered);
     };
     let s = v
         .as_str()
         .ok_or_else(|| format!("{field} must be ordered|unordered"))?;
     match s {
-        "ordered" => Ok(tbp::dsl::BagMode::Ordered),
-        "unordered" => Ok(tbp::dsl::BagMode::Unordered),
+        "ordered" => Ok(paintgun::dsl::BagMode::Ordered),
+        "unordered" => Ok(paintgun::dsl::BagMode::Unordered),
         _ => Err(format!("{field} must be ordered|unordered, got {s:?}")),
     }
 }
 
-fn parse_dsl_pool_k(value: Option<&Value>, field: &str) -> Result<Option<tbp::dsl::PoolK>, String> {
+fn parse_dsl_pool_k(
+    value: Option<&Value>,
+    field: &str,
+) -> Result<Option<paintgun::dsl::PoolK>, String> {
     let Some(v) = value else {
         return Ok(None);
     };
     if let Some(s) = v.as_str() {
         if s == "all" {
-            return Ok(Some(tbp::dsl::PoolK::All));
+            return Ok(Some(paintgun::dsl::PoolK::All));
         }
         let n = s
             .parse::<usize>()
             .map_err(|e| format!("{field} invalid integer string: {e}"))?;
-        return Ok(Some(tbp::dsl::PoolK::Count(n)));
+        return Ok(Some(paintgun::dsl::PoolK::Count(n)));
     }
     if let Some(n) = v.as_u64() {
-        return Ok(Some(tbp::dsl::PoolK::Count(
+        return Ok(Some(paintgun::dsl::PoolK::Count(
             usize::try_from(n).map_err(|_| format!("{field} out of range: {n}"))?,
         )));
     }
@@ -720,7 +732,7 @@ fn parse_dsl_pool_k(value: Option<&Value>, field: &str) -> Result<Option<tbp::ds
 fn parse_dsl_bindings(
     root: &serde_json::Map<String, Value>,
     field: &str,
-) -> Result<std::collections::BTreeMap<String, Vec<tbp::dsl::DepShape>>, String> {
+) -> Result<std::collections::BTreeMap<String, Vec<paintgun::dsl::DepShape>>, String> {
     let Some(v) = root.get(field) else {
         return Ok(std::collections::BTreeMap::new());
     };
@@ -751,7 +763,7 @@ fn parse_dsl_bindings(
                     meta.insert(k.clone(), s.to_string());
                 }
             }
-            deps.push(tbp::dsl::DepShape { sort, opcode, meta });
+            deps.push(paintgun::dsl::DepShape { sort, opcode, meta });
         }
         if out.insert(name.clone(), deps).is_some() {
             return Err(format!("duplicate binding name in {field}: {name:?}"));
@@ -762,8 +774,8 @@ fn parse_dsl_bindings(
 
 fn kcir_v2_out_domain_for_sort(sort: u8) -> &'static str {
     match sort {
-        tbp::kcir_v2::SORT_OBJ => DOMAIN_OBJ_NF,
-        tbp::kcir_v2::SORT_MOR => DOMAIN_MOR_NF,
+        paintgun::kcir_v2::SORT_OBJ => DOMAIN_OBJ_NF,
+        paintgun::kcir_v2::SORT_MOR => DOMAIN_MOR_NF,
         _ => DOMAIN_OPAQUE,
     }
 }
@@ -876,7 +888,7 @@ fn parse_kcir_v2_node_bytes_from_input(
                     dep_h.copy_from_slice(dep);
                     deps_h.push(dep_h);
                 }
-                tbp::kcir_v2::KcirNode {
+                paintgun::kcir_v2::KcirNode {
                     env_sig,
                     uid,
                     sort,
@@ -893,7 +905,7 @@ fn parse_kcir_v2_node_bytes_from_input(
                     uid,
                     sort,
                     opcode,
-                    out_ref: tbp::kcir_v2::Ref {
+                    out_ref: paintgun::kcir_v2::Ref {
                         scheme_id: scheme_id.clone(),
                         params_hash,
                         domain: kcir_v2_out_domain_for_sort(sort).to_string(),
@@ -902,7 +914,7 @@ fn parse_kcir_v2_node_bytes_from_input(
                     args,
                     dep_refs: dep_refs
                         .into_iter()
-                        .map(|digest| tbp::kcir_v2::Ref {
+                        .map(|digest| paintgun::kcir_v2::Ref {
                             scheme_id: scheme_id.clone(),
                             params_hash,
                             domain: DOMAIN_NODE.to_string(),
@@ -990,7 +1002,11 @@ struct CoreVerifyV2FixtureStore<'a> {
 }
 
 impl CoreVerifyV2FixtureStore<'_> {
-    fn digest_key(&self, reference: &tbp::kcir_v2::Ref, expected_domain: &str) -> Option<[u8; 32]> {
+    fn digest_key(
+        &self,
+        reference: &paintgun::kcir_v2::Ref,
+        expected_domain: &str,
+    ) -> Option<[u8; 32]> {
         if reference.scheme_id != self.scheme_id {
             return None;
         }
@@ -1006,22 +1022,22 @@ impl CoreVerifyV2FixtureStore<'_> {
     }
 }
 
-impl tbp::kcir_v2::KcirRefStore for CoreVerifyV2FixtureStore<'_> {
-    fn get_node(&self, reference: &tbp::kcir_v2::Ref) -> Option<(Vec<u8>, Option<Vec<u8>>)> {
+impl paintgun::kcir_v2::KcirRefStore for CoreVerifyV2FixtureStore<'_> {
+    fn get_node(&self, reference: &paintgun::kcir_v2::Ref) -> Option<(Vec<u8>, Option<Vec<u8>>)> {
         let key = self.digest_key(reference, DOMAIN_NODE)?;
         let bytes = self.cert_store.get(&key)?.clone();
         let evidence = self.cert_evidence.get(&key).cloned();
         Some((bytes, evidence))
     }
 
-    fn get_obj_nf(&self, reference: &tbp::kcir_v2::Ref) -> Option<(Vec<u8>, Option<Vec<u8>>)> {
+    fn get_obj_nf(&self, reference: &paintgun::kcir_v2::Ref) -> Option<(Vec<u8>, Option<Vec<u8>>)> {
         let key = self.digest_key(reference, DOMAIN_OBJ_NF)?;
         let bytes = self.obj_store.get(&key)?.clone();
         let evidence = self.obj_evidence.get(&key).cloned();
         Some((bytes, evidence))
     }
 
-    fn get_mor_nf(&self, reference: &tbp::kcir_v2::Ref) -> Option<(Vec<u8>, Option<Vec<u8>>)> {
+    fn get_mor_nf(&self, reference: &paintgun::kcir_v2::Ref) -> Option<(Vec<u8>, Option<Vec<u8>>)> {
         let key = self.digest_key(reference, DOMAIN_MOR_NF)?;
         let bytes = self.mor_store.get(&key)?.clone();
         let evidence = self.mor_evidence.get(&key).cloned();
@@ -1132,18 +1148,18 @@ fn parse_u32_array(arr_v: &Value, field: &str) -> Result<Vec<u32>, FixtureRunErr
 
 fn parse_core_base_api_from_input(
     input: &JValue,
-) -> Result<tbp::kcir_v2::CoreBaseApi, FixtureRunError> {
+) -> Result<paintgun::kcir_v2::CoreBaseApi, FixtureRunError> {
     let input_json = serde_json::to_value(input).expect("serialize core-verify fixture input");
     let root = input_json
         .as_object()
         .ok_or_else(|| FixtureRunError::Core("core-verify input must be an object".to_string()))?;
     let Some(base_v) = root.get("baseApi") else {
-        return Ok(tbp::kcir_v2::CoreBaseApi::default());
+        return Ok(paintgun::kcir_v2::CoreBaseApi::default());
     };
     let base = base_v
         .as_object()
         .ok_or_else(|| FixtureRunError::Core("baseApi must be an object".to_string()))?;
-    let mut out = tbp::kcir_v2::CoreBaseApi::default();
+    let mut out = paintgun::kcir_v2::CoreBaseApi::default();
 
     if let Some(id_maps_v) = base.get("idMaps") {
         for id in parse_hex32_array(id_maps_v, "baseApi.idMaps")? {
@@ -1308,7 +1324,7 @@ fn parse_core_base_api_from_input(
             )?;
             out.pull_covers.insert(
                 (p_id, u_sig),
-                tbp::kcir_v2::PullCoverWitness {
+                paintgun::kcir_v2::PullCoverWitness {
                     w_sig,
                     map_w_to_u,
                     proj_ids,
@@ -1481,7 +1497,7 @@ fn run_fixture_mode(
             let mor_evidence = parse_core_nf_store_from_input(input, "morEvidence")?;
             let anchors = parse_core_v2_anchors_from_input(input)?;
             let base_api = parse_core_base_api_from_input(input)?;
-            let root_ref = tbp::kcir_v2::Ref {
+            let root_ref = paintgun::kcir_v2::Ref {
                 scheme_id: scheme_id.clone(),
                 params_hash,
                 domain: DOMAIN_NODE.to_string(),
@@ -1500,9 +1516,9 @@ fn run_fixture_mode(
             };
 
             let verified = match scheme_id.as_str() {
-                tbp::kcir_v2::HASH_SCHEME_ID => {
-                    let profile = tbp::kcir_v2::HashProfile::new(params_hash);
-                    tbp::kcir_v2::verify_core_dag_with_profile_and_backend_and_store_with_codec_and_anchors(
+                paintgun::kcir_v2::HASH_SCHEME_ID => {
+                    let profile = paintgun::kcir_v2::HashProfile::new(params_hash);
+                    paintgun::kcir_v2::verify_core_dag_with_profile_and_backend_and_store_with_codec_and_anchors(
                         &root_ref,
                         &ref_store,
                         &base_api,
@@ -1511,9 +1527,9 @@ fn run_fixture_mode(
                         anchors.as_ref(),
                     )
                 }
-                tbp::kcir_v2::MERKLE_SCHEME_ID => {
-                    let profile = tbp::kcir_v2::MerkleProfile::new(params_hash);
-                    tbp::kcir_v2::verify_core_dag_with_profile_and_backend_and_store_with_codec_and_anchors(
+                paintgun::kcir_v2::MERKLE_SCHEME_ID => {
+                    let profile = paintgun::kcir_v2::MerkleProfile::new(params_hash);
+                    paintgun::kcir_v2::verify_core_dag_with_profile_and_backend_and_store_with_codec_and_anchors(
                         &root_ref,
                         &ref_store,
                         &base_api,
@@ -1522,8 +1538,8 @@ fn run_fixture_mode(
                         anchors.as_ref(),
                     )
                 }
-                other => Err(tbp::kcir_v2::KcirV2Error::new(
-                    tbp::kcir_v2::error_codes::PROFILE_MISMATCH,
+                other => Err(paintgun::kcir_v2::KcirV2Error::new(
+                    paintgun::kcir_v2::error_codes::PROFILE_MISMATCH,
                     format!("unsupported profile schemeId in core-verify-v2 fixture: {other}"),
                 )),
             }
@@ -1577,7 +1593,7 @@ fn run_fixture_mode(
                 .and_then(Value::as_bool)
                 .unwrap_or(false);
 
-            let matched = tbp::dsl::match_unique_spec(&deps, &pred, pos, optional)
+            let matched = paintgun::dsl::match_unique_spec(&deps, &pred, pos, optional)
                 .map_err(FixtureRunError::Dsl)?;
             Ok(match matched {
                 Some(m) => json!({
@@ -1620,7 +1636,7 @@ fn run_fixture_mode(
             let pos =
                 parse_dsl_pos(spec.get("pos"), "dsl-bag spec.pos").map_err(FixtureRunError::Dsl)?;
 
-            let matched = tbp::dsl::match_bag_spec_with_bindings(
+            let matched = paintgun::dsl::match_bag_spec_with_bindings(
                 &deps,
                 &pred,
                 &key_selector,
@@ -1681,7 +1697,7 @@ fn run_fixture_mode(
                 let bag_pos =
                     parse_dsl_pos(bag.get("pos"), &format!("dsl-multibag spec.bags[{i}].pos"))
                         .map_err(FixtureRunError::Dsl)?;
-                bags.push(tbp::dsl::BagRule {
+                bags.push(paintgun::dsl::BagRule {
                     name: name.to_string(),
                     expected_keys,
                     key_selector,
@@ -1715,7 +1731,7 @@ fn run_fixture_mode(
                 None
             };
 
-            let matched = tbp::dsl::match_multibag_spec(
+            let matched = paintgun::dsl::match_multibag_spec(
                 &deps,
                 &bags,
                 pool_pred_opt.as_ref(),

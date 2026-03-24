@@ -4,8 +4,8 @@ use std::path::PathBuf;
 use jsonschema::{Draft, JSONSchema};
 use serde_json::Value;
 
-use tbp::cert::{analyze_composability, PACK_WITNESS_SCHEMA_VERSION};
-use tbp::resolver::{build_token_store, read_json_file, ResolverDoc};
+use paintgun::cert::{analyze_composability, PACK_WITNESS_SCHEMA_VERSION};
+use paintgun::resolver::{build_token_store, read_json_file, ResolverDoc};
 
 #[test]
 fn witnesses_match_schema_v1() {

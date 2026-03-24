@@ -1,4 +1,4 @@
-use tbp::pack_identity::{
+use paintgun::pack_identity::{
     canonicalize_pack_hash, parse_pack_identity_label, parse_vendor_pack_identity_from_file_path,
 };
 

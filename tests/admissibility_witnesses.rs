@@ -2,10 +2,10 @@ use std::path::PathBuf;
 
 use serde_json::Value;
 
-use tbp::cert::{analyze_composability, build_assignments, build_explicit_index};
-use tbp::contexts::partial_inputs;
-use tbp::gate::{evaluate_from_analysis, GateResult};
-use tbp::resolver::{build_token_store, read_json_file, ResolverDoc};
+use paintgun::cert::{analyze_composability, build_assignments, build_explicit_index};
+use paintgun::contexts::partial_inputs;
+use paintgun::gate::{evaluate_from_analysis, GateResult};
+use paintgun::resolver::{build_token_store, read_json_file, ResolverDoc};
 
 fn resolver_from_fixture(path: &str) -> (ResolverDoc, PathBuf) {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));

@@ -2,12 +2,12 @@ use std::path::PathBuf;
 
 use serde_json::Value;
 
-use tbp::cert::ConflictMode;
-use tbp::contexts::ContextMode;
-use tbp::gate::GateResult;
-use tbp::pipeline::{run_full_profile_pipeline, FullProfilePipelineRequest};
-use tbp::policy::Policy;
-use tbp::resolver::{build_token_store, read_json_file, ResolverDoc};
+use paintgun::cert::ConflictMode;
+use paintgun::contexts::ContextMode;
+use paintgun::gate::GateResult;
+use paintgun::pipeline::{run_full_profile_pipeline, FullProfilePipelineRequest};
+use paintgun::policy::Policy;
+use paintgun::resolver::{build_token_store, read_json_file, ResolverDoc};
 
 fn resolver_from_fixture(path: &str) -> (ResolverDoc, PathBuf) {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));

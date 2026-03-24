@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use tbp::kcir_v2::{
+use paintgun::kcir_v2::{
     cert_id, h_mor, h_obj, verify_core_dag, verify_core_dag_with_backend_and_store,
     verify_core_dag_with_base_api, verify_mor_opcode_contract_with_store,
     verify_obj_opcode_contract_with_store, CoreBaseApi, KcirCoreStore, KcirNode, MorNfStore,

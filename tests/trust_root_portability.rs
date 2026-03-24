@@ -8,7 +8,7 @@ fn temp_dir(prefix: &str) -> PathBuf {
         .duration_since(UNIX_EPOCH)
         .expect("clock")
         .as_nanos();
-    let dir = std::env::temp_dir().join(format!("tbp-{prefix}-{}-{ts}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("paintgun-{prefix}-{}-{ts}", std::process::id()));
     fs::create_dir_all(&dir).expect("create temp dir");
     dir
 }
@@ -91,7 +91,7 @@ fn build_stages_self_contained_inputs_for_external_output_roots() {
     let resolver = create_source_tree(&root.join("source"), "pack-a", 1);
     let out = root.join("archive/pack-a");
 
-    let build = Command::new(env!("CARGO_BIN_EXE_tbp"))
+    let build = Command::new(env!("CARGO_BIN_EXE_paint"))
         .current_dir(env!("CARGO_MANIFEST_DIR"))
         .arg("build")
         .arg(&resolver)
@@ -100,8 +100,8 @@ fn build_stages_self_contained_inputs_for_external_output_roots() {
         .arg("--target")
         .arg("swift")
         .output()
-        .expect("run tbp build");
-    assert_success(&build, "tbp build");
+        .expect("run paint build");
+    assert_success(&build, "paint build");
 
     let manifest_path = out.join("ctc.manifest.json");
     let manifest: serde_json::Value =
@@ -125,25 +125,25 @@ fn build_stages_self_contained_inputs_for_external_output_roots() {
         "expected staged token doc bundle"
     );
 
-    let verify = Command::new(env!("CARGO_BIN_EXE_tbp"))
+    let verify = Command::new(env!("CARGO_BIN_EXE_paint"))
         .current_dir(env!("CARGO_MANIFEST_DIR"))
         .arg("verify")
         .arg(&manifest_path)
         .output()
-        .expect("run tbp verify");
-    assert_success(&verify, "tbp verify");
+        .expect("run paint verify");
+    assert_success(&verify, "paint verify");
 
     let moved_root = root.join("moved");
     fs::rename(root.join("archive"), &moved_root).expect("move archive");
     let moved_manifest = moved_root.join("pack-a/ctc.manifest.json");
 
-    let moved_verify = Command::new(env!("CARGO_BIN_EXE_tbp"))
+    let moved_verify = Command::new(env!("CARGO_BIN_EXE_paint"))
         .current_dir(env!("CARGO_MANIFEST_DIR"))
         .arg("verify")
         .arg(&moved_manifest)
         .output()
-        .expect("run moved tbp verify");
-    assert_success(&moved_verify, "tbp verify after moving pack");
+        .expect("run moved paint verify");
+    assert_success(&moved_verify, "paint verify after moving pack");
 }
 
 #[test]
@@ -157,7 +157,7 @@ fn compose_manifest_tracks_pack_dirs_relative_to_bundle_root() {
     let pack_b = bundle_root.join("pack-b");
     let compose_out = bundle_root.join("dist-compose");
 
-    let build_a = Command::new(env!("CARGO_BIN_EXE_tbp"))
+    let build_a = Command::new(env!("CARGO_BIN_EXE_paint"))
         .current_dir(env!("CARGO_MANIFEST_DIR"))
         .arg("build")
         .arg(&resolver_a)
@@ -166,9 +166,9 @@ fn compose_manifest_tracks_pack_dirs_relative_to_bundle_root() {
         .arg("--target")
         .arg("swift")
         .output()
-        .expect("run tbp build pack-a");
-    assert_success(&build_a, "tbp build pack-a");
-    let build_b = Command::new(env!("CARGO_BIN_EXE_tbp"))
+        .expect("run paint build pack-a");
+    assert_success(&build_a, "paint build pack-a");
+    let build_b = Command::new(env!("CARGO_BIN_EXE_paint"))
         .current_dir(env!("CARGO_MANIFEST_DIR"))
         .arg("build")
         .arg(&resolver_b)
@@ -177,10 +177,10 @@ fn compose_manifest_tracks_pack_dirs_relative_to_bundle_root() {
         .arg("--target")
         .arg("swift")
         .output()
-        .expect("run tbp build pack-b");
-    assert_success(&build_b, "tbp build pack-b");
+        .expect("run paint build pack-b");
+    assert_success(&build_b, "paint build pack-b");
 
-    let compose = Command::new(env!("CARGO_BIN_EXE_tbp"))
+    let compose = Command::new(env!("CARGO_BIN_EXE_paint"))
         .current_dir(env!("CARGO_MANIFEST_DIR"))
         .arg("compose")
         .arg(&pack_a)
@@ -190,8 +190,8 @@ fn compose_manifest_tracks_pack_dirs_relative_to_bundle_root() {
         .arg("--target")
         .arg("swift")
         .output()
-        .expect("run tbp compose");
-    assert_success(&compose, "tbp compose");
+        .expect("run paint compose");
+    assert_success(&compose, "paint compose");
 
     let compose_manifest_path = compose_out.join("compose.manifest.json");
     let compose_manifest: serde_json::Value =
@@ -212,24 +212,24 @@ fn compose_manifest_tracks_pack_dirs_relative_to_bundle_root() {
         "expected relative pack-b dir, got {pack_dirs:?}"
     );
 
-    let verify = Command::new(env!("CARGO_BIN_EXE_tbp"))
+    let verify = Command::new(env!("CARGO_BIN_EXE_paint"))
         .current_dir(env!("CARGO_MANIFEST_DIR"))
         .arg("verify-compose")
         .arg(&compose_manifest_path)
         .output()
-        .expect("run tbp verify-compose");
-    assert_success(&verify, "tbp verify-compose");
+        .expect("run paint verify-compose");
+    assert_success(&verify, "paint verify-compose");
 
     let moved_bundle = root.join("bundle-moved");
     fs::rename(&bundle_root, &moved_bundle).expect("move bundle");
     let moved_manifest = moved_bundle.join("dist-compose/compose.manifest.json");
-    let moved_verify = Command::new(env!("CARGO_BIN_EXE_tbp"))
+    let moved_verify = Command::new(env!("CARGO_BIN_EXE_paint"))
         .current_dir(env!("CARGO_MANIFEST_DIR"))
         .arg("verify-compose")
         .arg(&moved_manifest)
         .output()
-        .expect("run moved tbp verify-compose");
-    assert_success(&moved_verify, "tbp verify-compose after moving bundle");
+        .expect("run moved paint verify-compose");
+    assert_success(&moved_verify, "paint verify-compose after moving bundle");
 
     let dist_only = root.join("dist-only");
     copy_dir_recursive(
@@ -237,14 +237,14 @@ fn compose_manifest_tracks_pack_dirs_relative_to_bundle_root() {
         &dist_only.join("dist-compose"),
     );
     let dist_only_manifest = dist_only.join("dist-compose/compose.manifest.json");
-    let missing_bundle_verify = Command::new(env!("CARGO_BIN_EXE_tbp"))
+    let missing_bundle_verify = Command::new(env!("CARGO_BIN_EXE_paint"))
         .current_dir(env!("CARGO_MANIFEST_DIR"))
         .arg("verify-compose")
         .arg(&dist_only_manifest)
         .arg("--format")
         .arg("json")
         .output()
-        .expect("run tbp verify-compose");
+        .expect("run paint verify-compose");
     assert!(
         !missing_bundle_verify.status.success(),
         "expected dist-only compose bundle to fail"

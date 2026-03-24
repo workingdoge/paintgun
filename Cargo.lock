@@ -816,6 +816,32 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
 
 [[package]]
+name = "paintgun"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "hex",
+ "jsonschema",
+ "premath-admissibility",
+ "premath-composability",
+ "premath-compose",
+ "premath-dsl",
+ "premath-gate",
+ "premath-kcir",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tbp-dtcg",
+ "tbp-emit",
+ "tbp-ids",
+ "tbp-policy",
+ "tbp-resolver-kernel",
+ "tbp-resolver-model",
+ "thiserror",
+ "toml",
+]
+
+[[package]]
 name = "parking_lot"
 version = "0.12.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1183,32 +1209,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "tbp"
-version = "0.1.0"
-dependencies = [
- "clap",
- "hex",
- "jsonschema",
- "premath-admissibility",
- "premath-composability",
- "premath-compose",
- "premath-dsl",
- "premath-gate",
- "premath-kcir",
- "serde",
- "serde_json",
- "sha2",
- "tbp-dtcg",
- "tbp-emit",
- "tbp-ids",
- "tbp-policy",
- "tbp-resolver-kernel",
- "tbp-resolver-model",
- "thiserror",
- "toml",
 ]
 
 [[package]]

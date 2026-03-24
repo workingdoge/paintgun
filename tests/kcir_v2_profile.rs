@@ -1,10 +1,10 @@
 use std::collections::BTreeMap;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use tbp::kcir_v2::{
+use paintgun::kcir_v2::{
     cert_id, h_obj, node_obj_mktensor, node_obj_prim, KcirBackend, KcirNode, SORT_MAP,
 };
-use tbp::kcir_v2::{
+use paintgun::kcir_v2::{
     error_codes, hash_obj_ref, hash_ref_from_digest, verify_core_dag_hash_profile,
     verify_core_dag_hash_profile_with_anchors, verify_core_dag_with_profile_and_anchors,
     verify_core_dag_with_profile_and_backend_and_store,
@@ -122,7 +122,7 @@ impl WireCodec for DepCertRefWideningCodec {
         scheme_id: &str,
         params_hash: [u8; 32],
     ) -> Result<DecodedNodeRefs, KcirV2Error> {
-        let parsed = tbp::kcir_v2::parse_node_bytes(node_bytes).map_err(|message| {
+        let parsed = paintgun::kcir_v2::parse_node_bytes(node_bytes).map_err(|message| {
             KcirV2Error::new(
                 error_codes::PARSE_ERROR,
                 format!("failed to parse KCIR node bytes: {message}"),
@@ -185,7 +185,7 @@ impl WireCodec for NonLegacyOutNodeCodec {
         scheme_id: &str,
         params_hash: [u8; 32],
     ) -> Result<DecodedNodeRefs, KcirV2Error> {
-        let parsed = tbp::kcir_v2::parse_node_bytes(node_bytes).map_err(|message| {
+        let parsed = paintgun::kcir_v2::parse_node_bytes(node_bytes).map_err(|message| {
             KcirV2Error::new(
                 error_codes::PARSE_ERROR,
                 format!("failed to parse KCIR node bytes: {message}"),
@@ -292,7 +292,7 @@ impl WireCodec for ProjectedNonLegacyOutNodeCodec {
         scheme_id: &str,
         params_hash: [u8; 32],
     ) -> Result<DecodedNodeRefs, KcirV2Error> {
-        let parsed = tbp::kcir_v2::parse_node_bytes(node_bytes).map_err(|message| {
+        let parsed = paintgun::kcir_v2::parse_node_bytes(node_bytes).map_err(|message| {
             KcirV2Error::new(
                 error_codes::PARSE_ERROR,
                 format!("failed to parse KCIR node bytes: {message}"),
@@ -358,15 +358,15 @@ impl WireCodec for CountingNodeDecodeCodec {
         params_hash: [u8; 32],
     ) -> Result<DecodedNodeRefs, KcirV2Error> {
         self.node_decode_calls.fetch_add(1, Ordering::Relaxed);
-        let parsed = tbp::kcir_v2::parse_node_bytes(node_bytes).map_err(|message| {
+        let parsed = paintgun::kcir_v2::parse_node_bytes(node_bytes).map_err(|message| {
             KcirV2Error::new(
                 error_codes::PARSE_ERROR,
                 format!("failed to parse KCIR node bytes: {message}"),
             )
         })?;
         let out_domain = match parsed.sort {
-            tbp::kcir_v2::SORT_OBJ => DOMAIN_OBJ_NF,
-            tbp::kcir_v2::SORT_MOR => tbp::kcir_v2::DOMAIN_MOR_NF,
+            paintgun::kcir_v2::SORT_OBJ => DOMAIN_OBJ_NF,
+            paintgun::kcir_v2::SORT_MOR => paintgun::kcir_v2::DOMAIN_MOR_NF,
             _ => DOMAIN_OPAQUE,
         };
         let out_ref =
@@ -553,7 +553,7 @@ fn hash_profile_store_entrypoint_verifies_ref_store_contract() {
 
     let profile = HashProfile::default();
     let root_ref = hash_ref_from_digest(DOMAIN_NODE, root_cert_id, profile.params_hash());
-    let backend = tbp::kcir_v2::CoreBaseApi::default();
+    let backend = paintgun::kcir_v2::CoreBaseApi::default();
     let ref_store = InMemoryDigestRefStore::new(
         root_ref.scheme_id.clone(),
         root_ref.params_hash,
@@ -588,7 +588,7 @@ fn codec_aware_store_entrypoint_uses_supplied_wire_codec() {
 
     let profile = HashProfile::default();
     let root_ref = hash_ref_from_digest(DOMAIN_NODE, root_cert_id, profile.params_hash());
-    let backend = tbp::kcir_v2::CoreBaseApi::default();
+    let backend = paintgun::kcir_v2::CoreBaseApi::default();
     let codec = CountingWireCodec::new();
     let ref_store = InMemoryDigestRefStore::new_with_codec(
         root_ref.scheme_id.clone(),
@@ -633,7 +633,7 @@ fn codec_aware_store_entrypoint_uses_wire_node_decoder() {
 
     let profile = HashProfile::default();
     let root_ref = hash_ref_from_digest(DOMAIN_NODE, root_cert_id, profile.params_hash());
-    let backend = tbp::kcir_v2::CoreBaseApi::default();
+    let backend = paintgun::kcir_v2::CoreBaseApi::default();
     let codec = CountingNodeDecodeCodec::new();
     let ref_store = InMemoryDigestRefStore::new_with_codec(
         root_ref.scheme_id.clone(),
@@ -681,7 +681,7 @@ fn codec_bridge_reports_data_unavailable_for_non_legacy_node_refs() {
 
     let profile = HashProfile::default();
     let root_ref = hash_ref_from_digest(DOMAIN_NODE, root_cert_id, profile.params_hash());
-    let backend = tbp::kcir_v2::CoreBaseApi::default();
+    let backend = paintgun::kcir_v2::CoreBaseApi::default();
     let codec = NonLegacyOutNodeCodec;
     let ref_store = InMemoryDigestRefStore::new_with_codec(
         root_ref.scheme_id.clone(),
@@ -729,7 +729,7 @@ fn codec_bridge_accepts_non_legacy_node_refs_with_projection() {
 
     let profile = HashProfile::default();
     let root_ref = hash_ref_from_digest(DOMAIN_NODE, root_cert_id, profile.params_hash());
-    let backend = tbp::kcir_v2::CoreBaseApi::default();
+    let backend = paintgun::kcir_v2::CoreBaseApi::default();
     let codec = ProjectedNonLegacyOutNodeCodec;
     let ref_store = InMemoryDigestRefStore::new_with_codec(
         root_ref.scheme_id.clone(),
@@ -858,7 +858,7 @@ fn len_prefixed_codec_verifies_map_literal_with_projected_contract_key() {
     let mor_store = BTreeMap::new();
 
     let root_ref = hash_ref_from_digest(DOMAIN_NODE, root_cert_id, profile.params_hash());
-    let backend = tbp::kcir_v2::CoreBaseApi::default();
+    let backend = paintgun::kcir_v2::CoreBaseApi::default();
     let ref_store = InMemoryDigestRefStore::new_with_codec(
         root_ref.scheme_id.clone(),
         root_ref.params_hash,
@@ -885,8 +885,8 @@ fn obj_non_pull_verifier_uses_ref_native_projection_path() {
     let node = KcirNode {
         env_sig,
         uid,
-        sort: tbp::kcir_v2::SORT_OBJ,
-        opcode: tbp::kcir_v2::O_UNIT,
+        sort: paintgun::kcir_v2::SORT_OBJ,
+        opcode: paintgun::kcir_v2::O_UNIT,
         out: h_obj(&env_sig, &uid, &[0x01]),
         args: Vec::new(),
         deps: Vec::new(),
@@ -907,7 +907,7 @@ fn obj_non_pull_verifier_uses_ref_native_projection_path() {
         .node_entries
         .insert(root_ref.clone(), (node_bytes, None));
 
-    let backend = tbp::kcir_v2::CoreBaseApi::default();
+    let backend = paintgun::kcir_v2::CoreBaseApi::default();
     let verified = verify_core_dag_with_profile_and_backend_and_store_with_codec_and_anchors(
         &root_ref, &store, &backend, &profile, &codec, None,
     )
@@ -915,7 +915,7 @@ fn obj_non_pull_verifier_uses_ref_native_projection_path() {
 
     assert_eq!(verified.root_cert_ref, root_ref);
     assert_eq!(verified.nodes.len(), 1);
-    assert_eq!(verified.nodes[0].sort, tbp::kcir_v2::SORT_OBJ);
+    assert_eq!(verified.nodes[0].sort, paintgun::kcir_v2::SORT_OBJ);
     assert_eq!(verified.nodes[0].out.digest.len(), 64);
 }
 
@@ -955,7 +955,7 @@ fn map_bc_verifier_does_not_require_dep_cert_contract_projection() {
         env_sig,
         uid,
         sort: SORT_MAP,
-        opcode: tbp::kcir_v2::M_BC_FPRIME,
+        opcode: paintgun::kcir_v2::M_BC_FPRIME,
         out: f_prime,
         args: Vec::new(),
         deps: vec![dep_pull_cert, dep_push_cert],
@@ -989,7 +989,7 @@ fn map_bc_verifier_does_not_require_dep_cert_contract_projection() {
         .node_entries
         .insert(decoded_root.dep_refs[1].clone(), (dep_push_bytes, None));
 
-    let mut backend = tbp::kcir_v2::CoreBaseApi::default();
+    let mut backend = paintgun::kcir_v2::CoreBaseApi::default();
     backend
         .bc_squares
         .insert((push_map, pull_map), (f_prime, p_prime));
@@ -1016,8 +1016,8 @@ fn obj_pull_verifier_does_not_require_dep_cert_contract_projection() {
     let mk_dep = KcirNode {
         env_sig,
         uid,
-        sort: tbp::kcir_v2::SORT_OBJ,
-        opcode: tbp::kcir_v2::O_MKTENSOR,
+        sort: paintgun::kcir_v2::SORT_OBJ,
+        opcode: paintgun::kcir_v2::O_MKTENSOR,
         out: unit_obj_h,
         args: vec![0x00], // enc_list_b32([])
         deps: Vec::new(),
@@ -1032,8 +1032,8 @@ fn obj_pull_verifier_does_not_require_dep_cert_contract_projection() {
     let root = KcirNode {
         env_sig,
         uid,
-        sort: tbp::kcir_v2::SORT_OBJ,
-        opcode: tbp::kcir_v2::O_PULL,
+        sort: paintgun::kcir_v2::SORT_OBJ,
+        opcode: paintgun::kcir_v2::O_PULL,
         out: unit_obj_h,
         args: root_args,
         deps: vec![mk_dep_cert],
@@ -1067,7 +1067,7 @@ fn obj_pull_verifier_does_not_require_dep_cert_contract_projection() {
         (in_obj_bytes, None),
     );
 
-    let backend = tbp::kcir_v2::CoreBaseApi::default();
+    let backend = paintgun::kcir_v2::CoreBaseApi::default();
     let verified = verify_core_dag_with_profile_and_backend_and_store_with_codec_and_anchors(
         &root_ref, &store, &backend, &profile, &codec, None,
     )
@@ -1075,7 +1075,7 @@ fn obj_pull_verifier_does_not_require_dep_cert_contract_projection() {
 
     assert_eq!(verified.root_cert_ref, root_ref);
     assert_eq!(verified.nodes.len(), 2);
-    assert_eq!(verified.nodes[0].sort, tbp::kcir_v2::SORT_OBJ);
+    assert_eq!(verified.nodes[0].sort, paintgun::kcir_v2::SORT_OBJ);
 }
 
 #[test]
@@ -1090,12 +1090,12 @@ fn mor_pull_verifier_does_not_require_dep_cert_contract_projection() {
     in_mor_bytes.extend_from_slice(&src_h);
     in_mor_bytes.extend_from_slice(&src_h);
     in_mor_bytes.push(0x00); // enc_list_b32([])
-    let in_mor_h = tbp::kcir_v2::h_mor(&env_sig, &uid, &in_mor_bytes);
+    let in_mor_h = paintgun::kcir_v2::h_mor(&env_sig, &uid, &in_mor_bytes);
 
     let mut id_mor_bytes = Vec::with_capacity(33);
     id_mor_bytes.push(0x11);
     id_mor_bytes.extend_from_slice(&src_h);
-    let id_mor_h = tbp::kcir_v2::h_mor(&env_sig, &uid, &id_mor_bytes);
+    let id_mor_h = paintgun::kcir_v2::h_mor(&env_sig, &uid, &id_mor_bytes);
 
     let mut mk_args = Vec::with_capacity(65);
     mk_args.extend_from_slice(&src_h);
@@ -1104,8 +1104,8 @@ fn mor_pull_verifier_does_not_require_dep_cert_contract_projection() {
     let mk_dep = KcirNode {
         env_sig,
         uid,
-        sort: tbp::kcir_v2::SORT_MOR,
-        opcode: tbp::kcir_v2::M_MKCOMP,
+        sort: paintgun::kcir_v2::SORT_MOR,
+        opcode: paintgun::kcir_v2::M_MKCOMP,
         out: id_mor_h,
         args: mk_args,
         deps: Vec::new(),
@@ -1120,8 +1120,8 @@ fn mor_pull_verifier_does_not_require_dep_cert_contract_projection() {
     let root = KcirNode {
         env_sig,
         uid,
-        sort: tbp::kcir_v2::SORT_MOR,
-        opcode: tbp::kcir_v2::M_PULL,
+        sort: paintgun::kcir_v2::SORT_MOR,
+        opcode: paintgun::kcir_v2::M_PULL,
         out: id_mor_h,
         args: root_args,
         deps: vec![mk_dep_cert],
@@ -1155,7 +1155,7 @@ fn mor_pull_verifier_does_not_require_dep_cert_contract_projection() {
         (in_mor_bytes, None),
     );
 
-    let backend = tbp::kcir_v2::CoreBaseApi::default();
+    let backend = paintgun::kcir_v2::CoreBaseApi::default();
     let verified = verify_core_dag_with_profile_and_backend_and_store_with_codec_and_anchors(
         &root_ref, &store, &backend, &profile, &codec, None,
     )
@@ -1163,7 +1163,7 @@ fn mor_pull_verifier_does_not_require_dep_cert_contract_projection() {
 
     assert_eq!(verified.root_cert_ref, root_ref);
     assert_eq!(verified.nodes.len(), 2);
-    assert_eq!(verified.nodes[0].sort, tbp::kcir_v2::SORT_MOR);
+    assert_eq!(verified.nodes[0].sort, paintgun::kcir_v2::SORT_MOR);
 }
 
 #[test]
@@ -1175,12 +1175,12 @@ fn mor_id_verifier_uses_ref_native_projection_path() {
     let mut mor_bytes = Vec::with_capacity(33);
     mor_bytes.push(0x11);
     mor_bytes.extend_from_slice(&src_h);
-    let out = tbp::kcir_v2::h_mor(&env_sig, &uid, &mor_bytes);
+    let out = paintgun::kcir_v2::h_mor(&env_sig, &uid, &mor_bytes);
     let node = KcirNode {
         env_sig,
         uid,
-        sort: tbp::kcir_v2::SORT_MOR,
-        opcode: tbp::kcir_v2::M_ID,
+        sort: paintgun::kcir_v2::SORT_MOR,
+        opcode: paintgun::kcir_v2::M_ID,
         out,
         args: src_h.to_vec(),
         deps: Vec::new(),
@@ -1201,7 +1201,7 @@ fn mor_id_verifier_uses_ref_native_projection_path() {
         .node_entries
         .insert(root_ref.clone(), (node_bytes, None));
 
-    let backend = tbp::kcir_v2::CoreBaseApi::default();
+    let backend = paintgun::kcir_v2::CoreBaseApi::default();
     let verified = verify_core_dag_with_profile_and_backend_and_store_with_codec_and_anchors(
         &root_ref, &store, &backend, &profile, &codec, None,
     )
@@ -1209,7 +1209,7 @@ fn mor_id_verifier_uses_ref_native_projection_path() {
 
     assert_eq!(verified.root_cert_ref, root_ref);
     assert_eq!(verified.nodes.len(), 1);
-    assert_eq!(verified.nodes[0].sort, tbp::kcir_v2::SORT_MOR);
+    assert_eq!(verified.nodes[0].sort, paintgun::kcir_v2::SORT_MOR);
     assert_eq!(verified.nodes[0].out.digest.len(), 64);
 }
 
@@ -1227,13 +1227,13 @@ fn mor_mktensor_verifier_uses_ref_native_projection_path() {
     let mut mor_bytes = Vec::with_capacity(1 + args.len());
     mor_bytes.push(0x18);
     mor_bytes.extend_from_slice(&args);
-    let out = tbp::kcir_v2::h_mor(&env_sig, &uid, &mor_bytes);
+    let out = paintgun::kcir_v2::h_mor(&env_sig, &uid, &mor_bytes);
 
     let node = KcirNode {
         env_sig,
         uid,
-        sort: tbp::kcir_v2::SORT_MOR,
-        opcode: tbp::kcir_v2::M_MKTENSOR,
+        sort: paintgun::kcir_v2::SORT_MOR,
+        opcode: paintgun::kcir_v2::M_MKTENSOR,
         out,
         args,
         deps: Vec::new(),
@@ -1254,7 +1254,7 @@ fn mor_mktensor_verifier_uses_ref_native_projection_path() {
         .node_entries
         .insert(root_ref.clone(), (node_bytes, None));
 
-    let backend = tbp::kcir_v2::CoreBaseApi::default();
+    let backend = paintgun::kcir_v2::CoreBaseApi::default();
     let verified = verify_core_dag_with_profile_and_backend_and_store_with_codec_and_anchors(
         &root_ref, &store, &backend, &profile, &codec, None,
     )
@@ -1262,7 +1262,7 @@ fn mor_mktensor_verifier_uses_ref_native_projection_path() {
 
     assert_eq!(verified.root_cert_ref, root_ref);
     assert_eq!(verified.nodes.len(), 1);
-    assert_eq!(verified.nodes[0].sort, tbp::kcir_v2::SORT_MOR);
+    assert_eq!(verified.nodes[0].sort, paintgun::kcir_v2::SORT_MOR);
     assert_eq!(verified.nodes[0].out.digest.len(), 64);
 }
 
@@ -1280,13 +1280,13 @@ fn mor_mkcomp_verifier_uses_ref_native_projection_path() {
     let mut id_mor_bytes = Vec::with_capacity(33);
     id_mor_bytes.push(0x11);
     id_mor_bytes.extend_from_slice(&src_h);
-    let out = tbp::kcir_v2::h_mor(&env_sig, &uid, &id_mor_bytes);
+    let out = paintgun::kcir_v2::h_mor(&env_sig, &uid, &id_mor_bytes);
 
     let node = KcirNode {
         env_sig,
         uid,
-        sort: tbp::kcir_v2::SORT_MOR,
-        opcode: tbp::kcir_v2::M_MKCOMP,
+        sort: paintgun::kcir_v2::SORT_MOR,
+        opcode: paintgun::kcir_v2::M_MKCOMP,
         out,
         args,
         deps: Vec::new(),
@@ -1307,7 +1307,7 @@ fn mor_mkcomp_verifier_uses_ref_native_projection_path() {
         .node_entries
         .insert(root_ref.clone(), (node_bytes, None));
 
-    let backend = tbp::kcir_v2::CoreBaseApi::default();
+    let backend = paintgun::kcir_v2::CoreBaseApi::default();
     let verified = verify_core_dag_with_profile_and_backend_and_store_with_codec_and_anchors(
         &root_ref, &store, &backend, &profile, &codec, None,
     )
@@ -1315,7 +1315,7 @@ fn mor_mkcomp_verifier_uses_ref_native_projection_path() {
 
     assert_eq!(verified.root_cert_ref, root_ref);
     assert_eq!(verified.nodes.len(), 1);
-    assert_eq!(verified.nodes[0].sort, tbp::kcir_v2::SORT_MOR);
+    assert_eq!(verified.nodes[0].sort, paintgun::kcir_v2::SORT_MOR);
     assert_eq!(verified.nodes[0].out.digest.len(), 64);
 }
 
@@ -1705,7 +1705,7 @@ fn cross_profile_refs_are_rejected_by_scheme_id() {
 
     let hash_ref = hash_ref_from_digest(
         DOMAIN_NODE,
-        tbp::kcir_v2::cert_id(payload),
+        paintgun::kcir_v2::cert_id(payload),
         hash_profile.params_hash(),
     );
     let anchors = ProfileAnchors {

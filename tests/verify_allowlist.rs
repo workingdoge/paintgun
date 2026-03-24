@@ -2,27 +2,29 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use tbp::allowlist::{Allowlist, BcAllowEntry, BcSelector, ConflictAllowEntry, ConflictSelector};
-use tbp::artifact::write_resolved_json;
-use tbp::cert::{
+use paintgun::allowlist::{
+    Allowlist, BcAllowEntry, BcSelector, ConflictAllowEntry, ConflictSelector,
+};
+use paintgun::artifact::write_resolved_json;
+use paintgun::cert::{
     analyze_composability, build_ctc_manifest, render_validation_report, ConflictMode,
 };
-use tbp::ids::{TokenPathId, WitnessId};
-use tbp::policy::Policy;
-use tbp::resolver::{build_token_store, read_json_file, ResolverDoc};
-use tbp::verify::verify_ctc_with_allowlist;
+use paintgun::ids::{TokenPathId, WitnessId};
+use paintgun::policy::Policy;
+use paintgun::resolver::{build_token_store, read_json_file, ResolverDoc};
+use paintgun::verify::verify_ctc_with_allowlist;
 
 fn temp_dir(prefix: &str) -> PathBuf {
     let ts = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .expect("clock")
         .as_nanos();
-    let dir = std::env::temp_dir().join(format!("tbp-{prefix}-{}-{ts}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("paintgun-{prefix}-{}-{ts}", std::process::id()));
     fs::create_dir_all(&dir).expect("create temp dir");
     dir
 }
 
-fn build_charter_pack(out: &Path) -> (PathBuf, PathBuf, tbp::cert::CtcAnalysis) {
+fn build_charter_pack(out: &Path) -> (PathBuf, PathBuf, paintgun::cert::CtcAnalysis) {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let resolver_path = root.join("examples/charter-steel/charter-steel.resolver.json");
 
@@ -41,7 +43,7 @@ fn build_charter_pack(out: &Path) -> (PathBuf, PathBuf, tbp::cert::CtcAnalysis) 
     let witnesses_bytes =
         serde_json::to_vec_pretty(&analysis.witnesses).expect("serialize witnesses");
     fs::write(&witnesses_path, &witnesses_bytes).expect("write witnesses");
-    let witnesses_sha256 = format!("sha256:{}", tbp::util::sha256_hex(&witnesses_bytes));
+    let witnesses_sha256 = format!("sha256:{}", paintgun::util::sha256_hex(&witnesses_bytes));
 
     let manifest = build_ctc_manifest(
         &doc,

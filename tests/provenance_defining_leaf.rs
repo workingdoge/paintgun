@@ -3,9 +3,9 @@ use std::path::PathBuf;
 
 use serde_json::json;
 
-use tbp::cert::build_explicit_index;
-use tbp::provenance::TokenProvenance;
-use tbp::resolver::{build_token_store, ResolverDoc};
+use paintgun::cert::build_explicit_index;
+use paintgun::provenance::TokenProvenance;
+use paintgun::resolver::{build_token_store, ResolverDoc};
 
 fn build_explicit_base_map() -> HashMap<String, TokenProvenance> {
     let doc_json = json!({

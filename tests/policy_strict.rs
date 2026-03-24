@@ -1,4 +1,4 @@
-use tbp::policy::Policy;
+use paintgun::policy::Policy;
 
 #[test]
 fn legacy_top_level_policy_fields_are_rejected() {
