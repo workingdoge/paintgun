@@ -1,8 +1,8 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use tbp_resolver_kernel::{FlattenError, LoadFileError};
-use tbp_resolver_model::{Input, ResolverDoc, ResolverSource};
+use paintgun_resolver_kernel::{FlattenError, LoadFileError};
+use paintgun_resolver_model::{Input, ResolverDoc, ResolverSource};
 
 use crate::dtcg::JValue;
 
@@ -38,7 +38,7 @@ pub fn load_source_with_io(
     source: &ResolverSource,
     base_dir: &Path,
 ) -> Result<JValue, FlattenError> {
-    tbp_resolver_kernel::load_source(
+    paintgun_resolver_kernel::load_source(
         doc,
         source,
         base_dir,
@@ -53,7 +53,7 @@ pub fn flatten_with_io(
     input: &Input,
     base_dir: &Path,
 ) -> Result<JValue, FlattenError> {
-    tbp_resolver_kernel::flatten(
+    paintgun_resolver_kernel::flatten(
         doc,
         input,
         base_dir,
@@ -68,7 +68,7 @@ pub fn axes_relevant_to_tokens_with_io(
     base_dir: &Path,
     token_paths: &std::collections::BTreeSet<String>,
 ) -> Result<std::collections::BTreeSet<String>, FlattenError> {
-    tbp_resolver_kernel::axes_relevant_to_tokens(
+    paintgun_resolver_kernel::axes_relevant_to_tokens(
         doc,
         base_dir,
         token_paths,

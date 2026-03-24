@@ -11,14 +11,14 @@ fn read_from_manifest(relative: &str) -> String {
 fn ids_module_is_a_compat_reexport() {
     let src = read_from_manifest("src/ids.rs");
     assert!(
-        src.contains("pub use tbp_ids::*;"),
-        "src/ids.rs should re-export the standalone tbp-ids crate"
+        src.contains("pub use paintgun_ids::*;"),
+        "src/ids.rs should re-export the standalone paintgun-ids crate"
     );
 }
 
 #[test]
-fn tbp_ids_crate_hosts_typed_wrappers() {
-    let src = read_from_manifest("crates/tbp-ids/src/lib.rs");
+fn paintgun_ids_crate_hosts_typed_wrappers() {
+    let src = read_from_manifest("crates/paintgun-ids/src/lib.rs");
     for symbol in [
         "define_id!(ContextId);",
         "define_id!(TokenPathId);",
@@ -26,6 +26,6 @@ fn tbp_ids_crate_hosts_typed_wrappers() {
         "define_id!(RefId);",
         "define_id!(PackId);",
     ] {
-        assert!(src.contains(symbol), "tbp-ids should host {symbol}");
+        assert!(src.contains(symbol), "paintgun-ids should host {symbol}");
     }
 }

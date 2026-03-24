@@ -11,14 +11,14 @@ fn read_from_manifest(relative: &str) -> String {
 fn policy_module_is_a_compat_reexport() {
     let src = read_from_manifest("src/policy.rs");
     assert!(
-        src.contains("pub use tbp_policy::*;"),
-        "src/policy.rs should re-export the standalone tbp-policy crate"
+        src.contains("pub use paintgun_policy::*;"),
+        "src/policy.rs should re-export the standalone paintgun-policy crate"
     );
 }
 
 #[test]
-fn tbp_policy_crate_hosts_policy_domain_types() {
-    let src = read_from_manifest("crates/tbp-policy/src/lib.rs");
+fn paintgun_policy_crate_hosts_policy_domain_types() {
+    let src = read_from_manifest("crates/paintgun-policy/src/lib.rs");
     for symbol in [
         "pub struct Policy",
         "pub struct KcirPolicy",
@@ -26,6 +26,6 @@ fn tbp_policy_crate_hosts_policy_domain_types() {
         "pub fn normalize_value",
         "pub fn policy_digest",
     ] {
-        assert!(src.contains(symbol), "tbp-policy should host {symbol}");
+        assert!(src.contains(symbol), "paintgun-policy should host {symbol}");
     }
 }

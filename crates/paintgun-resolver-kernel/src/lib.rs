@@ -1,15 +1,15 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::path::{Path, PathBuf};
 
-use serde::{de::DeserializeOwned, Serialize};
-use tbp_dtcg::{
+use paintgun_dtcg::{
     ColorComponent, ColorSpace, DimensionUnit, DtcgColor, DtcgDimension, DtcgDuration, DtcgType,
     DtcgValue, DurationUnit, JValue, NumLit,
 };
-use tbp_resolver_model::{
+use paintgun_resolver_model::{
     validate_input_selection, Input, InputSelectionError, MaterializedToken, ResolvedToken,
     ResolverDoc, ResolverModifier, ResolverOrderEntry, ResolverSource,
 };
+use serde::{de::DeserializeOwned, Serialize};
 
 pub fn deep_merge(base: &JValue, overlay: &JValue) -> JValue {
     match (base, overlay) {

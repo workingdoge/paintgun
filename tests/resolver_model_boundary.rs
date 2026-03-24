@@ -11,7 +11,7 @@ fn read_from_manifest(relative: &str) -> String {
 fn resolver_module_reexports_model_types() {
     let src = read_from_manifest("src/resolver.rs");
     assert!(
-        src.contains("pub use tbp_resolver_model::{"),
+        src.contains("pub use paintgun_resolver_model::{"),
         "src/resolver.rs should re-export resolver domain model types"
     );
     assert!(
@@ -38,7 +38,7 @@ fn resolver_module_reexports_model_types() {
 
 #[test]
 fn resolver_model_crate_hosts_spec_structures() {
-    let src = read_from_manifest("crates/tbp-resolver-model/src/lib.rs");
+    let src = read_from_manifest("crates/paintgun-resolver-model/src/lib.rs");
     for symbol in [
         "pub struct ResolverDoc",
         "struct RawResolverDoc",
@@ -54,7 +54,7 @@ fn resolver_model_crate_hosts_spec_structures() {
     ] {
         assert!(
             src.contains(symbol),
-            "tbp-resolver-model should host {symbol}"
+            "paintgun-resolver-model should host {symbol}"
         );
     }
 }

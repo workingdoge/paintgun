@@ -1,1 +1,1 @@
-pub use tbp_dtcg::*;
+pub use paintgun_dtcg::*;

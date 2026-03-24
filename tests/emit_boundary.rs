@@ -8,25 +8,25 @@ fn read_from_manifest(relative: &str) -> String {
 }
 
 #[test]
-fn emit_module_delegates_kernel_logic_to_tbp_emit() {
+fn emit_module_delegates_kernel_logic_to_paintgun_emit() {
     let src = read_from_manifest("src/emit.rs");
     assert!(
         src.contains("compile_component_css_with_layers_lookup("),
-        "src/emit.rs should delegate CSS layer compilation to tbp-emit kernel"
+        "src/emit.rs should delegate CSS layer compilation to paintgun-emit kernel"
     );
     assert!(
         src.contains("emit_store_swift_with_lookup("),
-        "src/emit.rs should delegate Swift emission to tbp-emit kernel"
+        "src/emit.rs should delegate Swift emission to paintgun-emit kernel"
     );
     assert!(
         src.contains("emit_store_kotlin_with_lookup("),
-        "src/emit.rs should delegate Kotlin emission to tbp-emit kernel"
+        "src/emit.rs should delegate Kotlin emission to paintgun-emit kernel"
     );
 }
 
 #[test]
-fn tbp_emit_crate_hosts_emission_kernel_types() {
-    let src = read_from_manifest("crates/tbp-emit/src/lib.rs");
+fn paintgun_emit_crate_hosts_emission_kernel_types() {
+    let src = read_from_manifest("crates/paintgun-emit/src/lib.rs");
     for symbol in [
         "pub trait Emitter",
         "pub struct CssEmitter",
@@ -37,6 +37,6 @@ fn tbp_emit_crate_hosts_emission_kernel_types() {
         "pub fn emit_store_swift_with_lookup",
         "pub fn emit_store_kotlin_with_lookup",
     ] {
-        assert!(src.contains(symbol), "tbp-emit should host {symbol}");
+        assert!(src.contains(symbol), "paintgun-emit should host {symbol}");
     }
 }

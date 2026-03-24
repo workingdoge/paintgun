@@ -1,5 +1,5 @@
 [package]
-name = "tbp-policy"
+name = "paintgun-resolver-model"
 version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
@@ -7,6 +7,4 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-sha2 = "0.10"
-hex = "0.4"
-tbp-dtcg = { path = "../tbp-dtcg" }
+paintgun-dtcg = { path = "../paintgun-dtcg" }

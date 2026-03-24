@@ -1,4 +1,4 @@
-//! TBP: DTCG 2025.10 resolver compiler + composability certificate.
+//! Paintgun: DTCG 2025.10 resolver compiler + composability certificate.
 //!
 //! Design goals:
 //! - Spec-compliant resolution semantics (Resolver Module): LWW + resolutionOrder

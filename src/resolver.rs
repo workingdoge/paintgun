@@ -2,14 +2,14 @@ use std::collections::{BTreeSet, HashMap, HashSet};
 use std::fs;
 use std::path::Path;
 
+use paintgun_resolver_kernel::{AliasError, CanonicalizeError, ExtendsError, FlattenError};
 use serde::Deserialize;
-use tbp_resolver_kernel::{AliasError, CanonicalizeError, ExtendsError, FlattenError};
 
 use crate::dtcg::{DtcgType, JValue};
 use crate::resolver_io::{
     axes_relevant_to_tokens_with_io, flatten_with_io, load_source_with_io, FsResolverIo,
 };
-pub use tbp_resolver_model::{
+pub use paintgun_resolver_model::{
     axes_from_doc, context_key, dedup_inputs_for_axes, parse_context_key, validate_input_selection,
     InlineResolverModifier, InlineResolverSet, Input, InputSelectionError, MaterializedToken,
     ResolvedToken, ResolverDoc, ResolverModifier, ResolverModifierContext, ResolverOrderEntry,
@@ -166,7 +166,7 @@ pub fn flatten(doc: &ResolverDoc, input: &Input, base_dir: &Path) -> Result<JVal
 //──────────────────────────────────────────────────────────────────────────────
 
 pub fn resolve_extends(tree: &JValue) -> Result<JValue, ResolverError> {
-    tbp_resolver_kernel::resolve_extends(tree).map_err(map_extends_error)
+    paintgun_resolver_kernel::resolve_extends(tree).map_err(map_extends_error)
 }
 
 //──────────────────────────────────────────────────────────────────────────────
@@ -174,7 +174,7 @@ pub fn resolve_extends(tree: &JValue) -> Result<JValue, ResolverError> {
 //──────────────────────────────────────────────────────────────────────────────
 
 pub fn materialize(tree: &JValue, source: &str) -> Vec<MaterializedToken> {
-    tbp_resolver_kernel::materialize(tree, source)
+    paintgun_resolver_kernel::materialize(tree, source)
 }
 
 //──────────────────────────────────────────────────────────────────────────────
@@ -189,7 +189,7 @@ pub fn materialize(tree: &JValue, source: &str) -> Vec<MaterializedToken> {
 /// - This intentionally does **not** expand `$extends` across other documents.
 /// - Used to build the authored subposet S for Kan/BC analysis.
 pub fn collect_explicit_token_paths(tree: &JValue) -> HashSet<String> {
-    tbp_resolver_kernel::collect_explicit_token_paths(tree)
+    paintgun_resolver_kernel::collect_explicit_token_paths(tree)
 }
 
 /// Collect token paths that are *explicitly defined* in the given token tree,
@@ -199,7 +199,7 @@ pub fn collect_explicit_token_paths(tree: &JValue) -> HashSet<String> {
 ///
 /// This is used for provenance in composability witnesses and multi-pack composition.
 pub fn collect_explicit_token_defs(tree: &JValue) -> HashMap<String, String> {
-    tbp_resolver_kernel::collect_explicit_token_defs(tree)
+    paintgun_resolver_kernel::collect_explicit_token_defs(tree)
 }
 
 //──────────────────────────────────────────────────────────────────────────────
@@ -209,7 +209,7 @@ pub fn collect_explicit_token_defs(tree: &JValue) -> HashMap<String, String> {
 pub fn resolve_aliases(
     tokens: &[MaterializedToken],
 ) -> Result<Vec<ResolvedToken>, Vec<ResolverError>> {
-    tbp_resolver_kernel::resolve_aliases(tokens)
+    paintgun_resolver_kernel::resolve_aliases(tokens)
         .map_err(|errs| errs.into_iter().map(map_alias_error).collect())
 }
 
@@ -218,7 +218,7 @@ pub fn resolve_aliases(
 //──────────────────────────────────────────────────────────────────────────────
 
 pub fn canonicalize_token(token: &ResolvedToken) -> Result<ResolvedToken, ResolverError> {
-    tbp_resolver_kernel::canonicalize_token(token).map_err(map_canonicalize_error)
+    paintgun_resolver_kernel::canonicalize_token(token).map_err(map_canonicalize_error)
 }
 
 pub fn axes_relevant_to_tokens(

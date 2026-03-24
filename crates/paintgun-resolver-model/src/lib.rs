@@ -1,8 +1,8 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 
+use paintgun_dtcg::{DtcgType, DtcgValue, JValue};
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
-use tbp_dtcg::{DtcgType, DtcgValue, JValue};
 
 #[derive(Clone, Debug, Serialize)]
 pub struct ResolverDoc {

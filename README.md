@@ -1,6 +1,6 @@
 # Paintgun
 
-A Rust refactor of the **Token Bridge Project (TBP)** prototype:
+Paintgun is a Rust toolchain for DTCG 2025.10 resolution, verification, and composition:
 
 - **Spec-compliant resolution** for DTCG 2025.10 Resolver Module (`resolutionOrder` + last-write-wins).
 - A **typed, target-agnostic IR** (`ResolvedToken { type, value }`) — *no CSS strings in core*.
@@ -204,8 +204,8 @@ cargo run -- verify-compose dist-compose/compose.manifest.json \
 ```
 
 When using `--policy` in verify commands, pass the same policy file used to produce the manifest.
-Public v1 policy: signing is optional by default. `verify` and `verify-compose` accept unsigned artifacts unless the caller opts into `--require-signed` and/or `--require-packs-signed`; if a manifest advertises `trust.status = "signed"`, `tbp` always validates the detached signature. See `docs/trust_policy.md`.
-TBP treats the output directory as a portable pack bundle: consistent with the Resolver Module's non-normative bundling guidance, `build` stages the resolver and referenced token docs into `dist/inputs/`, and `verify` checks those copied inputs instead of reaching back into the original source tree.
+Public v1 policy: signing is optional by default. `verify` and `verify-compose` accept unsigned artifacts unless the caller opts into `--require-signed` and/or `--require-packs-signed`; if a manifest advertises `trust.status = "signed"`, `paint` always validates the detached signature. See `docs/trust_policy.md`.
+Paintgun treats the output directory as a portable pack bundle: consistent with the Resolver Module's non-normative bundling guidance, `build` stages the resolver and referenced token docs into `dist/inputs/`, and `verify` checks those copied inputs instead of reaching back into the original source tree.
 For supply-chain safety, verify commands require root-bound canonicalized manifest paths; absolute paths and traversal that escapes the trust root are rejected.
 Supported pack flow: move or archive the whole pack directory and verify `ctc.manifest.json` in place.
 `verify` also enforces `packIdentity.contentHash == outputs.resolvedJson.sha256`.

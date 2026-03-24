@@ -1,1 +1,1 @@
-pub use tbp_ids::*;
+pub use paintgun_ids::*;

@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use std::path::Path;
 
-use tbp_resolver_kernel::{AliasError, CanonicalizeError, ExtendsError, FlattenError};
-use tbp_resolver_model::{
+use paintgun_resolver_kernel::{AliasError, CanonicalizeError, ExtendsError, FlattenError};
+use paintgun_resolver_model::{
     axes_from_doc, context_key, dedup_inputs_for_axes, validate_input_selection, Input,
     InputSelectionError, ResolvedToken, ResolverDoc, TokenStore,
 };
@@ -15,7 +15,7 @@ fn map_extends_error(err: ExtendsError) -> ResolverError {
         ExtendsError::CircularExtends { chain } => ResolverError::CircularExtends { chain },
         ExtendsError::InvalidType { path, reason } => ResolverError::InvalidType {
             path,
-            ty: tbp_dtcg::DtcgType::Typography,
+            ty: paintgun_dtcg::DtcgType::Typography,
             reason,
         },
     }
@@ -106,19 +106,21 @@ pub fn build_token_store_for_inputs(
         let key = context_key(&input);
         let tree =
             flatten_with_io(&FsResolverIo, doc, &input, base_dir).map_err(map_flatten_error)?;
-        let extended = tbp_resolver_kernel::resolve_extends(&tree).map_err(map_extends_error)?;
+        let extended =
+            paintgun_resolver_kernel::resolve_extends(&tree).map_err(map_extends_error)?;
 
         let source = key.clone();
-        let materialized = tbp_resolver_kernel::materialize(&extended, &source);
-        let resolved = tbp_resolver_kernel::resolve_aliases(&materialized)
+        let materialized = paintgun_resolver_kernel::materialize(&extended, &source);
+        let resolved = paintgun_resolver_kernel::resolve_aliases(&materialized)
             .map_err(|errs| errs.into_iter().map(map_alias_error).collect::<Vec<_>>())
             .map_err(|errs| errs.into_iter().next().expect("non-empty alias error set"))?;
 
         // Canonicalize values by type
         let mut canonical: Vec<ResolvedToken> = Vec::new();
         for t in resolved {
-            canonical
-                .push(tbp_resolver_kernel::canonicalize_token(&t).map_err(map_canonicalize_error)?);
+            canonical.push(
+                paintgun_resolver_kernel::canonicalize_token(&t).map_err(map_canonicalize_error)?,
+            );
         }
 
         resolved_by_ctx.insert(key, canonical);

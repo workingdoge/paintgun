@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use crate::policy::Policy;
 use crate::resolver::{ResolverDoc, TokenStore};
 
-pub use tbp_emit::{
+pub use paintgun_emit::{
     build_layer_defs_for_ordered_modifiers, build_layer_defs_from_axes,
     compile_component_css_with_layers_lookup, emit_kotlin_module_scaffold,
     emit_store_kotlin_with_lookup, emit_store_swift_with_lookup, emit_swift_package_scaffold,

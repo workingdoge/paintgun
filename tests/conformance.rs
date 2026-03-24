@@ -1845,7 +1845,7 @@ fn sorted_fixture_dirs(fixtures_root: &Path) -> Vec<PathBuf> {
 fn maybe_write_golden(path: &Path, actual: &Value, update: bool) -> Result<(), String> {
     if !update {
         return Err(format!(
-            "missing or mismatched expected.json at {} (set TBP_UPDATE_GOLDENS=1 to update)",
+            "missing or mismatched expected.json at {} (set PAINTGUN_UPDATE_GOLDENS=1 to update)",
             path.display()
         ));
     }
@@ -1957,7 +1957,7 @@ fn conformance_fixtures() {
         fixtures_root.display()
     );
 
-    let update_goldens = std::env::var("TBP_UPDATE_GOLDENS").ok().as_deref() == Some("1");
+    let update_goldens = std::env::var("PAINTGUN_UPDATE_GOLDENS").ok().as_deref() == Some("1");
 
     let mut failures = Vec::new();
     for case_dir in cases {

@@ -25,12 +25,12 @@ premath-gate = { path = "crates/premath-gate" }
 premath-admissibility = { path = "crates/premath-admissibility" }
 premath-composability = { path = "crates/premath-composability" }
 premath-compose = { path = "crates/premath-compose" }
-tbp-dtcg = { path = "crates/tbp-dtcg" }
-tbp-policy = { path = "crates/tbp-policy" }
-tbp-ids = { path = "crates/tbp-ids" }
-tbp-emit = { path = "crates/tbp-emit" }
-tbp-resolver-model = { path = "crates/tbp-resolver-model" }
-tbp-resolver-kernel = { path = "crates/tbp-resolver-kernel" }
+paintgun-dtcg = { path = "crates/paintgun-dtcg" }
+paintgun-policy = { path = "crates/paintgun-policy" }
+paintgun-ids = { path = "crates/paintgun-ids" }
+paintgun-emit = { path = "crates/paintgun-emit" }
+paintgun-resolver-model = { path = "crates/paintgun-resolver-model" }
+paintgun-resolver-kernel = { path = "crates/paintgun-resolver-kernel" }
 
 [dev-dependencies]
 toml = "0.8"
@@ -51,11 +51,11 @@ members = [
     "crates/premath-admissibility",
     "crates/premath-composability",
     "crates/premath-compose",
-    "crates/tbp-dtcg",
-    "crates/tbp-policy",
-    "crates/tbp-ids",
-    "crates/tbp-emit",
-    "crates/tbp-resolver-model",
-    "crates/tbp-resolver-kernel",
+    "crates/paintgun-dtcg",
+    "crates/paintgun-policy",
+    "crates/paintgun-ids",
+    "crates/paintgun-emit",
+    "crates/paintgun-resolver-model",
+    "crates/paintgun-resolver-kernel",
 ]
 resolver = "2"

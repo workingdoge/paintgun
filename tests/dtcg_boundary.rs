@@ -11,20 +11,20 @@ fn read_from_manifest(relative: &str) -> String {
 fn dtcg_module_is_a_compat_reexport() {
     let src = read_from_manifest("src/dtcg.rs");
     assert!(
-        src.contains("pub use tbp_dtcg::*;"),
-        "src/dtcg.rs should re-export the standalone tbp-dtcg crate"
+        src.contains("pub use paintgun_dtcg::*;"),
+        "src/dtcg.rs should re-export the standalone paintgun-dtcg crate"
     );
 }
 
 #[test]
-fn tbp_dtcg_crate_hosts_dtcg_domain_types() {
-    let src = read_from_manifest("crates/tbp-dtcg/src/lib.rs");
+fn paintgun_dtcg_crate_hosts_dtcg_domain_types() {
+    let src = read_from_manifest("crates/paintgun-dtcg/src/lib.rs");
     for symbol in [
         "pub enum DtcgType",
         "pub struct TypedValue",
         "pub enum DtcgValue",
         "pub enum JValue",
     ] {
-        assert!(src.contains(symbol), "tbp-dtcg should host {symbol}");
+        assert!(src.contains(symbol), "paintgun-dtcg should host {symbol}");
     }
 }

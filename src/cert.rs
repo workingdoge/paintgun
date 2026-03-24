@@ -1129,7 +1129,7 @@ pub fn render_validation_report(store: &TokenStore, analysis: &CtcAnalysis) -> S
     let mut out = String::new();
 
     out.push_str("═══════════════════════════════════════\n");
-    out.push_str("  AA-VS/TBP Validation Report\n");
+    out.push_str("  AA-VS/Paintgun Validation Report\n");
     out.push_str("═══════════════════════════════════════\n\n");
 
     // Orthogonality

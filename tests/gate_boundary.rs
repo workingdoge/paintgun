@@ -8,7 +8,7 @@ fn read_from_manifest(relative: &str) -> String {
 }
 
 #[test]
-fn tbp_gate_module_is_adapter_only() {
+fn paintgun_gate_module_is_adapter_only() {
     let gate_src = read_from_manifest("src/gate.rs");
     assert!(
         gate_src.contains("evaluate_admissibility(AdmissibilityInput"),

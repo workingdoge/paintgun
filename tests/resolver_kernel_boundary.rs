@@ -11,7 +11,7 @@ fn read_from_manifest(relative: &str) -> String {
 fn resolver_module_delegates_tree_primitives_to_kernel() {
     let src = read_from_manifest("src/resolver.rs");
     assert!(
-        src.contains("use tbp_resolver_kernel::{")
+        src.contains("use paintgun_resolver_kernel::{")
             && src.contains("FlattenError")
             && src.contains("use crate::resolver_io::{")
             && src.contains("FsResolverIo"),
@@ -34,7 +34,7 @@ fn resolver_module_delegates_tree_primitives_to_kernel() {
         "src/resolver.rs should not define alias recursion locally"
     );
     assert!(
-        src.contains("tbp_resolver_kernel::resolve_extends(tree)"),
+        src.contains("paintgun_resolver_kernel::resolve_extends(tree)"),
         "src/resolver.rs should delegate resolve_extends to kernel"
     );
     assert!(
@@ -50,24 +50,24 @@ fn resolver_module_delegates_tree_primitives_to_kernel() {
         "src/resolver.rs should delegate axis relevance planning through resolver-io adapter"
     );
     assert!(
-        src.contains("tbp_resolver_kernel::resolve_aliases(tokens)"),
+        src.contains("paintgun_resolver_kernel::resolve_aliases(tokens)"),
         "src/resolver.rs should delegate resolve_aliases to kernel"
     );
     assert!(
-        src.contains("tbp_resolver_kernel::materialize(tree, source)"),
+        src.contains("paintgun_resolver_kernel::materialize(tree, source)"),
         "src/resolver.rs should delegate materialize to kernel"
     );
     assert!(
-        src.contains("tbp_resolver_kernel::collect_explicit_token_paths(tree)"),
+        src.contains("paintgun_resolver_kernel::collect_explicit_token_paths(tree)"),
         "src/resolver.rs should delegate explicit-token path collection to kernel"
     );
     assert!(
-        src.contains("tbp_resolver_kernel::collect_explicit_token_defs(tree)"),
+        src.contains("paintgun_resolver_kernel::collect_explicit_token_defs(tree)"),
         "src/resolver.rs should delegate explicit-token definition collection to kernel"
     );
     assert!(
         src.contains(
-            "tbp_resolver_kernel::canonicalize_token(token).map_err(map_canonicalize_error)"
+            "paintgun_resolver_kernel::canonicalize_token(token).map_err(map_canonicalize_error)"
         ),
         "src/resolver.rs should delegate canonicalization to kernel with adapter error mapping"
     );
@@ -103,7 +103,7 @@ fn resolver_module_delegates_tree_primitives_to_kernel() {
 
 #[test]
 fn resolver_kernel_crate_hosts_tree_primitives() {
-    let src = read_from_manifest("crates/tbp-resolver-kernel/src/lib.rs");
+    let src = read_from_manifest("crates/paintgun-resolver-kernel/src/lib.rs");
     for symbol in [
         "pub fn deep_merge",
         "pub fn parse_json_pointer",
@@ -128,7 +128,7 @@ fn resolver_kernel_crate_hosts_tree_primitives() {
     ] {
         assert!(
             src.contains(symbol),
-            "tbp-resolver-kernel should host {symbol}"
+            "paintgun-resolver-kernel should host {symbol}"
         );
     }
 }

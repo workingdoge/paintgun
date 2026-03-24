@@ -549,7 +549,7 @@ where
 {
     let mut out = String::new();
     out.push_str("═══════════════════════════════════════\n");
-    out.push_str("  TBP Compose Report\n");
+    out.push_str("  Paintgun Compose Report\n");
     out.push_str("═══════════════════════════════════════\n\n");
 
     out.push_str(&format!(

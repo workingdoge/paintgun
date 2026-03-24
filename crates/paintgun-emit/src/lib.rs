@@ -4,10 +4,10 @@ use std::path::Path;
 
 use serde::Deserialize;
 
-use tbp_dtcg::{
+use paintgun_dtcg::{
     ColorComponent, DtcgColor, DtcgDimension, DtcgDuration, DtcgType, DtcgValue, NumLit,
 };
-use tbp_policy::{normalize_value, CssColorPolicy, Policy};
+use paintgun_policy::{normalize_value, CssColorPolicy, Policy};
 
 pub type Input = BTreeMap<String, String>;
 
@@ -125,16 +125,16 @@ impl Emitter for CssEmitter {
 
     fn dimension(&self, v: &DtcgDimension, _path: &str) -> Self::Output {
         let unit = match v.unit {
-            tbp_dtcg::DimensionUnit::Px => "px",
-            tbp_dtcg::DimensionUnit::Rem => "rem",
+            paintgun_dtcg::DimensionUnit::Px => "px",
+            paintgun_dtcg::DimensionUnit::Rem => "rem",
         };
         format!("{}{}", v.value.0, unit)
     }
 
     fn duration(&self, v: &DtcgDuration, _path: &str) -> Self::Output {
         let unit = match v.unit {
-            tbp_dtcg::DurationUnit::Ms => "ms",
-            tbp_dtcg::DurationUnit::S => "s",
+            paintgun_dtcg::DurationUnit::Ms => "ms",
+            paintgun_dtcg::DurationUnit::S => "s",
         };
         format!("{}{}", v.value.0, unit)
     }
@@ -477,16 +477,16 @@ impl Emitter for SwiftEmitter {
 
     fn dimension(&self, v: &DtcgDimension, _path: &str) -> Self::Output {
         let unit = match v.unit {
-            tbp_dtcg::DimensionUnit::Px => "px",
-            tbp_dtcg::DimensionUnit::Rem => "rem",
+            paintgun_dtcg::DimensionUnit::Px => "px",
+            paintgun_dtcg::DimensionUnit::Rem => "rem",
         };
         format!(".dimension({value}, unit: \"{unit}\")", value = v.value.0)
     }
 
     fn duration(&self, v: &DtcgDuration, _path: &str) -> Self::Output {
         let unit = match v.unit {
-            tbp_dtcg::DurationUnit::Ms => "ms",
-            tbp_dtcg::DurationUnit::S => "s",
+            paintgun_dtcg::DurationUnit::Ms => "ms",
+            paintgun_dtcg::DurationUnit::S => "s",
         };
         format!(".duration({value}, unit: \"{unit}\")", value = v.value.0)
     }
@@ -651,8 +651,8 @@ impl Emitter for KotlinEmitter {
 
     fn dimension(&self, v: &DtcgDimension, _path: &str) -> Self::Output {
         let unit = match v.unit {
-            tbp_dtcg::DimensionUnit::Px => "px",
-            tbp_dtcg::DimensionUnit::Rem => "rem",
+            paintgun_dtcg::DimensionUnit::Px => "px",
+            paintgun_dtcg::DimensionUnit::Rem => "rem",
         };
         format!(
             "TokenValue.DimensionVal({value}, \"{unit}\")",
@@ -662,8 +662,8 @@ impl Emitter for KotlinEmitter {
 
     fn duration(&self, v: &DtcgDuration, _path: &str) -> Self::Output {
         let unit = match v.unit {
-            tbp_dtcg::DurationUnit::Ms => "ms",
-            tbp_dtcg::DurationUnit::S => "s",
+            paintgun_dtcg::DurationUnit::Ms => "ms",
+            paintgun_dtcg::DurationUnit::S => "s",
         };
         format!(
             "TokenValue.DurationVal({value}, \"{unit}\")",

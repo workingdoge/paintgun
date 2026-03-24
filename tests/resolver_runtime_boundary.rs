@@ -25,7 +25,7 @@ fn resolver_runtime_module_hosts_token_store_orchestration() {
         "src/resolver_runtime.rs should use resolver_io seam directly"
     );
     assert!(
-        src.contains("tbp_resolver_kernel::resolve_extends(&tree)"),
+        src.contains("paintgun_resolver_kernel::resolve_extends(&tree)"),
         "src/resolver_runtime.rs should use kernel resolution directly"
     );
     assert!(

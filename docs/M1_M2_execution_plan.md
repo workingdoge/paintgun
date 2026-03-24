@@ -1,4 +1,4 @@
-# TBP Execution Plan: M1-M7
+# Paintgun Execution Plan: M1-M7
 
 Date: 2026-02-15
 Scope: Convert Milestones 1-7 into issue-sized implementation tickets with CI-ready acceptance criteria.
@@ -78,24 +78,24 @@ Scope: Convert Milestones 1-7 into issue-sized implementation tickets with CI-re
   - KCIR v2 OBJ/MOR contract migration complete: `O_PULL`/`M_PULL` and MOR non-pull contract checks now run through local ref-native cores in `kcir_v2` (no calls to `kcir::verify_obj_pull_opcode_contract_parts`, `kcir::verify_mor_pull_opcode_contract_parts`, or `kcir::verify_mor_opcode_contract_with_store`)
   - M8-T1 baseline: typed full-profile pipeline API (`src/pipeline.rs`) is wired through build flow (`resolve -> bidir -> admissibility`) with deterministic integration coverage
   - M8-T2 baseline: `ctc.manifest.json` now supports explicit `requiredArtifacts` bindings (`ctcWitnesses`, `admissibilityWitnesses`), `verify --profile full` resolves artifact paths from those bindings (not filename convention), and compose-verify validates referenced pack required-artifact contracts even before deep pack verification
-  - M8-T3 baseline: admissibility law-evaluation core now lives in `crates/premath-gate` (`evaluate_admissibility` + typed input contract), while `src/gate.rs` is a tbp adapter from analysis/cert witnesses to premath inputs; boundary test `tests/gate_boundary.rs` enforces this split
+  - M8-T3 baseline: admissibility law-evaluation core now lives in `crates/premath-gate` (`evaluate_admissibility` + typed input contract), while `src/gate.rs` is a Paintgun adapter from analysis/cert witnesses to premath inputs; boundary test `tests/gate_boundary.rs` enforces this split
   - M8-T3 baseline: context-poset admissibility kernels now live in `crates/premath-admissibility` (`kan_diag`, `bc_violations`, `stability_failures`, `locality_failures`, `orthogonality_overlaps`); `src/analysis.rs` is now an adapter layer with type-specialized wrappers and boundary coverage in `tests/admissibility_boundary.rs`
   - M8-T3 baseline: CTC witness data model now lives in `crates/premath-composability` (`ConflictMode`, `CtcSummary`, `CtcWitnesses`, `CtcAnalysis`, witness record types); `src/cert.rs` now re-exports/adapts these types and boundary coverage lives in `tests/composability_boundary.rs`
   - M8-T3 baseline: composability witness assembly kernel now lives in `crates/premath-composability` (`analyze_assignments`), while `src/cert.rs` reduces to assignment/context preparation + adapter closures (`conflict_candidate_from_authored`, resolver-value lookup)
   - M8-T3 baseline: cross-pack conflict witness assembly kernel now lives in `crates/premath-compose` (`assemble_conflicts`), while `src/compose.rs` handles pack-specific value/provenance extraction and manifest/IO concerns; boundary coverage in `tests/compose_boundary.rs`
-  - M8-T3 baseline: compose witness data model now lives in `crates/premath-compose` (`ComposeInheritedRef`, `ComposeConflictCandidate`, `ComposeConflictWitness`, `ComposeWitnesses`) with explicit serde bounds preserving compact `inheritedFrom` encoding and deterministic schema validation via tbp type aliases in `src/compose.rs`
-  - M8-T3 baseline: compose data models and verification primitives now live in `crates/premath-compose` (`ComposePackEntry`, `ComposeManifest`, `ComposeSummary`, `ComposeVerifyError`, `ComposeVerifyReport`, `verify_error_codes`, `push_verify_error`), and summary path-kernel logic moved to `summarize_pack_paths`; `src/compose.rs` now re-exports concrete tbp aliases while retaining verification orchestration/IO
+  - M8-T3 baseline: compose witness data model now lives in `crates/premath-compose` (`ComposeInheritedRef`, `ComposeConflictCandidate`, `ComposeConflictWitness`, `ComposeWitnesses`) with explicit serde bounds preserving compact `inheritedFrom` encoding and deterministic schema validation via Paintgun type aliases in `src/compose.rs`
+  - M8-T3 baseline: compose data models and verification primitives now live in `crates/premath-compose` (`ComposePackEntry`, `ComposeManifest`, `ComposeSummary`, `ComposeVerifyError`, `ComposeVerifyReport`, `verify_error_codes`, `push_verify_error`), and summary path-kernel logic moved to `summarize_pack_paths`; `src/compose.rs` now re-exports concrete Paintgun aliases while retaining verification orchestration/IO
   - M8-T3 baseline: compose reporting kernels now live in `crates/premath-compose` (`render_compose_report_text`, `build_compose_report_json_value`) with source/inherited formatting injected via adapter closures; `src/compose.rs` now delegates report rendering/JSON assembly
   - M8-T3 baseline: compose verification preflight kernels now live in `crates/premath-compose` (`check_required_signed`, `check_pack_identity_match`, `verify_witnesses_payload`, `check_manifest_entry_binding`, `fold_pack_verify_outcome`, `prefix_pack_diagnostics`) while `src/compose.rs` keeps filesystem/path/signature IO orchestration
   - M8-T3 baseline: per-pack compose verification now runs through `crates/premath-compose::verify_pack_with_callbacks` (IO injected via callbacks), so `verify_compose_with_signing` is reduced to high-level orchestration + callback wiring
-  - M8-T3 baseline: DTCG domain types now live in `crates/tbp-dtcg` (`DtcgType`, `TypedValue`, `DtcgValue`, `JValue`); `src/dtcg.rs` is a compatibility re-export so `tbp::dtcg::*` call sites remain stable
-  - M8-T3 baseline: normalization policy domain now lives in `crates/tbp-policy` (`Policy`, `KcirPolicy`, `CssColorPolicy`, `normalize_value`, `policy_digest`); `src/policy.rs` is a compatibility re-export so existing `tbp::policy::*` call sites remain stable
-  - M8-T3 baseline: emission kernel now lives in `crates/tbp-emit` (`Emitter`, `CssEmitter`, layer planning, CSS/native emission kernels); `src/emit.rs` is now an adapter layer for resolver/store-specific orchestration and compatibility exports
-  - M8-T3 baseline: resolver document/store model now lives in `crates/tbp-resolver-model` (`ResolverDoc`, `ResolverSource`, `TokenStore`, `context_key`, `parse_context_key`, `axes_from_doc`, input-selection/dedup utilities + typed selection errors); `src/resolver.rs` re-exports/adapts the model while retaining resolver IO/orchestration logic
-  - M8-T3 baseline: resolver tree/algebra kernels now live in `crates/tbp-resolver-kernel` (`deep_merge`, `parse_json_pointer`, source-load/flatten core + typed load/flatten errors, axis-relevance planning, `$extends` core, alias-resolution core + typed kernel errors, materialization, explicit-token path/definition collection, token canonicalization + typed kernel errors); `src/resolver_io.rs` owns filesystem/path callback wiring (`ResolverIo`, `FsResolverIo`), `src/resolver_runtime.rs` owns token-store stage orchestration via direct kernel+io calls, and `src/resolver.rs` is now a compatibility facade/adaptation layer
+  - M8-T3 baseline: DTCG domain types now live in `crates/paintgun-dtcg` (`DtcgType`, `TypedValue`, `DtcgValue`, `JValue`); `src/dtcg.rs` is a compatibility re-export so `paintgun::dtcg::*` call sites remain stable
+  - M8-T3 baseline: normalization policy domain now lives in `crates/paintgun-policy` (`Policy`, `KcirPolicy`, `CssColorPolicy`, `normalize_value`, `policy_digest`); `src/policy.rs` is a compatibility re-export so existing `paintgun::policy::*` call sites remain stable
+  - M8-T3 baseline: emission kernel now lives in `crates/paintgun-emit` (`Emitter`, `CssEmitter`, layer planning, CSS/native emission kernels); `src/emit.rs` is now an adapter layer for resolver/store-specific orchestration and compatibility exports
+  - M8-T3 baseline: resolver document/store model now lives in `crates/paintgun-resolver-model` (`ResolverDoc`, `ResolverSource`, `TokenStore`, `context_key`, `parse_context_key`, `axes_from_doc`, input-selection/dedup utilities + typed selection errors); `src/resolver.rs` re-exports/adapts the model while retaining resolver IO/orchestration logic
+  - M8-T3 baseline: resolver tree/algebra kernels now live in `crates/paintgun-resolver-kernel` (`deep_merge`, `parse_json_pointer`, source-load/flatten core + typed load/flatten errors, axis-relevance planning, `$extends` core, alias-resolution core + typed kernel errors, materialization, explicit-token path/definition collection, token canonicalization + typed kernel errors); `src/resolver_io.rs` owns filesystem/path callback wiring (`ResolverIo`, `FsResolverIo`), `src/resolver_runtime.rs` owns token-store stage orchestration via direct kernel+io calls, and `src/resolver.rs` is now a compatibility facade/adaptation layer
   - M8-T3 baseline: verify profile-binding/anchor checks are now isolated in `src/verify/profile_binding.rs` (spec-normative logic), while `src/verify.rs` remains artifact/signing/report orchestration
   - M8-T3 baseline: KCIR wire/verification kernel moved to `crates/premath-kcir-kernel` (`kcir_kernel.rs` + hash utilities), while `crates/premath-kcir` now focuses on v2/profile/ref orchestration through the compat seam
-  - M8-T4 baseline: typed identifier wrappers now live in `crates/tbp-ids` (`ContextId`, `TokenPathId`, `WitnessId`, `RefId`, `PackId`), with `src/ids.rs` as a compatibility re-export; the full-profile pipeline boundary accepts typed contract-token sets (`Option<&BTreeSet<TokenPathId>>`) instead of raw strings
+  - M8-T4 baseline: typed identifier wrappers now live in `crates/paintgun-ids` (`ContextId`, `TokenPathId`, `WitnessId`, `RefId`, `PackId`), with `src/ids.rs` as a compatibility re-export; the full-profile pipeline boundary accepts typed contract-token sets (`Option<&BTreeSet<TokenPathId>>`) instead of raw strings
   - M8-T4 baseline: report/explain boundaries now consume typed ids (`ReportFinding.witness_id/token_path` and `explain` witness lookup input), while preserving JSON wire compatibility through serde-transparent wrappers
   - M8-T4 baseline: allowlist selector/matcher paths now consume typed ids (`witnessId: WitnessId`, `tokenPath: TokenPathId`) and verify-side allowlist indexing is keyed by `WitnessId` while preserving legacy JSON shape
   - M8-T4 baseline: compose witness records now use typed ids (`ComposeConflictWitness.witness_id/token_path`, `ComposeInheritedRef.witness_id`) with deterministic ordering and report/explain compatibility preserved
@@ -394,7 +394,7 @@ Goal: reports are machine-actionable and directly fix-oriented for PR workflows.
   - Allowlisted entries suppress failure only for exact matching witness IDs or selectors.
   - Missing/stale allowlist entries fail with clear reason.
 
-### M5-T4: `tbp explain <witness-id>`
+### M5-T4: `paint explain <witness-id>`
 - Outcome: shortest fix path from witness to source.
 - Changes:
   - Add explain subcommand resolving witness -> source location -> remediation text.
@@ -567,7 +567,7 @@ Goal: make full-profile verification a single typed pipeline with strict crate b
 ### M8-T3: Crate boundary split by semantics
 - Outcome: stable architecture boundaries.
 - Changes:
-  - Introduce/finish crate separation: `tbp-dtcg`, `premath-bidir`, `premath-admissibility`, `premath-kcir`, `tbp-emit`, `tbp-cli`.
+  - Introduce/finish crate separation: `paintgun-dtcg`, `premath-bidir`, `premath-admissibility`, `premath-kcir`, `paintgun-emit`, `paintgun`.
   - Remove cross-layer type leakage (no DTCG types in premath crates; no crypto/wire details outside kcir).
 - Acceptance:
   - `cargo tree` and module references show no forbidden cross-layer imports.

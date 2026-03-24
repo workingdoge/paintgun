@@ -822,6 +822,12 @@ dependencies = [
  "clap",
  "hex",
  "jsonschema",
+ "paintgun-dtcg",
+ "paintgun-emit",
+ "paintgun-ids",
+ "paintgun-policy",
+ "paintgun-resolver-kernel",
+ "paintgun-resolver-model",
  "premath-admissibility",
  "premath-composability",
  "premath-compose",
@@ -831,14 +837,62 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
- "tbp-dtcg",
- "tbp-emit",
- "tbp-ids",
- "tbp-policy",
- "tbp-resolver-kernel",
- "tbp-resolver-model",
  "thiserror",
  "toml",
+]
+
+[[package]]
+name = "paintgun-dtcg"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "paintgun-emit"
+version = "0.1.0"
+dependencies = [
+ "paintgun-dtcg",
+ "paintgun-policy",
+ "serde",
+]
+
+[[package]]
+name = "paintgun-ids"
+version = "0.1.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "paintgun-policy"
+version = "0.1.0"
+dependencies = [
+ "hex",
+ "paintgun-dtcg",
+ "serde",
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
+name = "paintgun-resolver-kernel"
+version = "0.1.0"
+dependencies = [
+ "paintgun-dtcg",
+ "paintgun-resolver-model",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "paintgun-resolver-model"
+version = "0.1.0"
+dependencies = [
+ "paintgun-dtcg",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -1209,60 +1263,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "tbp-dtcg"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "tbp-emit"
-version = "0.1.0"
-dependencies = [
- "serde",
- "tbp-dtcg",
- "tbp-policy",
-]
-
-[[package]]
-name = "tbp-ids"
-version = "0.1.0"
-dependencies = [
- "serde",
-]
-
-[[package]]
-name = "tbp-policy"
-version = "0.1.0"
-dependencies = [
- "hex",
- "serde",
- "serde_json",
- "sha2",
- "tbp-dtcg",
-]
-
-[[package]]
-name = "tbp-resolver-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "tbp-dtcg",
- "tbp-resolver-model",
-]
-
-[[package]]
-name = "tbp-resolver-model"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "tbp-dtcg",
 ]
 
 [[package]]

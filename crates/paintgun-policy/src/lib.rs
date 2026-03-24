@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
-use tbp_dtcg::{
+use paintgun_dtcg::{
     ColorComponent, DimensionUnit, DtcgColor, DtcgDimension, DtcgDuration, DtcgType, DtcgValue,
     DurationUnit, NumLit,
 };
