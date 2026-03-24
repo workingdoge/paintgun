@@ -32,10 +32,29 @@ use tbp::pipeline::{run_full_profile_pipeline, FullProfilePipelineRequest};
 use tbp::policy::Policy;
 use tbp::resolver::{
     axes_from_doc, axes_relevant_to_tokens, build_token_store_for_inputs, context_key,
-    read_json_file, Input, ResolverDoc,
+    read_json_file, Input, ResolverDoc, ResolverError,
 };
 use tbp::signing::sign_manifest_file;
 use tbp::verify::{verify_ctc_with_options, CtcVerifyOptions, VerifyProfile};
+
+#[derive(Debug)]
+struct CliError(String);
+
+impl CliError {
+    fn new(message: impl Into<String>) -> Self {
+        Self(message.into())
+    }
+}
+
+impl std::fmt::Display for CliError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
+impl std::error::Error for CliError {}
+
+type CliResult<T> = Result<T, CliError>;
 
 #[derive(Parser, Debug)]
 #[command(name = "tbp")]
@@ -328,18 +347,75 @@ enum Command {
     },
 }
 
-fn load_contracts(path: &Path) -> Vec<Contract> {
-    let v: serde_json::Value = read_json_file(path).expect("contracts json");
-    let obj = v.as_object().expect("contracts must be object");
+fn map_read_json_error(path: &Path, label: &str, err: ResolverError) -> CliError {
+    match err {
+        ResolverError::ReadFile { cause, .. } => CliError::new(format!(
+            "failed to read {label} {}: {cause}",
+            path.display()
+        )),
+        ResolverError::ParseJson { cause, .. } => CliError::new(format!(
+            "failed to parse {label} {}: {cause}",
+            path.display()
+        )),
+        other => CliError::new(format!(
+            "failed to load {label} {}: {other}",
+            path.display()
+        )),
+    }
+}
+
+fn read_json_arg<T: for<'de> serde::Deserialize<'de>>(path: &Path, label: &str) -> CliResult<T> {
+    read_json_file(path).map_err(|e| map_read_json_error(path, label, e))
+}
+
+fn create_dir(path: &Path, label: &str) -> CliResult<()> {
+    fs::create_dir_all(path)
+        .map_err(|e| CliError::new(format!("failed to create {label} {}: {e}", path.display())))
+}
+
+fn read_text(path: &Path, label: &str) -> CliResult<String> {
+    fs::read_to_string(path)
+        .map_err(|e| CliError::new(format!("failed to read {label} {}: {e}", path.display())))
+}
+
+fn write_bytes(path: &Path, label: &str, bytes: impl AsRef<[u8]>) -> CliResult<()> {
+    fs::write(path, bytes)
+        .map_err(|e| CliError::new(format!("failed to write {label} {}: {e}", path.display())))
+}
+
+fn json_bytes(value: &impl serde::Serialize, label: &str) -> CliResult<Vec<u8>> {
+    serde_json::to_vec_pretty(value)
+        .map_err(|e| CliError::new(format!("failed to serialize {label}: {e}")))
+}
+
+fn write_json(path: &Path, label: &str, value: &impl serde::Serialize) -> CliResult<()> {
+    let bytes = json_bytes(value, label)?;
+    write_bytes(path, label, bytes)
+}
+
+fn load_contracts(path: &Path) -> CliResult<Vec<Contract>> {
+    let v: serde_json::Value = read_json_arg(path, "contracts JSON")?;
+    let obj = v.as_object().ok_or_else(|| {
+        CliError::new(format!(
+            "invalid contracts JSON {}: top-level JSON value must be an object",
+            path.display()
+        ))
+    })?;
     let mut out = Vec::new();
     for (k, vv) in obj {
         if k.starts_with('$') {
             continue;
         }
-        let c: Contract = serde_json::from_value(vv.clone()).expect("contract");
+        let c: Contract = serde_json::from_value(vv.clone()).map_err(|e| {
+            CliError::new(format!(
+                "invalid contract entry {}.{}: {e}",
+                path.display(),
+                k
+            ))
+        })?;
         out.push(c);
     }
-    out
+    Ok(out)
 }
 
 fn contract_token_set(contracts: &[Contract]) -> std::collections::BTreeSet<String> {
@@ -496,11 +572,6 @@ fn layer_order_from_doc(doc: &ResolverDoc) -> Vec<String> {
     }
 
     names
-}
-
-fn write_json(path: &Path, value: &impl serde::Serialize) {
-    let bytes = serde_json::to_vec_pretty(value).expect("serialize");
-    fs::write(path, bytes).expect("write");
 }
 
 fn parse_anchor_root_bytes(raw: &str) -> Result<Vec<u8>, String> {
@@ -675,9 +746,509 @@ fn validate_semantics(
     errors
 }
 
+#[allow(clippy::too_many_arguments)]
+fn run_build(
+    resolver: PathBuf,
+    contracts: Option<PathBuf>,
+    out: PathBuf,
+    target: String,
+    policy: Option<PathBuf>,
+    conflict_mode: CliConflictMode,
+    format: CliFormat,
+    contexts: CliContexts,
+    planner_trace: bool,
+    profile: CliProfile,
+    kcir_wire_format_id: String,
+) -> CliResult<()> {
+    let doc: ResolverDoc = read_json_arg(&resolver, "resolver JSON")?;
+    let contracts_loaded = contracts.as_ref().map(|p| load_contracts(p)).transpose()?;
+    if matches!(contexts, CliContexts::FromContracts) && contracts_loaded.is_none() {
+        return Err(CliError::new(
+            "--contexts from-contracts requires --contracts",
+        ));
+    }
+    if target == "css" && contracts_loaded.is_none() {
+        return Err(CliError::new("--contracts is required for --target css"));
+    }
+    let contract_tokens = contracts_loaded
+        .as_ref()
+        .map(|cs| contract_token_set(cs.as_slice()));
+    let axes = axes_from_doc(&doc);
+    let relevant_axes = match (contexts, contract_tokens.as_ref()) {
+        (CliContexts::FromContracts, Some(tokens)) => Some(
+            axes_relevant_to_tokens(&doc, &resolver, tokens).map_err(|e| {
+                CliError::new(format!("failed to compute contract-relevant axes: {e}"))
+            })?,
+        ),
+        _ => None,
+    };
+    let planned_inputs = tbp::contexts::plan_inputs(contexts.into(), &axes, relevant_axes.as_ref());
+    let analysis_inputs = planned_inputs.clone();
+    let required_inputs = if target == "css" {
+        tbp::contexts::layered_inputs(&axes, None)
+    } else {
+        tbp::contexts::layered_inputs(&axes, None)
+            .into_iter()
+            .filter(|i| i.len() <= 1)
+            .collect()
+    };
+    let store_inputs = merge_planned_inputs(planned_inputs, required_inputs);
+    let planner_trace_payload = if planner_trace {
+        Some(build_planner_trace(
+            "build",
+            contexts,
+            &axes,
+            relevant_axes.as_ref(),
+            contract_tokens.as_ref(),
+            &analysis_inputs,
+            &store_inputs,
+        ))
+    } else {
+        None
+    };
+    let store = build_token_store_for_inputs(&doc, &resolver, &store_inputs)
+        .map_err(|e| CliError::new(format!("failed to build token store: {e}")))?;
+
+    let policy: Policy = match &policy {
+        None => Policy::default(),
+        Some(p) => read_json_arg(p, "policy JSON")?,
+    };
+    let kcir_profile =
+        kcir_profile_binding_for_scheme_and_wire(HASH_SCHEME_ID, &kcir_wire_format_id).map_err(
+            |e| {
+                CliError::new(format!(
+                    "invalid --kcir-wire-format-id {}: {}",
+                    kcir_wire_format_id, e
+                ))
+            },
+        )?;
+
+    create_dir(&out, "output directory")?;
+
+    let resolved_path = out.join("resolved.json");
+    write_resolved_json(&resolved_path, &store)
+        .map_err(|e| CliError::new(format!("failed to write resolved.json: {e}")))?;
+
+    let manifest = build_manifest(&doc, &resolver);
+    write_json(&out.join("manifest.json"), "manifest.json", &manifest)?;
+
+    let mut tokens_css_path: Option<PathBuf> = None;
+    let mut tokens_swift_path: Option<PathBuf> = None;
+    let mut tokens_kotlin_path: Option<PathBuf> = None;
+    let mut tokens_dts_path: Option<PathBuf> = None;
+
+    match target.as_str() {
+        "css" => {
+            let contracts = contracts_loaded
+                .as_ref()
+                .ok_or_else(|| CliError::new("--contracts is required for --target css"))?;
+            let emitter = CssEmitter {
+                color_policy: policy.css_color.clone(),
+            };
+
+            let preamble = format!("@layer {};\n\n", layer_order_from_doc(&doc).join(", "));
+            let mut css = String::new();
+            css.push_str(&preamble);
+
+            for c in contracts {
+                css.push_str(&format!("/* ═ {} ═ */\n\n", c.component));
+                css.push_str(&compile_component_css(c, &doc, &store, &policy, &emitter));
+                css.push('\n');
+            }
+
+            let css_path = out.join("tokens.css");
+            write_bytes(&css_path, "tokens.css", css.as_bytes())?;
+            tokens_css_path = Some(css_path);
+
+            let dts = emit_tokens_d_ts(contracts);
+            let dts_path = out.join("tokens.d.ts");
+            write_bytes(&dts_path, "tokens.d.ts", dts.as_bytes())?;
+            tokens_dts_path = Some(dts_path);
+        }
+        "swift" => {
+            let swift = emit_store_swift(&store, &policy);
+            let path = out.join("tokens.swift");
+            write_bytes(&path, "tokens.swift", swift.as_bytes())?;
+            let swift_src = read_text(&path, "tokens.swift")?;
+            emit_swift_package_scaffold(&out, &swift_src).map_err(|e| {
+                CliError::new(format!("failed to write swift package scaffold: {e}"))
+            })?;
+            tokens_swift_path = Some(path);
+        }
+        "kotlin" => {
+            let kt = emit_store_kotlin(&store, &policy);
+            let path = out.join("tokens.kt");
+            write_bytes(&path, "tokens.kt", kt.as_bytes())?;
+            let kotlin_src = read_text(&path, "tokens.kt")?;
+            emit_kotlin_module_scaffold(&out, &kotlin_src).map_err(|e| {
+                CliError::new(format!("failed to write kotlin module scaffold: {e}"))
+            })?;
+            tokens_kotlin_path = Some(path);
+        }
+        other => {
+            return Err(CliError::new(format!(
+                "unknown --target {other}. Supported: css | swift | kotlin"
+            )))
+        }
+    }
+
+    let contract_token_ids = contract_tokens.as_ref().map(|tokens| {
+        tokens
+            .iter()
+            .map(|t| TokenPathId::from(t.as_str()))
+            .collect::<std::collections::BTreeSet<_>>()
+    });
+    let full_profile_pipeline = if matches!(profile, CliProfile::Full) {
+        Some(
+            run_full_profile_pipeline(FullProfilePipelineRequest {
+                doc: &doc,
+                store: &store,
+                resolver_path: &resolver,
+                conflict_mode: conflict_mode.into(),
+                policy: &policy,
+                context_mode: contexts.into(),
+                contract_tokens: contract_token_ids.as_ref(),
+            })
+            .map_err(|e| CliError::new(format!("failed to run full-profile pipeline: {e}")))?,
+        )
+    } else {
+        None
+    };
+
+    let analysis = if let Some(pipeline) = &full_profile_pipeline {
+        pipeline.admissibility.analysis.clone()
+    } else {
+        analyze_composability_with_mode_and_contexts(
+            &doc,
+            &store,
+            &resolver,
+            conflict_mode.into(),
+            &policy,
+            contexts.into(),
+            contract_tokens.as_ref(),
+        )
+        .map_err(|e| CliError::new(format!("failed to analyze composability: {e}")))?
+    };
+    let validation_txt = render_validation_report(&store, &analysis);
+    let validation_path = out.join("validation.txt");
+    write_bytes(
+        &validation_path,
+        "validation.txt",
+        validation_txt.as_bytes(),
+    )?;
+    if matches!(format, CliFormat::Json) {
+        let mut validation_json = tbp::cert::build_validation_report_json(&analysis);
+        if let Some(trace) = planner_trace_payload.clone() {
+            let obj = validation_json.as_object_mut().ok_or_else(|| {
+                CliError::new("internal error: validation report JSON must be an object")
+            })?;
+            obj.insert("plannerTrace".to_string(), trace);
+        }
+        let validation_json_path = out.join("validation.json");
+        write_json(&validation_json_path, "validation.json", &validation_json)?;
+    }
+
+    let explicit = if let Some(pipeline) = &full_profile_pipeline {
+        pipeline.resolve.explicit.clone()
+    } else {
+        build_explicit_index(&doc, &store, &resolver)
+            .map_err(|e| CliError::new(format!("failed to build explicit index: {e}")))?
+    };
+    let assignments = if let Some(pipeline) = &full_profile_pipeline {
+        pipeline.bidir.assignments.clone()
+    } else {
+        build_assignments(&store, &explicit)
+    };
+    let authored_export = build_authored_export(&doc, &store, &assignments);
+    let authored_path = out.join("authored.json");
+    write_json(&authored_path, "authored.json", &authored_export)?;
+
+    let witnesses_path = out.join("ctc.witnesses.json");
+    let witnesses_bytes = json_bytes(&analysis.witnesses, "ctc.witnesses.json")?;
+    write_bytes(&witnesses_path, "ctc.witnesses.json", &witnesses_bytes)?;
+    let witnesses_sha256 = format!("sha256:{}", tbp::util::sha256_hex(&witnesses_bytes));
+
+    let mut admissibility_path: Option<PathBuf> = None;
+    let mut admissibility_sha256: Option<String> = None;
+    if let Some(pipeline) = full_profile_pipeline {
+        let admissibility = pipeline.admissibility.witnesses;
+        let path = out.join("admissibility.witnesses.json");
+        let admissibility_bytes = json_bytes(&admissibility, "admissibility.witnesses.json")?;
+        write_bytes(&path, "admissibility.witnesses.json", &admissibility_bytes)?;
+        admissibility_sha256 = Some(format!(
+            "sha256:{}",
+            tbp::util::sha256_hex(&admissibility_bytes)
+        ));
+        admissibility_path = Some(path);
+        if admissibility.result == GateResult::Rejected {
+            println!(
+                "note: full-profile admissibility produced {} failure(s); verify --profile full will reject",
+                admissibility.failures.len()
+            );
+        }
+    }
+
+    let mut ctc_manifest = build_ctc_manifest(
+        &doc,
+        &resolver,
+        &store,
+        Some(&policy),
+        conflict_mode.into(),
+        &resolved_path,
+        tokens_css_path.as_deref(),
+        tokens_swift_path.as_deref(),
+        tokens_kotlin_path.as_deref(),
+        tokens_dts_path.as_deref(),
+        Some(&authored_path),
+        Some(&validation_path),
+        analysis.summary.clone(),
+        witnesses_sha256,
+    );
+    ctc_manifest.profile = Some(kcir_profile);
+    ctc_manifest.admissibility_witnesses_sha256 = admissibility_sha256;
+    ctc_manifest
+        .required_artifacts
+        .push(required_artifact_binding(
+            RequiredArtifactKind::CtcWitnesses,
+            &witnesses_path,
+            &out,
+        ));
+    if let Some(path) = admissibility_path.as_deref() {
+        ctc_manifest
+            .required_artifacts
+            .push(required_artifact_binding(
+                RequiredArtifactKind::AdmissibilityWitnesses,
+                path,
+                &out,
+            ));
+    }
+    ctc_manifest
+        .required_artifacts
+        .sort_by_key(|binding| binding.kind.as_str());
+    write_json(
+        &out.join("ctc.manifest.json"),
+        "ctc.manifest.json",
+        &ctc_manifest,
+    )?;
+
+    println!("✓ Built pack: {}", out.display());
+    Ok(())
+}
+
+#[allow(clippy::too_many_arguments)]
+fn run_compose(
+    packs: Vec<PathBuf>,
+    out: PathBuf,
+    target: String,
+    contracts: Option<PathBuf>,
+    policy: Option<PathBuf>,
+    conflict_mode: CliConflictMode,
+    format: CliFormat,
+    contexts: CliContexts,
+    planner_trace: bool,
+    verify_packs: bool,
+    require_packs_composable: bool,
+    require_composable: bool,
+) -> CliResult<()> {
+    let policy: Policy = match &policy {
+        None => Policy::default(),
+        Some(p) => read_json_arg(p, "policy JSON")?,
+    };
+    let contracts_loaded = contracts.as_ref().map(|p| load_contracts(p)).transpose()?;
+    if matches!(contexts, CliContexts::FromContracts) && contracts_loaded.is_none() {
+        return Err(CliError::new(
+            "--contexts from-contracts requires --contracts",
+        ));
+    }
+    if target == "css" && contracts_loaded.is_none() {
+        return Err(CliError::new("--contracts is required for --target css"));
+    }
+    let contract_tokens = contracts_loaded
+        .as_ref()
+        .map(|cs| contract_token_set(cs.as_slice()));
+
+    let mut loaded = Vec::new();
+    for p in packs {
+        let pack = load_pack(&p, verify_packs, require_packs_composable)
+            .map_err(|e| CliError::new(e.to_string()))?;
+        loaded.push(pack);
+    }
+
+    if loaded.len() < 2 {
+        return Err(CliError::new("compose requires at least 2 packs"));
+    }
+
+    let compose_axes = union_axes(&loaded);
+    let relevant_axes = match (contexts, contract_tokens.as_ref()) {
+        (CliContexts::FromContracts, Some(tokens)) => {
+            relevant_axes_for_contract_tokens(&loaded, tokens)
+        }
+        _ => None,
+    };
+    let planned_inputs =
+        tbp::contexts::plan_inputs(contexts.into(), &compose_axes, relevant_axes.as_ref());
+    let planner_trace_payload = if planner_trace {
+        Some(build_planner_trace(
+            "compose",
+            contexts,
+            &compose_axes,
+            relevant_axes.as_ref(),
+            contract_tokens.as_ref(),
+            &planned_inputs,
+            &planned_inputs,
+        ))
+    } else {
+        None
+    };
+
+    create_dir(&out, "output directory")?;
+
+    let composed =
+        compose_store_with_context_mode(&loaded, contexts.into(), contract_tokens.as_ref());
+    let resolved_path = out.join("resolved.json");
+    write_resolved_json(&resolved_path, &composed)
+        .map_err(|e| CliError::new(format!("failed to write resolved.json: {e}")))?;
+
+    match target.as_str() {
+        "css" => {
+            let contracts = contracts_loaded
+                .as_ref()
+                .ok_or_else(|| CliError::new("--contracts is required for --target css"))?;
+            let emitter = CssEmitter {
+                color_policy: policy.css_color.clone(),
+            };
+
+            let layer_defs = build_layer_defs_from_axes(&composed.axes);
+            let preamble = format!(
+                "@layer {};\n\n",
+                layer_order_from_axes(&composed.axes).join(", ")
+            );
+            let mut css = String::new();
+            css.push_str(&preamble);
+            for c in contracts {
+                css.push_str(&format!("/* ═ {} ═ */\n\n", c.component));
+                css.push_str(&compile_component_css_with_layers(
+                    c,
+                    &composed,
+                    &policy,
+                    &emitter,
+                    &layer_defs,
+                ));
+                css.push('\n');
+            }
+            let css_path = out.join("tokens.css");
+            write_bytes(&css_path, "tokens.css", css.as_bytes())?;
+
+            let dts = emit_tokens_d_ts(contracts);
+            write_bytes(&out.join("tokens.d.ts"), "tokens.d.ts", dts.as_bytes())?;
+        }
+        "swift" => {
+            let swift = emit_store_swift(&composed, &policy);
+            let path = out.join("tokens.swift");
+            write_bytes(&path, "tokens.swift", swift.as_bytes())?;
+            let swift_src = read_text(&path, "tokens.swift")?;
+            emit_swift_package_scaffold(&out, &swift_src).map_err(|e| {
+                CliError::new(format!("failed to write swift package scaffold: {e}"))
+            })?;
+        }
+        "kotlin" => {
+            let kt = emit_store_kotlin(&composed, &policy);
+            let path = out.join("tokens.kt");
+            write_bytes(&path, "tokens.kt", kt.as_bytes())?;
+            let kotlin_src = read_text(&path, "tokens.kt")?;
+            emit_kotlin_module_scaffold(&out, &kotlin_src).map_err(|e| {
+                CliError::new(format!("failed to write kotlin module scaffold: {e}"))
+            })?;
+        }
+        other => {
+            return Err(CliError::new(format!(
+                "unknown --target {other}. Supported: css | swift | kotlin"
+            )))
+        }
+    }
+
+    let witnesses = analyze_cross_pack_conflicts_with_mode_and_contexts(
+        &loaded,
+        &composed.axes,
+        conflict_mode.into(),
+        &policy,
+        contexts.into(),
+        contract_tokens.as_ref(),
+    );
+    let witnesses_path = out.join("compose.witnesses.json");
+    let witnesses_bytes = json_bytes(&witnesses, "compose.witnesses.json")?;
+    write_bytes(&witnesses_path, "compose.witnesses.json", &witnesses_bytes)?;
+    let witnesses_sha256 = format!("sha256:{}", tbp::util::sha256_hex(&witnesses_bytes));
+    let native_api_versions = match target.as_str() {
+        "swift" => Some(NativeApiVersions {
+            swift: Some(SWIFT_EMITTER_API_VERSION.to_string()),
+            kotlin: None,
+        }),
+        "kotlin" => Some(NativeApiVersions {
+            swift: None,
+            kotlin: Some(KOTLIN_EMITTER_API_VERSION.to_string()),
+        }),
+        _ => None,
+    };
+
+    let manifest = build_compose_manifest_with_context_count(
+        &loaded,
+        &composed.axes,
+        &policy,
+        conflict_mode.into(),
+        native_api_versions,
+        witnesses_sha256,
+        composed.resolved_by_ctx.len(),
+        &witnesses,
+    )
+    .map_err(|e| CliError::new(format!("failed to build compose manifest: {e}")))?;
+    write_json(
+        &out.join("compose.manifest.json"),
+        "compose.manifest.json",
+        &manifest,
+    )?;
+
+    let report = render_compose_report(&manifest, &witnesses);
+    write_bytes(
+        &out.join("compose.report.txt"),
+        "compose.report.txt",
+        report.as_bytes(),
+    )?;
+    if matches!(format, CliFormat::Json) {
+        let mut report_json = tbp::compose::build_compose_report_json(&manifest, &witnesses);
+        if let Some(trace) = planner_trace_payload {
+            let obj = report_json.as_object_mut().ok_or_else(|| {
+                CliError::new("internal error: compose report JSON must be an object")
+            })?;
+            obj.insert("plannerTrace".to_string(), trace);
+        }
+        let report_json_bytes = json_bytes(&report_json, "compose.report.json")?;
+        write_bytes(
+            &out.join("compose.report.json"),
+            "compose.report.json",
+            &report_json_bytes,
+        )?;
+        println!("{}", String::from_utf8_lossy(&report_json_bytes));
+    } else {
+        println!("{report}");
+    }
+
+    if require_composable && !witnesses.conflicts.is_empty() {
+        std::process::exit(1);
+    }
+
+    Ok(())
+}
+
 fn main() {
     let cli = Cli::parse();
+    if let Err(err) = run(cli) {
+        eprintln!("✗ {err}");
+        std::process::exit(1);
+    }
+}
 
+fn run(cli: Cli) -> CliResult<()> {
     match cli.cmd {
         Command::Verify {
             manifest,
@@ -782,7 +1353,7 @@ fn main() {
                 if !overall_ok {
                     std::process::exit(1);
                 }
-                return;
+                return Ok(());
             }
 
             if !report.ok {
@@ -808,7 +1379,7 @@ fn main() {
             }
 
             println!("✓ CTC verified: {}", manifest.display());
-            return;
+            return Ok(());
         }
 
         Command::VerifyCompose {
@@ -888,7 +1459,7 @@ fn main() {
                 if !overall_ok {
                     std::process::exit(1);
                 }
-                return;
+                return Ok(());
             }
 
             if !rep.ok {
@@ -914,7 +1485,7 @@ fn main() {
             }
 
             println!("✓ Compose meta-cert verified: {}", manifest.display());
-            return;
+            return Ok(());
         }
 
         Command::Sign {
@@ -935,7 +1506,7 @@ fn main() {
                     std::process::exit(1);
                 }
             }
-            return;
+            return Ok(());
         }
 
         Command::Explain {
@@ -1002,7 +1573,7 @@ fn main() {
 
             if let Some((_path, expl)) = matches.pop() {
                 println!("{expl}");
-                return;
+                return Ok(());
             }
 
             eprintln!(
@@ -1044,7 +1615,7 @@ fn main() {
                 out.emitted,
                 out.truncated
             );
-            return;
+            return Ok(());
         }
 
         Command::Build {
@@ -1060,280 +1631,19 @@ fn main() {
             profile,
             kcir_wire_format_id,
         } => {
-            let doc: ResolverDoc = read_json_file(&resolver).expect("resolver json");
-            let contracts_loaded = contracts.as_ref().map(|p| load_contracts(p));
-            if matches!(contexts, CliContexts::FromContracts) && contracts_loaded.is_none() {
-                eprintln!("--contexts from-contracts requires --contracts");
-                std::process::exit(1);
-            }
-            let contract_tokens = contracts_loaded
-                .as_ref()
-                .map(|cs| contract_token_set(cs.as_slice()));
-            let axes = axes_from_doc(&doc);
-            let relevant_axes = match (contexts, contract_tokens.as_ref()) {
-                (CliContexts::FromContracts, Some(tokens)) => {
-                    match axes_relevant_to_tokens(&doc, &resolver, tokens) {
-                        Ok(v) => Some(v),
-                        Err(e) => {
-                            eprintln!("✗ failed to compute contract-relevant axes: {e}");
-                            std::process::exit(1);
-                        }
-                    }
-                }
-                _ => None,
-            };
-            let planned_inputs =
-                tbp::contexts::plan_inputs(contexts.into(), &axes, relevant_axes.as_ref());
-            let analysis_inputs = planned_inputs.clone();
-            // Build store over planned contexts plus minimal required contexts used by authored
-            // provenance indexing and CSS layer emission.
-            let required_inputs = if target == "css" {
-                tbp::contexts::layered_inputs(&axes, None)
-            } else {
-                tbp::contexts::layered_inputs(&axes, None)
-                    .into_iter()
-                    .filter(|i| i.len() <= 1)
-                    .collect()
-            };
-            let store_inputs = merge_planned_inputs(planned_inputs, required_inputs);
-            let planner_trace_payload = if planner_trace {
-                Some(build_planner_trace(
-                    "build",
-                    contexts,
-                    &axes,
-                    relevant_axes.as_ref(),
-                    contract_tokens.as_ref(),
-                    &analysis_inputs,
-                    &store_inputs,
-                ))
-            } else {
-                None
-            };
-            let store = build_token_store_for_inputs(&doc, &resolver, &store_inputs)
-                .expect("build token store");
-
-            let policy: Policy = match &policy {
-                None => Policy::default(),
-                Some(p) => read_json_file(p).expect("policy json"),
-            };
-            let kcir_profile = match kcir_profile_binding_for_scheme_and_wire(
-                HASH_SCHEME_ID,
-                &kcir_wire_format_id,
-            ) {
-                Ok(v) => v,
-                Err(e) => {
-                    eprintln!(
-                        "✗ invalid --kcir-wire-format-id {}: {}",
-                        kcir_wire_format_id, e
-                    );
-                    std::process::exit(1);
-                }
-            };
-
-            fs::create_dir_all(&out).expect("create out dir");
-
-            // resolved.json (platform-neutral IR)
-            let resolved_path = out.join("resolved.json");
-            write_resolved_json(&resolved_path, &store).expect("write resolved.json");
-
-            // input manifest (hashes)
-            let manifest = build_manifest(&doc, &resolver);
-            write_json(&out.join("manifest.json"), &manifest);
-
-            // Emit target artifacts
-            let mut tokens_css_path: Option<PathBuf> = None;
-            let mut tokens_swift_path: Option<PathBuf> = None;
-            let mut tokens_kotlin_path: Option<PathBuf> = None;
-            let mut tokens_dts_path: Option<PathBuf> = None;
-
-            match target.as_str() {
-                "css" => {
-                    let contracts = contracts_loaded
-                        .as_ref()
-                        .expect("--contracts required for css");
-                    let emitter = CssEmitter {
-                        color_policy: policy.css_color.clone(),
-                    };
-
-                    let preamble = format!("@layer {};\n\n", layer_order_from_doc(&doc).join(", "));
-                    let mut css = String::new();
-                    css.push_str(&preamble);
-
-                    for c in contracts {
-                        css.push_str(&format!("/* ═ {} ═ */\n\n", c.component));
-                        css.push_str(&compile_component_css(c, &doc, &store, &policy, &emitter));
-                        css.push('\n');
-                    }
-
-                    let css_path = out.join("tokens.css");
-                    fs::write(&css_path, css).expect("write css");
-                    tokens_css_path = Some(css_path);
-
-                    let dts = emit_tokens_d_ts(&contracts);
-                    let dts_path = out.join("tokens.d.ts");
-                    fs::write(&dts_path, dts).expect("write d.ts");
-                    tokens_dts_path = Some(dts_path);
-                }
-                "swift" => {
-                    let swift = emit_store_swift(&store, &policy);
-                    let path = out.join("tokens.swift");
-                    fs::write(&path, swift).expect("write swift");
-                    let swift_src = fs::read_to_string(&path).expect("read swift");
-                    emit_swift_package_scaffold(&out, &swift_src)
-                        .expect("write swift package scaffold");
-                    tokens_swift_path = Some(path);
-                }
-                "kotlin" => {
-                    let kt = emit_store_kotlin(&store, &policy);
-                    let path = out.join("tokens.kt");
-                    fs::write(&path, kt).expect("write kotlin");
-                    let kotlin_src = fs::read_to_string(&path).expect("read kotlin");
-                    emit_kotlin_module_scaffold(&out, &kotlin_src)
-                        .expect("write kotlin module scaffold");
-                    tokens_kotlin_path = Some(path);
-                }
-                other => {
-                    eprintln!("Unknown --target {other}. Supported: css | swift | kotlin");
-                }
-            }
-
-            // Build CTC witnesses + manifest
-            let contract_token_ids = contract_tokens.as_ref().map(|tokens| {
-                tokens
-                    .iter()
-                    .map(|t| TokenPathId::from(t.as_str()))
-                    .collect::<std::collections::BTreeSet<_>>()
-            });
-            let full_profile_pipeline = if matches!(profile, CliProfile::Full) {
-                Some(
-                    run_full_profile_pipeline(FullProfilePipelineRequest {
-                        doc: &doc,
-                        store: &store,
-                        resolver_path: &resolver,
-                        conflict_mode: conflict_mode.into(),
-                        policy: &policy,
-                        context_mode: contexts.into(),
-                        contract_tokens: contract_token_ids.as_ref(),
-                    })
-                    .expect("full-profile pipeline"),
-                )
-            } else {
-                None
-            };
-
-            let analysis = if let Some(pipeline) = &full_profile_pipeline {
-                pipeline.admissibility.analysis.clone()
-            } else {
-                analyze_composability_with_mode_and_contexts(
-                    &doc,
-                    &store,
-                    &resolver,
-                    conflict_mode.into(),
-                    &policy,
-                    contexts.into(),
-                    contract_tokens.as_ref(),
-                )
-                .expect("ctc analysis")
-            };
-            let validation_txt = render_validation_report(&store, &analysis);
-            let validation_path = out.join("validation.txt");
-            fs::write(&validation_path, validation_txt).expect("write validation.txt");
-            if matches!(format, CliFormat::Json) {
-                let mut validation_json = tbp::cert::build_validation_report_json(&analysis);
-                if let Some(trace) = planner_trace_payload.clone() {
-                    validation_json
-                        .as_object_mut()
-                        .expect("validation report object")
-                        .insert("plannerTrace".to_string(), trace);
-                }
-                let validation_json_path = out.join("validation.json");
-                let bytes =
-                    serde_json::to_vec_pretty(&validation_json).expect("serialize validation.json");
-                fs::write(validation_json_path, bytes).expect("write validation.json");
-            }
-
-            // authored.json (optional; richer provenance for downstream composition)
-            let explicit = if let Some(pipeline) = &full_profile_pipeline {
-                pipeline.resolve.explicit.clone()
-            } else {
-                build_explicit_index(&doc, &store, &resolver).expect("explicit index")
-            };
-            let assignments = if let Some(pipeline) = &full_profile_pipeline {
-                pipeline.bidir.assignments.clone()
-            } else {
-                build_assignments(&store, &explicit)
-            };
-            let authored_export = build_authored_export(&doc, &store, &assignments);
-            let authored_path = out.join("authored.json");
-            write_json(&authored_path, &authored_export);
-
-            let witnesses_path = out.join("ctc.witnesses.json");
-            let witnesses_bytes =
-                serde_json::to_vec_pretty(&analysis.witnesses).expect("serialize witnesses");
-            fs::write(&witnesses_path, &witnesses_bytes).expect("write witnesses");
-            let witnesses_sha256 = format!("sha256:{}", tbp::util::sha256_hex(&witnesses_bytes));
-
-            let mut admissibility_path: Option<PathBuf> = None;
-            let mut admissibility_sha256: Option<String> = None;
-            if let Some(pipeline) = full_profile_pipeline {
-                let admissibility = pipeline.admissibility.witnesses;
-                let path = out.join("admissibility.witnesses.json");
-                let admissibility_bytes = serde_json::to_vec_pretty(&admissibility)
-                    .expect("serialize admissibility witnesses");
-                fs::write(&path, &admissibility_bytes).expect("write admissibility witnesses");
-                admissibility_sha256 = Some(format!(
-                    "sha256:{}",
-                    tbp::util::sha256_hex(&admissibility_bytes)
-                ));
-                admissibility_path = Some(path);
-                if admissibility.result == GateResult::Rejected {
-                    println!(
-                        "note: full-profile admissibility produced {} failure(s); verify --profile full will reject",
-                        admissibility.failures.len()
-                    );
-                }
-            }
-
-            let mut ctc_manifest = build_ctc_manifest(
-                &doc,
-                &resolver,
-                &store,
-                Some(&policy),
-                conflict_mode.into(),
-                &resolved_path,
-                tokens_css_path.as_deref(),
-                tokens_swift_path.as_deref(),
-                tokens_kotlin_path.as_deref(),
-                tokens_dts_path.as_deref(),
-                Some(&authored_path),
-                Some(&validation_path),
-                analysis.summary.clone(),
-                witnesses_sha256,
-            );
-            ctc_manifest.profile = Some(kcir_profile);
-            ctc_manifest.admissibility_witnesses_sha256 = admissibility_sha256;
-            ctc_manifest
-                .required_artifacts
-                .push(required_artifact_binding(
-                    RequiredArtifactKind::CtcWitnesses,
-                    &witnesses_path,
-                    &out,
-                ));
-            if let Some(path) = admissibility_path.as_deref() {
-                ctc_manifest
-                    .required_artifacts
-                    .push(required_artifact_binding(
-                        RequiredArtifactKind::AdmissibilityWitnesses,
-                        path,
-                        &out,
-                    ));
-            }
-            ctc_manifest
-                .required_artifacts
-                .sort_by_key(|binding| binding.kind.as_str());
-            write_json(&out.join("ctc.manifest.json"), &ctc_manifest);
-
-            println!("✓ Built pack: {}", out.display());
+            return run_build(
+                resolver,
+                contracts,
+                out,
+                target,
+                policy,
+                conflict_mode,
+                format,
+                contexts,
+                planner_trace,
+                profile,
+                kcir_wire_format_id,
+            )
         }
 
         Command::Compose {
@@ -1350,183 +1660,20 @@ fn main() {
             require_packs_composable,
             require_composable,
         } => {
-            let policy: Policy = match &policy {
-                None => Policy::default(),
-                Some(p) => read_json_file(p).expect("policy json"),
-            };
-            let contracts_loaded = contracts.as_ref().map(|p| load_contracts(p));
-            if matches!(contexts, CliContexts::FromContracts) && contracts_loaded.is_none() {
-                eprintln!("--contexts from-contracts requires --contracts");
-                std::process::exit(1);
-            }
-            let contract_tokens = contracts_loaded
-                .as_ref()
-                .map(|cs| contract_token_set(cs.as_slice()));
-
-            let mut loaded = Vec::new();
-            for p in packs {
-                let pack =
-                    load_pack(&p, verify_packs, require_packs_composable).unwrap_or_else(|e| {
-                        eprintln!("{e}");
-                        std::process::exit(1);
-                    });
-                loaded.push(pack);
-            }
-
-            if loaded.len() < 2 {
-                eprintln!("compose requires at least 2 packs");
-                std::process::exit(1);
-            }
-
-            let compose_axes = union_axes(&loaded);
-            let relevant_axes = match (contexts, contract_tokens.as_ref()) {
-                (CliContexts::FromContracts, Some(tokens)) => {
-                    relevant_axes_for_contract_tokens(&loaded, tokens)
-                }
-                _ => None,
-            };
-            let planned_inputs =
-                tbp::contexts::plan_inputs(contexts.into(), &compose_axes, relevant_axes.as_ref());
-            let planner_trace_payload = if planner_trace {
-                Some(build_planner_trace(
-                    "compose",
-                    contexts,
-                    &compose_axes,
-                    relevant_axes.as_ref(),
-                    contract_tokens.as_ref(),
-                    &planned_inputs,
-                    &planned_inputs,
-                ))
-            } else {
-                None
-            };
-
-            fs::create_dir_all(&out).expect("create out dir");
-
-            // Compose store
-            let composed =
-                compose_store_with_context_mode(&loaded, contexts.into(), contract_tokens.as_ref());
-            let resolved_path = out.join("resolved.json");
-            write_resolved_json(&resolved_path, &composed).expect("write resolved.json");
-
-            // Emit target artifacts
-            match target.as_str() {
-                "css" => {
-                    let contracts = contracts_loaded
-                        .as_ref()
-                        .expect("--contracts required for css");
-                    let emitter = CssEmitter {
-                        color_policy: policy.css_color.clone(),
-                    };
-
-                    let layer_defs = build_layer_defs_from_axes(&composed.axes);
-                    let preamble = format!(
-                        "@layer {};\n\n",
-                        layer_order_from_axes(&composed.axes).join(", ")
-                    );
-                    let mut css = String::new();
-                    css.push_str(&preamble);
-                    for c in contracts {
-                        css.push_str(&format!("/* ═ {} ═ */\n\n", c.component));
-                        css.push_str(&compile_component_css_with_layers(
-                            c,
-                            &composed,
-                            &policy,
-                            &emitter,
-                            &layer_defs,
-                        ));
-                        css.push('\n');
-                    }
-                    let css_path = out.join("tokens.css");
-                    fs::write(&css_path, css).expect("write css");
-
-                    let dts = emit_tokens_d_ts(&contracts);
-                    fs::write(out.join("tokens.d.ts"), dts).expect("write d.ts");
-                }
-                "swift" => {
-                    let swift = emit_store_swift(&composed, &policy);
-                    let path = out.join("tokens.swift");
-                    fs::write(&path, swift).expect("write swift");
-                    let swift_src = fs::read_to_string(&path).expect("read swift");
-                    emit_swift_package_scaffold(&out, &swift_src)
-                        .expect("write swift package scaffold");
-                }
-                "kotlin" => {
-                    let kt = emit_store_kotlin(&composed, &policy);
-                    let path = out.join("tokens.kt");
-                    fs::write(&path, kt).expect("write kotlin");
-                    let kotlin_src = fs::read_to_string(&path).expect("read kotlin");
-                    emit_kotlin_module_scaffold(&out, &kotlin_src)
-                        .expect("write kotlin module scaffold");
-                }
-                other => {
-                    eprintln!("Unknown --target {other}. Supported: css | swift | kotlin");
-                    std::process::exit(1);
-                }
-            }
-
-            // Meta-certificate (cross-pack conflicts)
-            let witnesses = analyze_cross_pack_conflicts_with_mode_and_contexts(
-                &loaded,
-                &composed.axes,
-                conflict_mode.into(),
-                &policy,
-                contexts.into(),
-                contract_tokens.as_ref(),
-            );
-            let witnesses_path = out.join("compose.witnesses.json");
-            let witnesses_bytes =
-                serde_json::to_vec_pretty(&witnesses).expect("serialize compose witnesses");
-            fs::write(&witnesses_path, &witnesses_bytes).expect("write compose.witnesses.json");
-            let witnesses_sha256 = format!("sha256:{}", tbp::util::sha256_hex(&witnesses_bytes));
-            let native_api_versions = match target.as_str() {
-                "swift" => Some(NativeApiVersions {
-                    swift: Some(SWIFT_EMITTER_API_VERSION.to_string()),
-                    kotlin: None,
-                }),
-                "kotlin" => Some(NativeApiVersions {
-                    swift: None,
-                    kotlin: Some(KOTLIN_EMITTER_API_VERSION.to_string()),
-                }),
-                _ => None,
-            };
-
-            let manifest = build_compose_manifest_with_context_count(
-                &loaded,
-                &composed.axes,
-                &policy,
-                conflict_mode.into(),
-                native_api_versions,
-                witnesses_sha256,
-                composed.resolved_by_ctx.len(),
-                &witnesses,
+            return run_compose(
+                packs,
+                out,
+                target,
+                contracts,
+                policy,
+                conflict_mode,
+                format,
+                contexts,
+                planner_trace,
+                verify_packs,
+                require_packs_composable,
+                require_composable,
             )
-            .expect("build compose manifest");
-            write_json(&out.join("compose.manifest.json"), &manifest);
-
-            let report = render_compose_report(&manifest, &witnesses);
-            fs::write(out.join("compose.report.txt"), &report).expect("write compose report");
-            if matches!(format, CliFormat::Json) {
-                let mut report_json =
-                    tbp::compose::build_compose_report_json(&manifest, &witnesses);
-                if let Some(trace) = planner_trace_payload {
-                    report_json
-                        .as_object_mut()
-                        .expect("compose report object")
-                        .insert("plannerTrace".to_string(), trace);
-                }
-                let report_json_bytes =
-                    serde_json::to_vec_pretty(&report_json).expect("serialize compose report json");
-                fs::write(out.join("compose.report.json"), &report_json_bytes)
-                    .expect("write compose report json");
-                println!("{}", String::from_utf8_lossy(&report_json_bytes));
-            } else {
-                println!("{report}");
-            }
-
-            if require_composable && !witnesses.conflicts.is_empty() {
-                std::process::exit(1);
-            }
         }
     }
 }

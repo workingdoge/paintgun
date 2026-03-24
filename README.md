@@ -57,6 +57,12 @@ Outputs:
 - `dist/validation.json` — machine-readable diagnostics when `--format json` (schema: `schemas/report.schema.json`)
 - `dist/manifest.json` — SHA-256 hashes of referenced token files (legacy, optional)
 
+## Validation failures
+
+`build` validates resolver, contracts, policy, and output-path inputs before writing artifacts. Malformed input files fail with a regular CLI error instead of a Rust panic backtrace.
+
+For machine-readable verification failures, use `verify` or `verify-compose` with `--format json`; those JSON reports preserve stable `errorDetails` entries where documented.
+
 ## Artifact cleanup
 
 Generated output folders (`dist*`) are ignored by git.
