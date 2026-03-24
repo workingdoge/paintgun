@@ -63,6 +63,7 @@ Outputs:
 `build` validates resolver, contracts, policy, and output-path inputs before writing artifacts. Malformed input files fail with a regular CLI error instead of a Rust panic backtrace.
 
 For machine-readable verification failures, use `verify` or `verify-compose` with `--format json`; those JSON reports preserve stable `errorDetails` entries where documented.
+For the supported external CI surface, including report schema/version expectations and exit-code behavior, see [`docs/ci_contract.md`](docs/ci_contract.md).
 
 ## Artifact cleanup
 
@@ -234,6 +235,8 @@ cargo run -- annotate-report dist/validation.json \
 
 cargo run -- annotate-report dist-compose/compose.report.json --max 200
 ```
+
+`annotate-report` consumes the schema-backed report artifacts (`validation.json` / `compose.report.json`) and prints GitHub Actions annotation lines plus a final `tbp/report` summary notice. See [`docs/ci_contract.md`](docs/ci_contract.md) for the supported CI contract.
 
 ## Multi-pack composition
 
