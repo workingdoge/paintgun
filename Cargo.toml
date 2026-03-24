@@ -3,6 +3,10 @@ name = "tbp"
 version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
+description = "Deterministic build, verify, sign, and compose tooling for DTCG 2025.10 token packs"
+readme = "README.md"
+keywords = ["design-tokens", "dtcg", "cli", "verification"]
+categories = ["command-line-utilities", "development-tools"]
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }

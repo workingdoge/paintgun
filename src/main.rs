@@ -58,6 +58,7 @@ type CliResult<T> = Result<T, CliError>;
 
 #[derive(Parser, Debug)]
 #[command(name = "tbp")]
+#[command(version = env!("CARGO_PKG_VERSION"))]
 #[command(about = "DTCG 2025.10 resolver + composability certificates", long_about = None)]
 struct Cli {
     #[command(subcommand)]

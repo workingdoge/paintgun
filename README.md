@@ -35,6 +35,18 @@ cargo run -- build examples/charter-steel/charter-steel.resolver.json --out dist
 cargo run -- build examples/charter-steel/charter-steel.resolver.json --out dist --target kotlin
 ```
 
+## Install
+
+From source:
+
+```bash
+cargo install --locked --path .
+tbp --version
+```
+
+Maintainers can also build a target-specific release tarball with `./scripts/package_release.sh`.
+The supported install paths, artifact shape, versioning policy, and maintainer checklist are documented in `docs/releasing.md`.
+
 `build` supports two KCIR manifest wire formats via `--kcir-wire-format-id`:
 - `kcir.wire.legacy-fixed32.v1` (default)
 - `kcir.wire.lenprefixed-ref.v1`

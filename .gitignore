@@ -3,6 +3,7 @@
 
 # Generated TBP output artifacts (build/compose/perf/test runs)
 /dist*/
+/release-artifacts/
 /spec-watch-artifacts/
 
 # Dolt database files (added by bd init)
