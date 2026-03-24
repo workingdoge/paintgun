@@ -1,0 +1,21 @@
+{
+  "resolver": {
+    "version": "2025.10",
+    "modifiers": {
+      "theme": {
+        "contexts": {
+          "dark": {
+            "sources": [
+              {}
+            ]
+          }
+        }
+      }
+    },
+    "resolutionOrder": [
+      {
+        "$ref": "#/modifiers/theme"
+      }
+    ]
+  }
+}
