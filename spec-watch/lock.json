@@ -1,0 +1,125 @@
+{
+  "targets": [
+    {
+      "contentType": "text/html",
+      "id": "tr-2025-10-index",
+      "kind": "technical-report",
+      "resolvedUrl": "https://www.designtokens.org/tr/2025.10/",
+      "sha256": "d4c430865f858940a15ce226d1d178f5b9c5f31852f196775f18229745b266a0",
+      "size": 27221,
+      "status": 200,
+      "url": "https://www.designtokens.org/TR/2025.10/"
+    },
+    {
+      "contentType": "text/html",
+      "id": "tr-2025-10-format",
+      "kind": "technical-report",
+      "resolvedUrl": "https://www.designtokens.org/tr/2025.10/format/",
+      "sha256": "b11e5f232c088676d50c08fc0a62e60b3e631b41ed307b03cf1c856934d13870",
+      "size": 355728,
+      "status": 200,
+      "url": "https://www.designtokens.org/TR/2025.10/format/"
+    },
+    {
+      "contentType": "text/html",
+      "id": "tr-2025-10-color",
+      "kind": "technical-report",
+      "resolvedUrl": "https://www.designtokens.org/tr/2025.10/color/",
+      "sha256": "db3f8fc81b9169a1224d357516537ed1f20a364f8b926571dccd0fa1d7f2e609",
+      "size": 153796,
+      "status": 200,
+      "url": "https://www.designtokens.org/TR/2025.10/color/"
+    },
+    {
+      "contentType": "text/html",
+      "id": "tr-2025-10-resolver",
+      "kind": "technical-report",
+      "resolvedUrl": "https://www.designtokens.org/tr/2025.10/resolver/",
+      "sha256": "68ef6cb3eba4d94686017c1edadcb4e5fd9d338d96f8a593766a0f8f57802989",
+      "size": 149863,
+      "status": 200,
+      "url": "https://www.designtokens.org/TR/2025.10/resolver/"
+    },
+    {
+      "contentType": "application/json",
+      "id": "schema-format",
+      "kind": "schema",
+      "resolvedUrl": "https://www.designtokens.org/schemas/2025.10/format.json",
+      "sha256": "92708205ca2936c8d93ba007bcf903d46759f6b07b177400c8a8d9072308381c",
+      "size": 3394,
+      "status": 200,
+      "url": "https://www.designtokens.org/schemas/2025.10/format.json"
+    },
+    {
+      "contentType": "application/json",
+      "id": "schema-format-group-or-token",
+      "kind": "schema",
+      "resolvedUrl": "https://www.designtokens.org/schemas/2025.10/format/groupOrToken.json",
+      "sha256": "93f2e25a428229cc3e09991d01c3bf3b63ee6553830b4f728ca8f5e840c80757",
+      "size": 448,
+      "status": 200,
+      "url": "https://www.designtokens.org/schemas/2025.10/format/groupOrToken.json"
+    },
+    {
+      "contentType": "application/json",
+      "id": "schema-format-token",
+      "kind": "schema",
+      "resolvedUrl": "https://www.designtokens.org/schemas/2025.10/format/token.json",
+      "sha256": "ba7f3ef69515c99fb22410fa638cc9f380b5d669442bb5d54e58b12ffcf726c8",
+      "size": 9525,
+      "status": 200,
+      "url": "https://www.designtokens.org/schemas/2025.10/format/token.json"
+    },
+    {
+      "contentType": "application/json",
+      "id": "schema-format-token-type",
+      "kind": "schema",
+      "resolvedUrl": "https://www.designtokens.org/schemas/2025.10/format/tokenType.json",
+      "sha256": "fcc4672f4fb0346cf872f6924d8fb622609f880b5f22885a5f6c543ce6aa5794",
+      "size": 471,
+      "status": 200,
+      "url": "https://www.designtokens.org/schemas/2025.10/format/tokenType.json"
+    },
+    {
+      "contentType": "application/json",
+      "id": "schema-resolver",
+      "kind": "schema",
+      "resolvedUrl": "https://www.designtokens.org/schemas/2025.10/resolver.json",
+      "sha256": "0be147d70e5692d6e36b5b51bfd2e68cd6ddfc879451ca67bee50fab6e123441",
+      "size": 1884,
+      "status": 200,
+      "url": "https://www.designtokens.org/schemas/2025.10/resolver.json"
+    },
+    {
+      "contentType": "application/json",
+      "id": "schema-resolver-modifier",
+      "kind": "schema",
+      "resolvedUrl": "https://www.designtokens.org/schemas/2025.10/resolver/modifier.json",
+      "sha256": "bd8956dfc7628c19bf7a1065999cb4e7bcf7927a9aff97d1f65430d0406f63fc",
+      "size": 3568,
+      "status": 200,
+      "url": "https://www.designtokens.org/schemas/2025.10/resolver/modifier.json"
+    },
+    {
+      "contentType": "application/json",
+      "id": "schema-resolver-resolution-order",
+      "kind": "schema",
+      "resolvedUrl": "https://www.designtokens.org/schemas/2025.10/resolver/resolutionOrder.json",
+      "sha256": "399bcf9a1f5a4a30fdf39e98d7887c87ea845c78fc4491783a0c26e9f908a5c6",
+      "size": 5558,
+      "status": 200,
+      "url": "https://www.designtokens.org/schemas/2025.10/resolver/resolutionOrder.json"
+    },
+    {
+      "contentType": "application/json",
+      "id": "schema-resolver-set",
+      "kind": "schema",
+      "resolvedUrl": "https://www.designtokens.org/schemas/2025.10/resolver/set.json",
+      "sha256": "53c8c7e49b03edc00cf281c70189bca59c56cbb2826abda010bdc18fd97f5350",
+      "size": 2714,
+      "status": 200,
+      "url": "https://www.designtokens.org/schemas/2025.10/resolver/set.json"
+    }
+  ],
+  "version": 1
+}

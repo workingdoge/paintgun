@@ -269,6 +269,28 @@ cargo run -- compose \
 
 Compose bundles are trust-root relative rather than absolute: `compose.manifest.json` records each referenced pack directory relative to the compose output directory. Supported compose flow: archive `dist-compose/` together with the referenced pack directories under the same parent root before running `verify-compose`.
 
+## Spec watch
+
+The repo ships a dedicated upstream drift check in `.github/workflows/spec-watch.yml`. It watches the canonical Design Tokens 2025.10 TR + schema endpoints listed in `spec-watch/targets.json` and compares them against the pinned digests in `spec-watch/lock.json`.
+
+Run it locally with:
+
+```bash
+python3 scripts/spec_watch.py check \
+  --targets spec-watch/targets.json \
+  --lock spec-watch/lock.json \
+  --artifact-dir spec-watch-artifacts
+```
+
+If drift is intentional and tbp should adopt it, update code/docs as needed, then refresh the lock:
+
+```bash
+python3 scripts/spec_watch.py refresh \
+  --targets spec-watch/targets.json \
+  --lock spec-watch/lock.json
+```
+
+Triage details live in `docs/spec_watch.md`.
 Context-scaling metrics fixture:
 
 ```bash

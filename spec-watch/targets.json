@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "targets": [
+    {
+      "id": "tr-2025-10-index",
+      "kind": "technical-report",
+      "url": "https://www.designtokens.org/TR/2025.10/"
+    },
+    {
+      "id": "tr-2025-10-format",
+      "kind": "technical-report",
+      "url": "https://www.designtokens.org/TR/2025.10/format/"
+    },
+    {
+      "id": "tr-2025-10-color",
+      "kind": "technical-report",
+      "url": "https://www.designtokens.org/TR/2025.10/color/"
+    },
+    {
+      "id": "tr-2025-10-resolver",
+      "kind": "technical-report",
+      "url": "https://www.designtokens.org/TR/2025.10/resolver/"
+    },
+    {
+      "id": "schema-format",
+      "kind": "schema",
+      "url": "https://www.designtokens.org/schemas/2025.10/format.json"
+    },
+    {
+      "id": "schema-format-group-or-token",
+      "kind": "schema",
+      "url": "https://www.designtokens.org/schemas/2025.10/format/groupOrToken.json"
+    },
+    {
+      "id": "schema-format-token",
+      "kind": "schema",
+      "url": "https://www.designtokens.org/schemas/2025.10/format/token.json"
+    },
+    {
+      "id": "schema-format-token-type",
+      "kind": "schema",
+      "url": "https://www.designtokens.org/schemas/2025.10/format/tokenType.json"
+    },
+    {
+      "id": "schema-resolver",
+      "kind": "schema",
+      "url": "https://www.designtokens.org/schemas/2025.10/resolver.json"
+    },
+    {
+      "id": "schema-resolver-modifier",
+      "kind": "schema",
+      "url": "https://www.designtokens.org/schemas/2025.10/resolver/modifier.json"
+    },
+    {
+      "id": "schema-resolver-resolution-order",
+      "kind": "schema",
+      "url": "https://www.designtokens.org/schemas/2025.10/resolver/resolutionOrder.json"
+    },
+    {
+      "id": "schema-resolver-set",
+      "kind": "schema",
+      "url": "https://www.designtokens.org/schemas/2025.10/resolver/set.json"
+    }
+  ]
+}

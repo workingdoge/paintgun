@@ -1,0 +1,39 @@
+name: Spec Watch
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 9 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  spec-watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check canonical 2025.10 spec + schema digests
+        run: |
+          python3 scripts/spec_watch.py check \
+            --targets spec-watch/targets.json \
+            --lock spec-watch/lock.json \
+            --artifact-dir spec-watch-artifacts
+
+      - name: Publish spec-watch summary
+        if: always()
+        run: |
+          if [ -f spec-watch-artifacts/summary.md ]; then
+            cat spec-watch-artifacts/summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload spec-watch artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: spec-watch-report
+          path: spec-watch-artifacts/
+          if-no-files-found: ignore
