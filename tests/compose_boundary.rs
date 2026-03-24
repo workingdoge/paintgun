@@ -8,7 +8,7 @@ fn read_from_manifest(relative: &str) -> String {
 }
 
 #[test]
-fn compose_module_delegates_conflict_assembly() {
+fn compose_module_hosts_paintgun_compose_adapter() {
     let src = read_from_manifest("src/compose.rs");
     assert!(
         src.contains("assemble_conflicts("),
@@ -16,7 +16,35 @@ fn compose_module_delegates_conflict_assembly() {
     );
     assert!(
         src.contains("verify_pack_with_callbacks("),
-        "src/compose.rs should route per-pack verification through premath-compose callbacks"
+        "src/compose.rs should host the paintgun-specific per-pack verification adapter"
+    );
+    assert!(
+        src.contains("pub struct ComposePackEntry"),
+        "src/compose.rs should own the paintgun compose manifest entry contract"
+    );
+    assert!(
+        src.contains("pub struct ComposeManifest"),
+        "src/compose.rs should own the paintgun compose manifest contract"
+    );
+    assert!(
+        src.contains("pub struct ComposeVerifyReport"),
+        "src/compose.rs should own the paintgun compose verification report contract"
+    );
+    assert!(
+        src.contains("pub struct ComposeVerifyError"),
+        "src/compose.rs should own the paintgun compose verification error contract"
+    );
+    assert!(
+        src.contains("fn render_compose_report_text("),
+        "src/compose.rs should render the paintgun compose report locally"
+    );
+    assert!(
+        src.contains("fn build_compose_report_json_value("),
+        "src/compose.rs should build the paintgun compose report JSON locally"
+    );
+    assert!(
+        src.contains("pub mod error_codes"),
+        "src/compose.rs should own the compose verification error namespace"
     );
     assert!(
         !src.contains("fn verify_compose_pack("),
@@ -31,11 +59,6 @@ fn compose_module_delegates_conflict_assembly() {
         "pub struct ComposeInheritedRef",
         "pub struct ComposeConflictWitness",
         "pub struct ComposeWitnesses",
-        "pub struct ComposePackEntry",
-        "pub struct ComposeManifest",
-        "pub struct ComposeSummary",
-        "pub struct ComposeVerifyReport",
-        "pub struct ComposeVerifyError",
     ] {
         assert!(
             !src.contains(local_def),
@@ -53,9 +76,18 @@ fn premath_compose_hosts_conflict_kernel() {
         "pub struct ComposeCandidateSource",
         "pub struct ComposeConflictWitness",
         "pub struct ComposeWitnesses",
+        "pub struct ComposeSummary",
+        "pub fn summarize_pack_paths",
+        "pub struct ComposeCandidateInput",
+        "pub struct ComposeConflictDraftCandidate",
+        "pub struct ComposeConflictDraft",
+        "pub fn assemble_conflicts",
+    ] {
+        assert!(src.contains(symbol), "premath-compose should host {symbol}");
+    }
+    for removed_symbol in [
         "pub struct ComposePackEntry",
         "pub struct ComposeManifest",
-        "pub struct ComposeSummary",
         "pub struct ComposeVerifyReport",
         "pub struct ComposeVerifyError",
         "pub mod verify_error_codes",
@@ -67,14 +99,13 @@ fn premath_compose_hosts_conflict_kernel() {
         "pub fn fold_pack_verify_outcome",
         "pub fn prefix_pack_diagnostics",
         "pub fn verify_pack_with_callbacks",
-        "pub fn summarize_pack_paths",
         "pub fn render_compose_report_text",
         "pub fn build_compose_report_json_value",
-        "pub struct ComposeCandidateInput",
-        "pub struct ComposeConflictDraftCandidate",
-        "pub struct ComposeConflictDraft",
-        "pub fn assemble_conflicts",
+        "Paintgun Compose Report",
     ] {
-        assert!(src.contains(symbol), "premath-compose should host {symbol}");
+        assert!(
+            !src.contains(removed_symbol),
+            "premath-compose should not keep paintgun adapter surface {removed_symbol}"
+        );
     }
 }

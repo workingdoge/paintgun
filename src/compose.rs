@@ -22,10 +22,11 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use premath_compose::{
-    assemble_conflicts, check_required_signed, prefix_pack_diagnostics, summarize_pack_paths,
-    verify_pack_with_callbacks, verify_witnesses_payload,
-    ComposeCandidateInput as ComposeKernelCandidateInput, ExternalVerifyOutcome, PackEntryBytes,
+    assemble_conflicts, summarize_pack_paths, ComposeCandidateInput as ComposeKernelCandidateInput,
 };
+use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 
 use crate::analysis::{kan_diag, KanDiag};
 use crate::artifact::{read_resolved_json, stable_context_key, token_value_at};
@@ -64,22 +65,562 @@ pub type ComposeWitnesses = premath_compose::ComposeWitnesses<
     ComposeCandidateSource,
 >;
 pub type ComposeSummary = premath_compose::ComposeSummary;
-pub type ComposePackEntry =
-    premath_compose::ComposePackEntry<crate::cert::PackIdentity, ManifestEntry>;
-pub type ComposeManifest = premath_compose::ComposeManifest<
-    crate::cert::ToolInfo,
-    crate::cert::TrustMetadata,
-    crate::cert::CtcSemantics,
-    crate::cert::NativeApiVersions,
-    crate::cert::PackIdentity,
-    ManifestEntry,
->;
-pub type ComposeVerifyError = premath_compose::ComposeVerifyError;
-pub type ComposeVerifyReport = premath_compose::ComposeVerifyReport;
-use premath_compose::push_verify_error as push_compose_error;
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ComposePackEntry {
+    pub name: String,
+    pub dir: String,
+    #[serde(rename = "packIdentity")]
+    pub pack_identity: crate::cert::PackIdentity,
+    #[serde(rename = "ctcManifest")]
+    pub ctc_manifest: ManifestEntry,
+    #[serde(rename = "ctcWitnesses")]
+    pub ctc_witnesses: ManifestEntry,
+    #[serde(rename = "resolvedJson")]
+    pub resolved_json: ManifestEntry,
+    #[serde(rename = "authoredJson", skip_serializing_if = "Option::is_none")]
+    pub authored_json: Option<ManifestEntry>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ComposeManifest {
+    #[serde(rename = "composeVersion")]
+    pub compose_version: String,
+    pub tool: crate::cert::ToolInfo,
+    pub axes: BTreeMap<String, Vec<String>>,
+    pub pack_order: Vec<String>,
+    pub packs: Vec<ComposePackEntry>,
+    #[serde(default)]
+    pub trust: crate::cert::TrustMetadata,
+    pub semantics: crate::cert::CtcSemantics,
+    #[serde(rename = "nativeApiVersions", skip_serializing_if = "Option::is_none")]
+    pub native_api_versions: Option<crate::cert::NativeApiVersions>,
+    pub summary: ComposeSummary,
+    #[serde(rename = "witnessesSha256")]
+    pub witnesses_sha256: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ComposeVerifyError {
+    pub code: String,
+    pub message: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ComposeVerifyReport {
+    pub ok: bool,
+    pub errors: Vec<String>,
+    #[serde(default)]
+    pub error_details: Vec<ComposeVerifyError>,
+}
 
 pub mod error_codes {
-    pub use premath_compose::verify_error_codes::*;
+    pub const MANIFEST_READ_ERROR: &str = "compose_verify.manifest_read_error";
+    pub const MANIFEST_PARSE_ERROR: &str = "compose_verify.manifest_parse_error";
+    pub const SIGNATURE_REQUIRED: &str = "compose_verify.signature_required";
+    pub const SIGNATURE_INVALID: &str = "compose_verify.signature_invalid";
+    pub const WITNESSES_READ_ERROR: &str = "compose_verify.witnesses_read_error";
+    pub const WITNESSES_PARSE_ERROR: &str = "compose_verify.witnesses_parse_error";
+    pub const WITNESS_SCHEMA_INVALID: &str = "compose_verify.witness_schema_invalid";
+    pub const HASH_MISMATCH: &str = "compose_verify.hash_mismatch";
+    pub const SIZE_MISMATCH: &str = "compose_verify.size_mismatch";
+    pub const FILE_READ_ERROR: &str = "compose_verify.file_read_error";
+    pub const PATH_UNSAFE: &str = "compose_verify.path_unsafe";
+    pub const PACK_IDENTITY_MISMATCH: &str = "compose_verify.pack_identity_mismatch";
+    pub const PACK_VERIFICATION_FAILED: &str = "compose_verify.pack_verification_failed";
+}
+
+fn push_compose_error(
+    errors: &mut Vec<String>,
+    error_details: &mut Vec<ComposeVerifyError>,
+    code: &str,
+    msg: impl Into<String>,
+) {
+    let message = msg.into();
+    errors.push(message.clone());
+    error_details.push(ComposeVerifyError {
+        code: code.to_string(),
+        message,
+    });
+}
+
+fn check_required_signed(
+    require_signed: bool,
+    is_signed: bool,
+    message: impl Into<String>,
+) -> Option<ComposeVerifyError> {
+    if require_signed && !is_signed {
+        return Some(ComposeVerifyError {
+            code: error_codes::SIGNATURE_REQUIRED.to_string(),
+            message: message.into(),
+        });
+    }
+    None
+}
+
+fn check_pack_identity_match(
+    pack_name: &str,
+    expected: (&str, &str, &str),
+    actual: (&str, &str, &str),
+) -> Option<ComposeVerifyError> {
+    if expected != actual {
+        return Some(ComposeVerifyError {
+            code: error_codes::PACK_IDENTITY_MISMATCH.to_string(),
+            message: format!(
+                "[{}:packIdentity] mismatch between compose pack entry and referenced ctc manifest",
+                pack_name
+            ),
+        });
+    }
+    None
+}
+
+fn verify_witnesses_payload<W>(
+    expected_sha256: &str,
+    payload: &[u8],
+) -> (Option<W>, Vec<ComposeVerifyError>)
+where
+    W: DeserializeOwned,
+{
+    let mut errors: Vec<ComposeVerifyError> = Vec::new();
+
+    let mut hasher = Sha256::new();
+    hasher.update(payload);
+    let got = format!("sha256:{}", hex::encode(hasher.finalize()));
+    if got != expected_sha256 {
+        errors.push(ComposeVerifyError {
+            code: error_codes::HASH_MISMATCH.to_string(),
+            message: format!(
+                "witnesses sha mismatch: expected {}, got {}",
+                expected_sha256, got
+            ),
+        });
+    }
+
+    match serde_json::from_slice::<W>(payload) {
+        Ok(witnesses) => (Some(witnesses), errors),
+        Err(e) => {
+            errors.push(ComposeVerifyError {
+                code: error_codes::WITNESSES_PARSE_ERROR.to_string(),
+                message: format!("failed to parse compose witnesses JSON: {e}"),
+            });
+            (None, errors)
+        }
+    }
+}
+
+fn validate_witnesses_payload(
+    expected_sha256: &str,
+    payload: &[u8],
+) -> (Option<ComposeWitnesses>, Vec<ComposeVerifyError>) {
+    let (witnesses, mut errors) =
+        verify_witnesses_payload::<ComposeWitnesses>(expected_sha256, payload);
+    if let Some(witnesses) = witnesses.as_ref() {
+        if let Err(e) = witnesses.validate_schema_version() {
+            errors.push(ComposeVerifyError {
+                code: error_codes::WITNESS_SCHEMA_INVALID.to_string(),
+                message: e,
+            });
+        }
+    }
+    (witnesses, errors)
+}
+
+fn check_manifest_entry_binding(
+    pack_name: &str,
+    label: &str,
+    display_path: &str,
+    entry: &ManifestEntry,
+    bytes: &[u8],
+) -> Vec<ComposeVerifyError> {
+    let mut errors = Vec::new();
+
+    let mut hasher = Sha256::new();
+    hasher.update(bytes);
+    let got = format!("sha256:{}", hex::encode(hasher.finalize()));
+    if got != entry.sha256 {
+        errors.push(ComposeVerifyError {
+            code: error_codes::HASH_MISMATCH.to_string(),
+            message: format!(
+                "[{}:{}] sha mismatch for {}: expected {}, got {}",
+                pack_name, label, display_path, entry.sha256, got
+            ),
+        });
+    }
+    if bytes.len() as u64 != entry.size {
+        errors.push(ComposeVerifyError {
+            code: error_codes::SIZE_MISMATCH.to_string(),
+            message: format!(
+                "[{}:{}] size mismatch for {}: expected {}, got {}",
+                pack_name,
+                label,
+                display_path,
+                entry.size,
+                bytes.len()
+            ),
+        });
+    }
+
+    errors
+}
+
+fn fold_pack_verify_outcome<D, I, C, M>(
+    pack_name: &str,
+    fallback_code: &str,
+    errors: I,
+    error_details: &[D],
+    detail_code: C,
+    detail_message: M,
+) -> Vec<ComposeVerifyError>
+where
+    I: IntoIterator,
+    I::Item: AsRef<str>,
+    C: Fn(&D) -> &str,
+    M: Fn(&D) -> &str,
+{
+    let mut out = Vec::new();
+    if error_details.is_empty() {
+        for e in errors {
+            out.push(ComposeVerifyError {
+                code: fallback_code.to_string(),
+                message: format!("[{}] {}", pack_name, e.as_ref()),
+            });
+        }
+        return out;
+    }
+
+    for e in error_details {
+        out.push(ComposeVerifyError {
+            code: detail_code(e).to_string(),
+            message: format!("[{}] {}", pack_name, detail_message(e)),
+        });
+    }
+
+    out
+}
+
+fn prefix_pack_diagnostics<D, I, C, M>(
+    pack_name: &str,
+    diagnostics: I,
+    code: C,
+    message: M,
+) -> Vec<ComposeVerifyError>
+where
+    I: IntoIterator<Item = D>,
+    C: Fn(&D) -> &str,
+    M: Fn(&D) -> String,
+{
+    diagnostics
+        .into_iter()
+        .map(|d| ComposeVerifyError {
+            code: code(&d).to_string(),
+            message: format!("[{}] {}", pack_name, message(&d)),
+        })
+        .collect()
+}
+
+#[derive(Clone, Debug)]
+struct PackEntryBytes {
+    display_path: String,
+    bytes: Vec<u8>,
+}
+
+#[derive(Clone, Debug)]
+struct ExternalVerifyOutcome<D> {
+    ok: bool,
+    errors: Vec<String>,
+    error_details: Vec<D>,
+}
+
+fn verify_pack_with_callbacks<
+    Inner,
+    D,
+    ReadEntry,
+    ParseInner,
+    ValidateInner,
+    InnerIdentity,
+    InnerSigned,
+    VerifyInnerSignature,
+    VerifyExternal,
+    DetailCode,
+    DetailMessage,
+>(
+    pack: &ComposePackEntry,
+    require_packs_signed: bool,
+    verify_packs: bool,
+    fallback_pack_verify_code: &str,
+    mut read_entry: ReadEntry,
+    mut parse_inner_manifest: ParseInner,
+    mut validate_inner_manifest: ValidateInner,
+    inner_identity: InnerIdentity,
+    inner_is_signed: InnerSigned,
+    mut verify_inner_signature: VerifyInnerSignature,
+    mut verify_external: VerifyExternal,
+    detail_code: DetailCode,
+    detail_message: DetailMessage,
+) -> Vec<ComposeVerifyError>
+where
+    ReadEntry: FnMut(&str, &ManifestEntry) -> Result<PackEntryBytes, ComposeVerifyError>,
+    ParseInner: FnMut(&PackEntryBytes) -> Result<Inner, ComposeVerifyError>,
+    ValidateInner: FnMut(&Inner) -> Vec<ComposeVerifyError>,
+    InnerIdentity: Fn(&Inner) -> (String, String, String),
+    InnerSigned: Fn(&Inner) -> bool,
+    VerifyInnerSignature: FnMut(&Inner, &PackEntryBytes) -> Result<(), ComposeVerifyError>,
+    VerifyExternal: FnMut() -> Result<ExternalVerifyOutcome<D>, ComposeVerifyError>,
+    DetailCode: Fn(&D) -> &str,
+    DetailMessage: Fn(&D) -> &str,
+{
+    let mut out: Vec<ComposeVerifyError> = Vec::new();
+
+    let mut check_binding = |label: &str, entry: &ManifestEntry| match read_entry(label, entry) {
+        Ok(payload) => out.extend(check_manifest_entry_binding(
+            &pack.name,
+            label,
+            &payload.display_path,
+            entry,
+            &payload.bytes,
+        )),
+        Err(e) => out.push(e),
+    };
+
+    check_binding("ctcManifest", &pack.ctc_manifest);
+    check_binding("ctcWitnesses", &pack.ctc_witnesses);
+    check_binding("resolvedJson", &pack.resolved_json);
+    if let Some(a) = &pack.authored_json {
+        check_binding("authoredJson", a);
+    }
+
+    let parsed_payload = match read_entry("ctcManifest", &pack.ctc_manifest) {
+        Ok(payload) => Some(payload),
+        Err(e) => {
+            out.push(e);
+            None
+        }
+    };
+    if let Some(payload) = parsed_payload.as_ref() {
+        match parse_inner_manifest(payload) {
+            Ok(inner_manifest) => {
+                out.extend(validate_inner_manifest(&inner_manifest));
+
+                let expected = (
+                    pack.pack_identity.pack_id.clone(),
+                    pack.pack_identity.pack_version.clone(),
+                    pack.pack_identity.content_hash.clone(),
+                );
+                let actual = inner_identity(&inner_manifest);
+                if let Some(e) = check_pack_identity_match(
+                    &pack.name,
+                    (&expected.0, &expected.1, &expected.2),
+                    (&actual.0, &actual.1, &actual.2),
+                ) {
+                    out.push(e);
+                }
+                if let Some(e) = check_required_signed(
+                    require_packs_signed,
+                    inner_is_signed(&inner_manifest),
+                    format!(
+                        "[{}:trust] pack manifest trust.status must be 'signed'",
+                        pack.name
+                    ),
+                ) {
+                    out.push(e);
+                }
+                if inner_is_signed(&inner_manifest) {
+                    if let Err(e) = verify_inner_signature(&inner_manifest, payload) {
+                        out.push(e);
+                    }
+                }
+            }
+            Err(e) => out.push(e),
+        }
+    }
+
+    if verify_packs {
+        match verify_external() {
+            Ok(rep) => {
+                if !rep.ok {
+                    out.extend(fold_pack_verify_outcome(
+                        &pack.name,
+                        fallback_pack_verify_code,
+                        rep.errors.iter(),
+                        &rep.error_details,
+                        detail_code,
+                        detail_message,
+                    ));
+                }
+            }
+            Err(e) => out.push(e),
+        }
+    }
+
+    out
+}
+
+#[derive(Clone, Debug, Serialize)]
+struct ComposeReportFinding {
+    #[serde(rename = "witnessId")]
+    witness_id: String,
+    kind: String,
+    severity: String,
+    message: String,
+    #[serde(rename = "tokenPath", skip_serializing_if = "Option::is_none")]
+    token_path: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    context: Option<String>,
+    #[serde(rename = "filePath", skip_serializing_if = "Option::is_none")]
+    file_path: Option<String>,
+    #[serde(rename = "jsonPointer", skip_serializing_if = "Option::is_none")]
+    json_pointer: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pack: Option<String>,
+}
+
+fn render_compose_report_text(manifest: &ComposeManifest, witnesses: &ComposeWitnesses) -> String {
+    let mut out = String::new();
+    out.push_str("═══════════════════════════════════════\n");
+    out.push_str("  Paintgun Compose Report\n");
+    out.push_str("═══════════════════════════════════════\n\n");
+
+    out.push_str(&format!(
+        "Packs (order): {}\n",
+        manifest.pack_order.join(" → ")
+    ));
+    out.push_str(&format!(
+        "Axes: {}\n",
+        manifest.axes.keys().cloned().collect::<Vec<_>>().join(", ")
+    ));
+    out.push_str(&format!(
+        "Contexts checked: {}\nToken paths (union): {}\nOverlapping token paths: {}\n\n",
+        manifest.summary.contexts,
+        manifest.summary.token_paths_union,
+        manifest.summary.overlapping_token_paths
+    ));
+
+    if witnesses.conflicts.is_empty() {
+        out.push_str("✓ No cross-pack conflicts (pack order does not affect values).\n");
+        return out;
+    }
+
+    out.push_str(&format!(
+        "✗ Cross-pack conflicts: {}\n\n",
+        witnesses.conflicts.len()
+    ));
+
+    for (i, conflict) in witnesses.conflicts.iter().take(50).enumerate() {
+        out.push_str(&format!(
+            "{}. {} @ {}\n",
+            i + 1,
+            conflict.token_path,
+            conflict.context
+        ));
+        for candidate in &conflict.candidates {
+            out.push_str(&format!(
+                "    - {} ({}): {}\n",
+                candidate.pack, candidate.value_type, candidate.value_json
+            ));
+            if !candidate.inherited_from.is_empty() {
+                let refs = candidate
+                    .inherited_from
+                    .iter()
+                    .map(|r| format!("{}/{}/{}", r.pack, r.witness_type, r.witness_id))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                out.push_str(&format!("        inheritedFrom: {refs}\n"));
+            }
+            for src in candidate.sources.iter().take(3) {
+                let file = src
+                    .provenance
+                    .file_path
+                    .clone()
+                    .unwrap_or_else(|| "(inline)".to_string());
+                out.push_str(&format!(
+                    "        from {} @ {}  {}\n",
+                    src.context,
+                    file,
+                    src.provenance
+                        .json_pointer
+                        .clone()
+                        .unwrap_or_else(|| "(unknown)".to_string())
+                ));
+            }
+            if candidate.sources.len() > 3 {
+                out.push_str("        …\n");
+            }
+        }
+        out.push_str(&format!(
+            "    winner (by pack order): {}\n\n",
+            conflict.winner_pack
+        ));
+    }
+    if witnesses.conflicts.len() > 50 {
+        out.push_str(&format!(
+            "(… {} more; see compose.witnesses.json)\n",
+            witnesses.conflicts.len() - 50
+        ));
+    }
+
+    out
+}
+
+fn build_compose_report_json_value(
+    manifest: &ComposeManifest,
+    witnesses: &ComposeWitnesses,
+) -> serde_json::Value {
+    let mut findings: Vec<ComposeReportFinding> = Vec::new();
+    for witness in &witnesses.conflicts {
+        for candidate in &witness.candidates {
+            for src in &candidate.sources {
+                findings.push(ComposeReportFinding {
+                    witness_id: witness.witness_id.to_string(),
+                    kind: "composeConflict".to_string(),
+                    severity: "error".to_string(),
+                    message: format!(
+                        "Cross-pack conflict for {} at {} (winner: {}, candidate: {})",
+                        witness.token_path, witness.context, witness.winner_pack, candidate.pack
+                    ),
+                    token_path: Some(witness.token_path.to_string()),
+                    context: Some(witness.context.clone()),
+                    file_path: src.provenance.file_path.clone(),
+                    json_pointer: src.provenance.json_pointer.clone(),
+                    pack: src
+                        .provenance
+                        .pack_id
+                        .clone()
+                        .or_else(|| Some(candidate.pack.clone())),
+                });
+            }
+        }
+    }
+
+    let mut by_kind: BTreeMap<String, usize> = BTreeMap::new();
+    for finding in &findings {
+        *by_kind.entry(finding.kind.clone()).or_insert(0) += 1;
+    }
+
+    let policy_digest = witnesses
+        .policy_digest
+        .clone()
+        .unwrap_or_else(|| "sha256:unknown".to_string());
+    let conflict_mode = serde_json::to_value(&witnesses.conflict_mode)
+        .unwrap_or_else(|_| serde_json::json!("unknown"));
+    let mut out = serde_json::json!({
+        "reportVersion": 1,
+        "reportKind": "compose",
+        "conflictMode": conflict_mode,
+        "policyDigest": policy_digest,
+        "summary": manifest.summary,
+        "counts": {
+            "total": findings.len(),
+            "byKind": by_kind,
+        },
+        "findings": findings,
+    });
+    if let Some(version) = &witnesses.normalizer_version {
+        out.as_object_mut()
+            .expect("compose report object")
+            .insert("normalizerVersion".to_string(), serde_json::json!(version));
+    }
+    out
 }
 
 #[derive(Clone, Debug)]
@@ -787,27 +1328,14 @@ pub fn build_compose_manifest_with_context_count(
 }
 
 pub fn render_compose_report(manifest: &ComposeManifest, witnesses: &ComposeWitnesses) -> String {
-    premath_compose::render_compose_report_text(
-        manifest,
-        witnesses,
-        |r| format!("{}/{}/{}", r.pack, r.witness_type, r.witness_id),
-        |s| s.context.clone(),
-        |s| s.provenance.file_path.clone(),
-        |s| s.provenance.json_pointer.clone(),
-    )
+    render_compose_report_text(manifest, witnesses)
 }
 
 pub fn build_compose_report_json(
     manifest: &ComposeManifest,
     witnesses: &ComposeWitnesses,
 ) -> serde_json::Value {
-    premath_compose::build_compose_report_json_value(
-        manifest,
-        witnesses,
-        |s| s.provenance.file_path.clone(),
-        |s| s.provenance.json_pointer.clone(),
-        |s| s.provenance.pack_id.clone(),
-    )
+    build_compose_report_json_value(manifest, witnesses)
 }
 
 //──────────────────────────────────────────────────────────────────────────────
@@ -906,7 +1434,7 @@ pub fn verify_compose_with_signing(
     match fs::read(&witnesses_path) {
         Ok(wb) => {
             let (_parsed, witness_errors) =
-                verify_witnesses_payload::<ComposeWitnesses>(&manifest.witnesses_sha256, &wb);
+                validate_witnesses_payload(&manifest.witnesses_sha256, &wb);
             for e in witness_errors {
                 push_compose_error(&mut errors, &mut error_details, &e.code, e.message);
             }
@@ -964,7 +1492,6 @@ pub fn verify_compose_with_signing(
                     bytes,
                 })
             },
-            |entry| (entry.sha256.clone(), entry.size),
             |payload| {
                 serde_json::from_slice::<CtcManifest>(&payload.bytes).map_err(|e| {
                     ComposeVerifyError {
@@ -991,13 +1518,6 @@ pub fn verify_compose_with_signing(
                     |e| e.message.clone(),
                 ));
                 out
-            },
-            |pack| {
-                (
-                    pack.pack_identity.pack_id.clone(),
-                    pack.pack_identity.pack_version.clone(),
-                    pack.pack_identity.content_hash.clone(),
-                )
             },
             |inner_manifest| {
                 (
