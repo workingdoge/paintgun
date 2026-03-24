@@ -102,6 +102,10 @@ Scope: Convert Milestones 1-7 into issue-sized implementation tickets with CI-re
 - In progress:
   - M8-T3 (crate boundary split by semantics)
 
+## Premath Code Home
+- The current code-home and packaging recommendation is documented in `docs/premath_code_home.md`.
+- Short version: keep `premath-*` in this workspace for now, keep `/Users/arj/dev/fish/sites/premath` as the site/spec/governance surface, and do not publish `premath-*` crates independently until the extraction preconditions in that doc are satisfied.
+
 ## Local Notes
 - Swift package tests can fail on this workstation due CommandLineTools `PackageDescription` linker mismatch; CI remains the source-of-truth for Swift integration checks.
 
