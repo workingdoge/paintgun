@@ -302,11 +302,10 @@ where
         return Ok(base.clone());
     }
 
-    let mut value =
-        serde_json::to_value(base).map_err(|err| FlattenError::InvalidResolverRef {
-            reference: pointer.to_string(),
-            reason: format!("failed to serialize referenced {kind}: {err}"),
-        })?;
+    let mut value = serde_json::to_value(base).map_err(|err| FlattenError::InvalidResolverRef {
+        reference: pointer.to_string(),
+        reason: format!("failed to serialize referenced {kind}: {err}"),
+    })?;
     let obj = value
         .as_object_mut()
         .ok_or_else(|| FlattenError::InvalidResolverRef {
@@ -355,13 +354,14 @@ where
                 None => return Ok(None),
             },
         };
-        let ctx = modifier
-            .contexts
-            .get(ctx_name)
-            .ok_or_else(|| FlattenError::InvalidResolverRef {
-                reference: format!("#/modifiers/{mod_name}"),
-                reason: format!("selected context value '{ctx_name}' does not exist"),
-            })?;
+        let ctx =
+            modifier
+                .contexts
+                .get(ctx_name)
+                .ok_or_else(|| FlattenError::InvalidResolverRef {
+                    reference: format!("#/modifiers/{mod_name}"),
+                    reason: format!("selected context value '{ctx_name}' does not exist"),
+                })?;
         Ok(Some(load_sources(
             doc,
             ctx,
@@ -500,13 +500,7 @@ where
     for (axis, modifier) in doc.all_modifiers() {
         let mut axis_relevant = false;
         for ctx in modifier.contexts.values() {
-            let tree = load_sources(
-                doc,
-                ctx,
-                base_dir,
-                resolve_existing_under,
-                read_json_file,
-            )?;
+            let tree = load_sources(doc, ctx, base_dir, resolve_existing_under, read_json_file)?;
             let explicit = collect_explicit_token_paths(&tree);
             if explicit.iter().any(|p| token_paths.contains(p)) {
                 axis_relevant = true;

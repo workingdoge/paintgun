@@ -304,7 +304,8 @@ impl ResolverDoc {
         names.extend(self.inline_sets.keys().map(String::as_str));
         names.sort_unstable();
         names.dedup();
-        names.into_iter()
+        names
+            .into_iter()
             .filter_map(|name| self.get_set(name).map(|set| (name, set)))
             .collect()
     }
@@ -314,7 +315,8 @@ impl ResolverDoc {
         names.extend(self.inline_modifiers.keys().map(String::as_str));
         names.sort_unstable();
         names.dedup();
-        names.into_iter()
+        names
+            .into_iter()
             .filter_map(|name| self.get_modifier(name).map(|modifier| (name, modifier)))
             .collect()
     }

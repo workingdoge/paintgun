@@ -696,6 +696,7 @@ pub fn analyze_cross_pack_conflicts(
 
 pub fn build_compose_manifest(
     packs: &[Pack],
+    manifest_dir: &Path,
     axes: &BTreeMap<String, Vec<String>>,
     policy: &Policy,
     conflict_mode: ConflictMode,
@@ -705,6 +706,7 @@ pub fn build_compose_manifest(
 ) -> Result<ComposeManifest, String> {
     build_compose_manifest_with_context_count(
         packs,
+        manifest_dir,
         axes,
         policy,
         conflict_mode,
@@ -717,6 +719,7 @@ pub fn build_compose_manifest(
 
 pub fn build_compose_manifest_with_context_count(
     packs: &[Pack],
+    manifest_dir: &Path,
     axes: &BTreeMap<String, Vec<String>>,
     policy: &Policy,
     conflict_mode: ConflictMode,
@@ -734,7 +737,8 @@ pub fn build_compose_manifest_with_context_count(
 
         pack_entries.push(ComposePackEntry {
             name: p.name.clone(),
-            dir: p.dir.display().to_string(),
+            dir: crate::cert::relpath(manifest_dir, &p.dir)
+                .unwrap_or_else(|| p.dir.display().to_string()),
             pack_identity: p.ctc_manifest.pack_identity.clone(),
             ctc_manifest: hash_file_entry(&ctc_manifest_path)?,
             ctc_witnesses: hash_file_entry(&ctc_witnesses_path)?,

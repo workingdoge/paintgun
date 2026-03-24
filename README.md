@@ -56,6 +56,7 @@ Outputs:
   - Includes optional `nativeApiVersions` (e.g. Swift/Kotlin emitter API versions) when native targets are emitted.
 - `dist/validation.json` — machine-readable diagnostics when `--format json` (schema: `schemas/report.schema.json`)
 - `dist/manifest.json` — SHA-256 hashes of referenced token files (legacy, optional)
+- `dist/inputs/` — staged resolver + referenced token documents copied into a self-contained verification bundle
 
 ## Validation failures
 
@@ -182,7 +183,9 @@ cargo run -- verify-compose dist-compose/compose.manifest.json \
 ```
 
 When using `--policy` in verify commands, pass the same policy file used to produce the manifest.
+TBP treats the output directory as a portable pack bundle: consistent with the Resolver Module's non-normative bundling guidance, `build` stages the resolver and referenced token docs into `dist/inputs/`, and `verify` checks those copied inputs instead of reaching back into the original source tree.
 For supply-chain safety, verify commands require root-bound canonicalized manifest paths; absolute paths and traversal that escapes the trust root are rejected.
+Supported pack flow: move or archive the whole pack directory and verify `ctc.manifest.json` in place.
 `verify` also enforces `packIdentity.contentHash == outputs.resolvedJson.sha256`.
 Both `verify` and `verify-compose` enforce the current witness schema version marker.
 
@@ -263,6 +266,8 @@ cargo run -- compose \
 - resolver-support contexts (rule/source),
 - excluded contexts (rule/source),
 - counts and truncation metadata.
+
+Compose bundles are trust-root relative rather than absolute: `compose.manifest.json` records each referenced pack directory relative to the compose output directory. Supported compose flow: archive `dist-compose/` together with the referenced pack directories under the same parent root before running `verify-compose`.
 
 Context-scaling metrics fixture:
 

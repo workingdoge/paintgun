@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, HashMap};
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use tbp::cert::{build_ctc_manifest, ConflictMode, CtcSummary, NativeApiVersions};
@@ -138,6 +138,7 @@ fn compose_manifest_preserves_native_api_versions() {
 
     let manifest = build_compose_manifest(
         &[],
+        Path::new(env!("CARGO_MANIFEST_DIR")),
         &BTreeMap::new(),
         &policy,
         ConflictMode::Semantic,

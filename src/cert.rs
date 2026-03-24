@@ -177,7 +177,9 @@ pub fn build_explicit_index(
                         src.r#ref.as_deref(),
                         format!("set:{rest}"),
                         Some(format!("set:{rest}")),
-                        resolution_rank_by_layer.get(&format!("set:{rest}")).copied(),
+                        resolution_rank_by_layer
+                            .get(&format!("set:{rest}"))
+                            .copied(),
                         &p,
                         Some(json_pointer),
                         &mut file_hash_cache,
@@ -201,7 +203,9 @@ pub fn build_explicit_index(
                             src.r#ref.as_deref(),
                             format!("set:{rest}"),
                             Some(format!("set:{rest}")),
-                            resolution_rank_by_layer.get(&format!("set:{rest}")).copied(),
+                            resolution_rank_by_layer
+                                .get(&format!("set:{rest}"))
+                                .copied(),
                             &p,
                             Some(json_pointer),
                             &mut file_hash_cache,
@@ -245,11 +249,11 @@ pub fn build_explicit_index(
                         p.clone(),
                         provenance_from_source(
                             base_dir,
-                                src.r#ref.as_deref(),
-                                format!("modifier:{axis}/{val}"),
-                                Some(format!("modifier:{axis}/{val}")),
-                                resolution_rank_by_layer
-                                    .get(&format!("modifier:{axis}"))
+                            src.r#ref.as_deref(),
+                            format!("modifier:{axis}/{val}"),
+                            Some(format!("modifier:{axis}/{val}")),
+                            resolution_rank_by_layer
+                                .get(&format!("modifier:{axis}"))
                                 .copied(),
                             &p,
                             Some(json_pointer),
@@ -1257,7 +1261,7 @@ pub fn hash_file(path: &Path) -> Option<ManifestEntry> {
     })
 }
 
-fn relpath(manifest_dir: &Path, target: &Path) -> Option<String> {
+pub fn relpath(manifest_dir: &Path, target: &Path) -> Option<String> {
     // Compute a stable relative path from `manifest_dir` (directory containing the manifest)
     // to `target`. If we cannot compute one, return None.
     let base_abs = std::fs::canonicalize(manifest_dir).ok()?;

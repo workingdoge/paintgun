@@ -8,7 +8,7 @@ use tbp::annotations::{build_github_annotations, read_report};
 use tbp::artifact::write_resolved_json;
 use tbp::cert::{
     analyze_composability_with_mode_and_contexts, build_assignments, build_authored_export,
-    build_ctc_manifest, build_explicit_index, build_manifest, render_validation_report,
+    build_ctc_manifest, build_explicit_index, build_manifest_rel, render_validation_report,
     required_artifact_binding, ConflictMode, CtcManifest, NativeApiVersions, RequiredArtifactKind,
     NORMALIZER_VERSION,
 };
@@ -393,6 +393,71 @@ fn write_json(path: &Path, label: &str, value: &impl serde::Serialize) -> CliRes
     write_bytes(path, label, bytes)
 }
 
+fn collect_external_source_refs(doc: &ResolverDoc) -> Vec<String> {
+    let mut out = std::collections::BTreeSet::new();
+    for set in doc.sets.values() {
+        for src in &set.sources {
+            if let Some(r) = &src.r#ref {
+                if !r.starts_with("#/") {
+                    out.insert(r.clone());
+                }
+            }
+        }
+    }
+    for modifier in doc.modifiers.values() {
+        for ctx in modifier.contexts.values() {
+            for src in &ctx.sources {
+                if let Some(r) = &src.r#ref {
+                    if !r.starts_with("#/") {
+                        out.insert(r.clone());
+                    }
+                }
+            }
+        }
+    }
+    out.into_iter().collect()
+}
+
+fn copy_file_into_bundle(src: &Path, dest: &Path) -> Result<(), String> {
+    let parent = dest
+        .parent()
+        .ok_or_else(|| format!("missing parent directory for {}", dest.display()))?;
+    fs::create_dir_all(parent)
+        .map_err(|e| format!("failed to create {}: {e}", parent.display()))?;
+    fs::copy(src, dest).map_err(|e| {
+        format!(
+            "failed to copy {} -> {}: {e}",
+            src.display(),
+            dest.display()
+        )
+    })?;
+    Ok(())
+}
+
+fn stage_portable_inputs(
+    doc: &ResolverDoc,
+    resolver_path: &Path,
+    out_dir: &Path,
+) -> Result<PathBuf, String> {
+    let bundle_root = out_dir.join("inputs");
+    let resolver_name = resolver_path
+        .file_name()
+        .ok_or_else(|| format!("resolver path {} has no file name", resolver_path.display()))?;
+    let staged_resolver = bundle_root.join(resolver_name);
+    copy_file_into_bundle(resolver_path, &staged_resolver)?;
+
+    let resolver_dir = resolver_path.parent().unwrap_or_else(|| Path::new("."));
+    for raw in collect_external_source_refs(doc) {
+        let rel = tbp::path_safety::validate_relative_path(&raw)
+            .map_err(|e| format!("invalid source ref {raw}: {e}"))?;
+        let src = resolver_dir.join(&rel);
+        let dest = bundle_root.join(&rel);
+        copy_file_into_bundle(&src, &dest)?;
+    }
+
+    Ok(staged_resolver)
+}
+
 fn load_contracts(path: &Path) -> CliResult<Vec<Contract>> {
     let v: serde_json::Value = read_json_arg(path, "contracts JSON")?;
     let obj = v.as_object().ok_or_else(|| {
@@ -560,7 +625,11 @@ fn layer_order_from_doc(doc: &ResolverDoc) -> Vec<String> {
         }
     }
     if mods.is_empty() {
-        mods.extend(doc.all_modifiers().into_iter().map(|(name, _)| name.to_string()));
+        mods.extend(
+            doc.all_modifiers()
+                .into_iter()
+                .map(|(name, _)| name.to_string()),
+        );
         mods.sort();
     }
     names.extend(mods.clone());
@@ -824,12 +893,14 @@ fn run_build(
         )?;
 
     create_dir(&out, "output directory")?;
+    let staged_resolver = stage_portable_inputs(&doc, &resolver, &out)
+        .map_err(|e| CliError::new(format!("failed to stage portable input bundle: {e}")))?;
 
     let resolved_path = out.join("resolved.json");
     write_resolved_json(&resolved_path, &store)
         .map_err(|e| CliError::new(format!("failed to write resolved.json: {e}")))?;
 
-    let manifest = build_manifest(&doc, &resolver);
+    let manifest = build_manifest_rel(&doc, &staged_resolver, &out);
     write_json(&out.join("manifest.json"), "manifest.json", &manifest)?;
 
     let mut tokens_css_path: Option<PathBuf> = None;
@@ -990,7 +1061,7 @@ fn run_build(
 
     let mut ctc_manifest = build_ctc_manifest(
         &doc,
-        &resolver,
+        &staged_resolver,
         &store,
         Some(&policy),
         conflict_mode.into(),
@@ -1193,6 +1264,7 @@ fn run_compose(
 
     let manifest = build_compose_manifest_with_context_count(
         &loaded,
+        &out,
         &composed.axes,
         &policy,
         conflict_mode.into(),

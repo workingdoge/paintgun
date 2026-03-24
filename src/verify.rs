@@ -406,25 +406,28 @@ pub fn verify_ctc_with_options(
 
     // Inputs
     {
-        let (sha, size) = match hash_entry(base, &manifest.inputs.resolver_spec) {
-            Ok(x) => x,
+        let got = match hash_entry(base, &manifest.inputs.resolver_spec) {
+            Ok(x) => Some(x),
             Err(e) => {
                 report.fail_error(e);
-                ("".to_string(), 0)
+                None
             }
         };
-        if sha != manifest.inputs.resolver_spec.sha256 || size != manifest.inputs.resolver_spec.size
-        {
-            report.fail_code(
-                error_codes::HASH_MISMATCH,
-                format!(
-                    "resolver_spec hash mismatch: expected {} ({} bytes), got {} ({} bytes)",
-                    manifest.inputs.resolver_spec.sha256,
-                    manifest.inputs.resolver_spec.size,
-                    sha,
-                    size
-                ),
-            );
+        if let Some((sha, size)) = got {
+            if sha != manifest.inputs.resolver_spec.sha256
+                || size != manifest.inputs.resolver_spec.size
+            {
+                report.fail_code(
+                    error_codes::HASH_MISMATCH,
+                    format!(
+                        "resolver_spec hash mismatch: expected {} ({} bytes), got {} ({} bytes)",
+                        manifest.inputs.resolver_spec.sha256,
+                        manifest.inputs.resolver_spec.size,
+                        sha,
+                        size
+                    ),
+                );
+            }
         }
     }
 

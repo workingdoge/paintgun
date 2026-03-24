@@ -40,13 +40,22 @@ pub fn resolve_existing_within(
     })?;
     let joined = base_abs.join(rel);
     let target_abs = std::fs::canonicalize(&joined).map_err(|e| {
-        format!(
-            "failed to canonicalize resolved path {}: {e}",
-            joined.display()
-        )
+        let parent_in_root = joined
+            .parent()
+            .and_then(|p| std::fs::canonicalize(p).ok())
+            .map(|p| p.starts_with(&root_abs))
+            .unwrap_or(false);
+        if parent_in_root {
+            format!("path is missing within trust root: {}", raw)
+        } else {
+            format!(
+                "failed to canonicalize resolved path {}: {e}",
+                joined.display()
+            )
+        }
     })?;
     if !target_abs.starts_with(&root_abs) {
-        return Err(format!("path escapes base directory: {}", raw));
+        return Err(format!("path escapes trust root: {}", raw));
     }
     Ok(target_abs)
 }
