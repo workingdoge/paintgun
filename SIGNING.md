@@ -2,6 +2,10 @@
 
 `tbp` supports detached manifest signatures for `ctc.manifest.json` and `compose.manifest.json`.
 
+For the current public release line, signing is optional by default. Unsigned manifests remain valid unless a verifier opts into `--require-signed` or `--require-packs-signed`. Once a manifest declares `trust.status = "signed"`, `tbp` always verifies the detached signature and trust metadata consistency.
+
+The public verifier policy and compatibility contract are documented in `docs/trust_policy.md`.
+
 Current scheme:
 
 - `tbp-detached-sha256-v1`
@@ -40,6 +44,11 @@ Unsigned (default):
   }
 }
 ```
+
+Compatibility expectations:
+- `unsigned` manifests may omit the remaining trust fields entirely.
+- `signed` manifests must use a recognized `signatureScheme`, include `signatureFile`, and include `claimsSha256`.
+- `signer` is optional metadata; when present, `tbp` verifies that it matches the detached signature record.
 
 Signed:
 

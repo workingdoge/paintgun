@@ -204,6 +204,7 @@ cargo run -- verify-compose dist-compose/compose.manifest.json \
 ```
 
 When using `--policy` in verify commands, pass the same policy file used to produce the manifest.
+Public v1 policy: signing is optional by default. `verify` and `verify-compose` accept unsigned artifacts unless the caller opts into `--require-signed` and/or `--require-packs-signed`; if a manifest advertises `trust.status = "signed"`, `tbp` always validates the detached signature. See `docs/trust_policy.md`.
 TBP treats the output directory as a portable pack bundle: consistent with the Resolver Module's non-normative bundling guidance, `build` stages the resolver and referenced token docs into `dist/inputs/`, and `verify` checks those copied inputs instead of reaching back into the original source tree.
 For supply-chain safety, verify commands require root-bound canonicalized manifest paths; absolute paths and traversal that escapes the trust root are rejected.
 Supported pack flow: move or archive the whole pack directory and verify `ctc.manifest.json` in place.
@@ -227,7 +228,7 @@ Signed manifests record:
 - `trust.signatureFile`
 - `trust.claimsSha256`
 
-Detailed trust/scheme behavior is documented in `SIGNING.md`.
+Detailed trust/scheme behavior is documented in `SIGNING.md`, and the public verifier policy is documented in `docs/trust_policy.md`.
 
 ## Explain witness
 

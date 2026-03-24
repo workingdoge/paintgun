@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use tbp::cert::{
@@ -31,6 +31,19 @@ fn sha256_prefixed(bytes: &[u8]) -> String {
 fn write_json(path: &PathBuf, value: &impl serde::Serialize) {
     let bytes = serde_json::to_vec_pretty(value).expect("serialize");
     fs::write(path, bytes).expect("write json");
+}
+
+fn manifest_entry_for(path: &Path) -> ManifestEntry {
+    let bytes = fs::read(path).expect("read artifact");
+    ManifestEntry {
+        file: path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .expect("artifact file name")
+            .to_string(),
+        sha256: sha256_prefixed(&bytes),
+        size: bytes.len() as u64,
+    }
 }
 
 fn write_ctc_fixture(root: &PathBuf) -> PathBuf {
@@ -162,6 +175,73 @@ fn write_compose_fixture(root: &PathBuf) -> PathBuf {
     manifest_path
 }
 
+fn write_compose_fixture_with_pack(root: &PathBuf, pack_dir: &Path) -> PathBuf {
+    let compose_dir = root.join("compose");
+    fs::create_dir_all(&compose_dir).expect("compose dir");
+
+    let witnesses = ComposeWitnesses {
+        witness_schema: COMPOSE_WITNESS_SCHEMA_VERSION,
+        conflict_mode: ConflictMode::Semantic,
+        policy_digest: Some("sha256:dummy".to_string()),
+        normalizer_version: None,
+        conflicts: Vec::new(),
+    };
+    let witnesses_bytes = serde_json::to_vec_pretty(&witnesses).expect("compose witnesses");
+    fs::write(compose_dir.join("compose.witnesses.json"), &witnesses_bytes)
+        .expect("write compose witnesses");
+
+    let pack_manifest_path = pack_dir.join("ctc.manifest.json");
+    let pack_manifest: CtcManifest =
+        serde_json::from_slice(&fs::read(&pack_manifest_path).expect("read pack manifest"))
+            .expect("parse pack manifest");
+    let pack_dir_rel = format!(
+        "../{}",
+        pack_dir
+            .file_name()
+            .and_then(|name| name.to_str())
+            .expect("pack dir name")
+    );
+
+    let manifest = ComposeManifest {
+        compose_version: "0.1".to_string(),
+        tool: ToolInfo {
+            name: "tbp-rs".to_string(),
+            version: "0.1.0".to_string(),
+        },
+        axes: BTreeMap::new(),
+        pack_order: vec![pack_manifest.pack_identity.pack_id.clone()],
+        packs: vec![tbp::compose::ComposePackEntry {
+            name: pack_manifest.pack_identity.pack_id.clone(),
+            dir: pack_dir_rel,
+            pack_identity: pack_manifest.pack_identity.clone(),
+            ctc_manifest: manifest_entry_for(&pack_manifest_path),
+            ctc_witnesses: manifest_entry_for(&pack_dir.join("ctc.witnesses.json")),
+            resolved_json: manifest_entry_for(&pack_dir.join("resolved.json")),
+            authored_json: None,
+        }],
+        trust: TrustMetadata::unsigned(),
+        semantics: CtcSemantics {
+            eq_value_id: "dtcg-2025.10-typed-structural".to_string(),
+            policy_digest: Some("sha256:dummy".to_string()),
+            conflict_mode: ConflictMode::Semantic,
+            normalizer_version: None,
+        },
+        native_api_versions: None,
+        summary: ComposeSummary {
+            packs: 1,
+            contexts: 1,
+            token_paths_union: 0,
+            overlapping_token_paths: 0,
+            conflicts: 0,
+        },
+        witnesses_sha256: sha256_prefixed(&witnesses_bytes),
+    };
+
+    let manifest_path = compose_dir.join("compose.manifest.json");
+    write_json(&manifest_path, &manifest);
+    manifest_path
+}
+
 #[test]
 fn verify_require_signed_rejects_unsigned_ctc_manifest() {
     let root = temp_dir("signing-unsigned-ctc");
@@ -284,6 +364,108 @@ fn sign_compose_manifest_allows_signed_verification() {
     assert!(
         report.ok,
         "signed compose manifest should verify: {:?}",
+        report.errors
+    );
+}
+
+#[test]
+fn verify_require_signed_rejects_unsigned_compose_manifest() {
+    let root = temp_dir("signing-unsigned-compose");
+    let pack_dir = root.join("pack");
+    write_ctc_fixture(&pack_dir);
+    let manifest = write_compose_fixture_with_pack(&root, &pack_dir);
+
+    let report = verify_compose_with_signing(
+        &manifest,
+        None,
+        false,
+        false,
+        true,
+        false,
+        VerifyProfile::Core,
+    );
+    assert!(
+        !report.ok,
+        "unsigned compose manifest should fail when signed is required"
+    );
+    assert!(
+        report
+            .errors
+            .iter()
+            .any(|e| e.contains("compose manifest trust.status must be 'signed'")),
+        "expected compose signed trust status failure, got:\n{}",
+        report.errors.join("\n")
+    );
+    assert!(
+        report
+            .error_details
+            .iter()
+            .any(|e| e.code == compose_error_codes::SIGNATURE_REQUIRED),
+        "expected compose signature-required code, got:\n{:?}",
+        report.error_details
+    );
+}
+
+#[test]
+fn verify_require_packs_signed_rejects_unsigned_pack_manifest() {
+    let root = temp_dir("signing-unsigned-pack");
+    let pack_dir = root.join("pack");
+    write_ctc_fixture(&pack_dir);
+    let manifest = write_compose_fixture_with_pack(&root, &pack_dir);
+
+    let report = verify_compose_with_signing(
+        &manifest,
+        None,
+        false,
+        false,
+        false,
+        true,
+        VerifyProfile::Core,
+    );
+    assert!(
+        !report.ok,
+        "unsigned pack manifest should fail when signed packs are required"
+    );
+    assert!(
+        report
+            .errors
+            .iter()
+            .any(|e| e.contains("[fixture-pack:trust] pack manifest trust.status must be 'signed'")),
+        "expected pack signature requirement failure, got:\n{}",
+        report.errors.join("\n")
+    );
+    assert!(
+        report
+            .error_details
+            .iter()
+            .any(|e| e.code == compose_error_codes::SIGNATURE_REQUIRED),
+        "expected pack signature-required code, got:\n{:?}",
+        report.error_details
+    );
+}
+
+#[test]
+fn verify_require_signed_and_packs_signed_accepts_signed_bundle() {
+    let root = temp_dir("signing-fully-signed-compose");
+    let pack_dir = root.join("pack");
+    let pack_manifest = write_ctc_fixture(&pack_dir);
+    sign_manifest_file(&pack_manifest, None, Some("ci@test")).expect("sign pack");
+
+    let compose_manifest = write_compose_fixture_with_pack(&root, &pack_dir);
+    sign_manifest_file(&compose_manifest, None, Some("ci@test")).expect("sign compose");
+
+    let report = verify_compose_with_signing(
+        &compose_manifest,
+        None,
+        false,
+        false,
+        true,
+        true,
+        VerifyProfile::Core,
+    );
+    assert!(
+        report.ok,
+        "fully signed compose bundle should verify: {:?}",
         report.errors
     );
 }
