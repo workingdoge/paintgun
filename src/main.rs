@@ -13,7 +13,8 @@ use paintgun::backend::{
 use paintgun::cert::{
     analyze_composability_with_mode_and_contexts, build_assignments, build_authored_export,
     build_ctc_manifest, build_explicit_index, build_manifest_rel, render_validation_report,
-    required_artifact_binding, ConflictMode, CtcManifest, NativeApiVersions, RequiredArtifactKind,
+    required_artifact_binding, BackendArtifactDescriptor, BackendArtifactDescriptorKind,
+    ConflictMode, CtcManifest, ManifestEntry, NativeApiVersions, RequiredArtifactKind,
     NORMALIZER_VERSION,
 };
 use paintgun::compose::{
@@ -527,6 +528,82 @@ fn primary_emission_path(out_dir: &Path, emission: &BackendEmission) -> CliResul
         .ok_or_else(|| CliError::new("backend emission missing primary output artifact"))
 }
 
+fn manifest_backend_artifact_kind(kind: BackendArtifactKind) -> BackendArtifactDescriptorKind {
+    match kind {
+        BackendArtifactKind::PrimaryTokenOutput => {
+            BackendArtifactDescriptorKind::PrimaryTokenOutput
+        }
+        BackendArtifactKind::TokenStylesheet => BackendArtifactDescriptorKind::TokenStylesheet,
+        BackendArtifactKind::SystemStylesheet => BackendArtifactDescriptorKind::SystemStylesheet,
+        BackendArtifactKind::TypeDeclarations => BackendArtifactDescriptorKind::TypeDeclarations,
+        BackendArtifactKind::PackageManifest => BackendArtifactDescriptorKind::PackageManifest,
+        BackendArtifactKind::PackageSettings => BackendArtifactDescriptorKind::PackageSettings,
+        BackendArtifactKind::PackageBuildScript => {
+            BackendArtifactDescriptorKind::PackageBuildScript
+        }
+        BackendArtifactKind::PackageSource => BackendArtifactDescriptorKind::PackageSource,
+        BackendArtifactKind::PackageTest => BackendArtifactDescriptorKind::PackageTest,
+    }
+}
+
+fn manifest_entry_for_backend_artifact(
+    out_dir: &Path,
+    relative_path: &Path,
+) -> CliResult<ManifestEntry> {
+    let full_path = out_dir.join(relative_path);
+    let bytes = fs::read(&full_path).map_err(|e| {
+        CliError::new(format!(
+            "failed to read emitted backend artifact {}: {e}",
+            full_path.display()
+        ))
+    })?;
+    Ok(ManifestEntry {
+        file: relative_path.display().to_string(),
+        sha256: format!("sha256:{}", paintgun::util::sha256_hex(&bytes)),
+        size: bytes.len() as u64,
+    })
+}
+
+fn build_backend_artifact_descriptors(
+    emission: &BackendEmission,
+    out_dir: &Path,
+) -> CliResult<Vec<BackendArtifactDescriptor>> {
+    let mut descriptors = Vec::new();
+    for artifact in &emission.artifacts {
+        descriptors.push(BackendArtifactDescriptor {
+            backend_id: emission.backend_id.to_string(),
+            kind: manifest_backend_artifact_kind(artifact.kind),
+            entry: manifest_entry_for_backend_artifact(out_dir, &artifact.relative_path)?,
+            api_version: artifact.api_version.map(str::to_string),
+        });
+    }
+    descriptors.sort_by(|lhs, rhs| {
+        lhs.backend_id
+            .cmp(&rhs.backend_id)
+            .then(lhs.kind.as_str().cmp(rhs.kind.as_str()))
+            .then(lhs.entry.file.cmp(&rhs.entry.file))
+    });
+    Ok(descriptors)
+}
+
+fn insert_backend_artifacts_field(
+    report_json: &mut serde_json::Value,
+    backend_artifacts: &[BackendArtifactDescriptor],
+) -> CliResult<()> {
+    if backend_artifacts.is_empty() {
+        return Ok(());
+    }
+    let obj = report_json
+        .as_object_mut()
+        .ok_or_else(|| CliError::new("internal error: report JSON must be an object"))?;
+    obj.insert(
+        "backendArtifacts".to_string(),
+        serde_json::to_value(backend_artifacts)
+            .map_err(|e| CliError::new(format!("failed to serialize backendArtifacts: {e}")))?,
+    );
+    Ok(())
+}
+
 fn native_versions_for_backend(backend: &dyn TargetBackend) -> Option<NativeApiVersions> {
     match backend.spec().legacy_slot {
         LegacyTargetSlot::Css => None,
@@ -903,6 +980,7 @@ fn run_build(
             out_dir: &out,
         })
         .map_err(|e| CliError::new(format!("failed to emit {} backend: {e}", backend.spec().id)))?;
+    let backend_artifacts = build_backend_artifact_descriptors(&emission, &out)?;
 
     match backend.spec().legacy_slot {
         LegacyTargetSlot::Css => {
@@ -963,6 +1041,7 @@ fn run_build(
     )?;
     if matches!(format, CliFormat::Json) {
         let mut validation_json = paintgun::cert::build_validation_report_json(&analysis);
+        insert_backend_artifacts_field(&mut validation_json, &backend_artifacts)?;
         if let Some(trace) = planner_trace_payload.clone() {
             let obj = validation_json.as_object_mut().ok_or_else(|| {
                 CliError::new("internal error: validation report JSON must be an object")
@@ -1026,6 +1105,7 @@ fn run_build(
         tokens_dts_path.as_deref(),
         Some(&authored_path),
         Some(&validation_path),
+        backend_artifacts,
         analysis.summary.clone(),
         witnesses_sha256,
     );
@@ -1150,6 +1230,7 @@ fn run_compose(
         })
         .map_err(|e| CliError::new(format!("failed to emit {} backend: {e}", backend.spec().id)))?;
     let _ = primary_emission_path(&out, &emission)?;
+    let backend_artifacts = build_backend_artifact_descriptors(&emission, &out)?;
 
     let witnesses = analyze_cross_pack_conflicts_with_mode_and_contexts(
         &loaded,
@@ -1171,6 +1252,7 @@ fn run_compose(
         &composed.axes,
         &policy,
         conflict_mode.into(),
+        backend_artifacts,
         native_api_versions,
         witnesses_sha256,
         composed.resolved_by_ctx.len(),

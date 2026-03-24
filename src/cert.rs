@@ -361,7 +361,7 @@ pub fn full_contexts(axes: &BTreeMap<String, Vec<String>>) -> Vec<Input> {
 // Composability certificate (CTC) — manifest + witnesses
 //──────────────────────────────────────────────────────────────────────────────
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ManifestEntry {
     pub file: String,
     pub sha256: String,
@@ -435,12 +435,76 @@ pub struct CtcOutputs {
     pub validation_txt: Option<ManifestEntry>,
 }
 
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct NativeApiVersions {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub swift: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub kotlin: Option<String>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum BackendArtifactDescriptorKind {
+    PrimaryTokenOutput,
+    TokenStylesheet,
+    SystemStylesheet,
+    TypeDeclarations,
+    PackageManifest,
+    PackageSettings,
+    PackageBuildScript,
+    PackageSource,
+    PackageTest,
+}
+
+impl BackendArtifactDescriptorKind {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            BackendArtifactDescriptorKind::PrimaryTokenOutput => "primaryTokenOutput",
+            BackendArtifactDescriptorKind::TokenStylesheet => "tokenStylesheet",
+            BackendArtifactDescriptorKind::SystemStylesheet => "systemStylesheet",
+            BackendArtifactDescriptorKind::TypeDeclarations => "typeDeclarations",
+            BackendArtifactDescriptorKind::PackageManifest => "packageManifest",
+            BackendArtifactDescriptorKind::PackageSettings => "packageSettings",
+            BackendArtifactDescriptorKind::PackageBuildScript => "packageBuildScript",
+            BackendArtifactDescriptorKind::PackageSource => "packageSource",
+            BackendArtifactDescriptorKind::PackageTest => "packageTest",
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct BackendArtifactDescriptor {
+    #[serde(rename = "backendId")]
+    pub backend_id: String,
+    pub kind: BackendArtifactDescriptorKind,
+    #[serde(flatten)]
+    pub entry: ManifestEntry,
+    #[serde(rename = "apiVersion", skip_serializing_if = "Option::is_none")]
+    pub api_version: Option<String>,
+}
+
+pub fn legacy_native_api_versions_from_backend_artifacts(
+    backend_artifacts: &[BackendArtifactDescriptor],
+) -> Option<NativeApiVersions> {
+    let mut native_versions = NativeApiVersions::default();
+    for artifact in backend_artifacts {
+        match artifact.backend_id.as_str() {
+            "swift" => {
+                native_versions.swift = artifact.api_version.clone();
+            }
+            "kotlin" => {
+                native_versions.kotlin = artifact.api_version.clone();
+            }
+            _ => {}
+        }
+    }
+
+    if native_versions.swift.is_none() && native_versions.kotlin.is_none() {
+        None
+    } else {
+        Some(native_versions)
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -531,6 +595,12 @@ pub struct CtcManifest {
     pub axes: BTreeMap<String, Vec<String>>,
 
     pub semantics: CtcSemantics,
+    #[serde(
+        rename = "backendArtifacts",
+        default,
+        skip_serializing_if = "Vec::is_empty"
+    )]
+    pub backend_artifacts: Vec<BackendArtifactDescriptor>,
     #[serde(rename = "nativeApiVersions", skip_serializing_if = "Option::is_none")]
     pub native_api_versions: Option<NativeApiVersions>,
     pub inputs: CtcInputs,
@@ -1029,6 +1099,7 @@ pub fn build_ctc_manifest(
     tokens_dts_path: Option<&Path>,
     authored_json_path: Option<&Path>,
     validation_txt_path: Option<&Path>,
+    backend_artifacts: Vec<BackendArtifactDescriptor>,
     summary: CtcSummary,
     witnesses_sha256: String,
 ) -> CtcManifest {
@@ -1068,18 +1139,21 @@ pub fn build_ctc_manifest(
         validation_txt: validation_txt_path
             .map(|p| hash_file_rel(p, manifest_dir).expect("hash validation.txt")),
     };
-    let mut native_versions = NativeApiVersions::default();
-    if tokens_swift_path.is_some() {
-        native_versions.swift = Some(crate::emit::SWIFT_EMITTER_API_VERSION.to_string());
-    }
-    if tokens_kotlin_path.is_some() {
-        native_versions.kotlin = Some(crate::emit::KOTLIN_EMITTER_API_VERSION.to_string());
-    }
-    let native_api_versions = if native_versions.swift.is_none() && native_versions.kotlin.is_none()
-    {
-        None
+    let native_api_versions = if backend_artifacts.is_empty() {
+        let mut native_versions = NativeApiVersions::default();
+        if tokens_swift_path.is_some() {
+            native_versions.swift = Some(crate::emit::SWIFT_EMITTER_API_VERSION.to_string());
+        }
+        if tokens_kotlin_path.is_some() {
+            native_versions.kotlin = Some(crate::emit::KOTLIN_EMITTER_API_VERSION.to_string());
+        }
+        if native_versions.swift.is_none() && native_versions.kotlin.is_none() {
+            None
+        } else {
+            Some(native_versions)
+        }
     } else {
-        Some(native_versions)
+        legacy_native_api_versions_from_backend_artifacts(&backend_artifacts)
     };
     let default_pack_id = default_pack_id(doc, resolver_path);
     let parsed_pack = parse_pack_identity_label(&default_pack_id);
@@ -1109,6 +1183,7 @@ pub fn build_ctc_manifest(
             conflict_mode,
             normalizer_version: normalizer_version_for_mode(conflict_mode),
         },
+        backend_artifacts,
         native_api_versions,
         inputs: CtcInputs {
             resolver_spec,

@@ -178,16 +178,14 @@ Recommended shape:
 
 ## Manifest and Metadata Direction
 
-The current manifest surface includes `nativeApiVersions`, which is useful but too special-case for long-term backend growth.
-
-Longer term, Paint should record backend output metadata generically:
+Paint now records backend output metadata generically in manifest/report `backendArtifacts` entries:
 
 - backend id
-- backend api version
-- emitted artifact kinds
-- optional package/scaffold metadata
+- backend artifact kind
+- relative file path plus hash/size binding
+- optional backend api version
 
-That should replace or subsume target-specific manifest special cases over time.
+`nativeApiVersions` remains as a compatibility projection for existing Swift/Kotlin consumers, but it should no longer be treated as the primary long-term contract.
 
 ## Crate Boundary Recommendation
 

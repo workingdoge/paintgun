@@ -33,6 +33,7 @@ fn dummy_manifest(name: &str, resolver_sha: &str) -> CtcManifest {
             conflict_mode: ConflictMode::Semantic,
             normalizer_version: None,
         },
+        backend_artifacts: Vec::new(),
         native_api_versions: None,
         inputs: CtcInputs {
             resolver_spec: ManifestEntry {

@@ -145,6 +145,7 @@ fn write_pack_fixture(
             conflict_mode: ConflictMode::Semantic,
             normalizer_version: None,
         },
+        backend_artifacts: Vec::new(),
         native_api_versions: None,
         inputs: CtcInputs {
             resolver_spec: ManifestEntry {
@@ -376,6 +377,7 @@ fn verify_compose_pack_profile_full_enforces_pack_admissibility_binding() {
             conflict_mode: ConflictMode::Semantic,
             normalizer_version: None,
         },
+        backend_artifacts: Vec::new(),
         native_api_versions: None,
         summary: ComposeSummary {
             packs: 1,
@@ -481,6 +483,7 @@ fn verify_compose_checks_pack_profile_binding_without_deep_pack_verify() {
             conflict_mode: ConflictMode::Semantic,
             normalizer_version: None,
         },
+        backend_artifacts: Vec::new(),
         native_api_versions: None,
         summary: ComposeSummary {
             packs: 1,

@@ -93,6 +93,12 @@ pub struct ComposeManifest {
     #[serde(default)]
     pub trust: crate::cert::TrustMetadata,
     pub semantics: crate::cert::CtcSemantics,
+    #[serde(
+        rename = "backendArtifacts",
+        default,
+        skip_serializing_if = "Vec::is_empty"
+    )]
+    pub backend_artifacts: Vec<crate::cert::BackendArtifactDescriptor>,
     #[serde(rename = "nativeApiVersions", skip_serializing_if = "Option::is_none")]
     pub native_api_versions: Option<crate::cert::NativeApiVersions>,
     pub summary: ComposeSummary,
@@ -619,6 +625,13 @@ fn build_compose_report_json_value(
         out.as_object_mut()
             .expect("compose report object")
             .insert("normalizerVersion".to_string(), serde_json::json!(version));
+    }
+    if !manifest.backend_artifacts.is_empty() {
+        out.as_object_mut().expect("compose report object").insert(
+            "backendArtifacts".to_string(),
+            serde_json::to_value(&manifest.backend_artifacts)
+                .expect("backend artifacts should serialize"),
+        );
     }
     out
 }
@@ -1241,6 +1254,7 @@ pub fn build_compose_manifest(
     axes: &BTreeMap<String, Vec<String>>,
     policy: &Policy,
     conflict_mode: ConflictMode,
+    backend_artifacts: Vec<crate::cert::BackendArtifactDescriptor>,
     native_api_versions: Option<crate::cert::NativeApiVersions>,
     witnesses_sha256: String,
     witnesses: &ComposeWitnesses,
@@ -1251,6 +1265,7 @@ pub fn build_compose_manifest(
         axes,
         policy,
         conflict_mode,
+        backend_artifacts,
         native_api_versions,
         witnesses_sha256,
         enumerate_partial_inputs(axes).len(),
@@ -1264,11 +1279,19 @@ pub fn build_compose_manifest_with_context_count(
     axes: &BTreeMap<String, Vec<String>>,
     policy: &Policy,
     conflict_mode: ConflictMode,
+    backend_artifacts: Vec<crate::cert::BackendArtifactDescriptor>,
     native_api_versions: Option<crate::cert::NativeApiVersions>,
     witnesses_sha256: String,
     context_count: usize,
     witnesses: &ComposeWitnesses,
 ) -> Result<ComposeManifest, String> {
+    let native_api_versions = if backend_artifacts.is_empty() {
+        native_api_versions
+    } else {
+        crate::cert::legacy_native_api_versions_from_backend_artifacts(&backend_artifacts)
+            .or(native_api_versions)
+    };
+
     let mut pack_entries: Vec<ComposePackEntry> = Vec::new();
     for p in packs {
         let ctc_manifest_path = p.dir.join("ctc.manifest.json");
@@ -1321,6 +1344,7 @@ pub fn build_compose_manifest_with_context_count(
             conflict_mode,
             normalizer_version: normalizer_version_for_mode(conflict_mode),
         },
+        backend_artifacts,
         native_api_versions,
         summary,
         witnesses_sha256,

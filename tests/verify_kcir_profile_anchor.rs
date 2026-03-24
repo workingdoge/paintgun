@@ -91,6 +91,7 @@ fn write_pack_with_profile_anchor(
             conflict_mode: ConflictMode::Semantic,
             normalizer_version: None,
         },
+        backend_artifacts: Vec::new(),
         native_api_versions: None,
         inputs: CtcInputs {
             resolver_spec: ManifestEntry {

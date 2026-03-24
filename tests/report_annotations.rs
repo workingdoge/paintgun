@@ -37,6 +37,7 @@ fn dummy_manifest(name: &str) -> CtcManifest {
             conflict_mode: ConflictMode::Semantic,
             normalizer_version: None,
         },
+        backend_artifacts: Vec::new(),
         native_api_versions: None,
         inputs: CtcInputs {
             resolver_spec: ManifestEntry {
@@ -143,6 +144,7 @@ fn compose_report_maps_to_github_annotations() {
             conflict_mode: ConflictMode::Semantic,
             normalizer_version: None,
         },
+        backend_artifacts: Vec::new(),
         native_api_versions: None,
         summary: ComposeSummary {
             packs: 2,

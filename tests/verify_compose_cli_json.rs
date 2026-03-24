@@ -219,6 +219,7 @@ fn verify_compose_format_json_emits_error_details() {
             conflict_mode: ConflictMode::Semantic,
             normalizer_version: None,
         },
+        backend_artifacts: Vec::new(),
         native_api_versions: None,
         summary: ComposeSummary {
             packs: 1,

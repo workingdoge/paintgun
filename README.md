@@ -83,7 +83,8 @@ Outputs:
   - Witness lists are canonically ordered for deterministic diffs/CI runs.
 - `dist/ctc.manifest.json` — binds inputs/outputs/semantics to the witnesses hash
   - Includes `packIdentity` (`packId`, `packVersion`, `contentHash`) pinned to resolved content.
-  - Includes optional `nativeApiVersions` (e.g. Swift/Kotlin emitter API versions) when native targets are emitted.
+  - Includes `backendArtifacts` entries for emitted backend files, with backend id, artifact kind, hash/size, and optional API version.
+  - Preserves optional `nativeApiVersions` as a compatibility projection for Swift/Kotlin outputs.
 - `dist/validation.json` — machine-readable diagnostics when `--format json` (schema: `schemas/report.schema.json`)
 - `dist/manifest.json` — SHA-256 hashes of referenced token files (legacy, optional)
 - `dist/inputs/` — staged resolver + referenced token documents copied into a self-contained verification bundle
@@ -360,7 +361,8 @@ Outputs:
   - Conflict witnesses and source lists are canonically ordered for deterministic diffs/CI runs.
 - `dist-compose/compose.manifest.json` — meta-certificate binding packs + semantics to witnesses
   - Each compose pack entry includes pinned `packIdentity`.
-  - Includes optional `nativeApiVersions` when composing native targets.
+  - Includes `backendArtifacts` entries for emitted backend files, with backend id, artifact kind, hash/size, and optional API version.
+  - Preserves optional `nativeApiVersions` as a compatibility projection for Swift/Kotlin outputs.
 - `dist-compose/compose.report.txt` — human readable summary
 - `dist-compose/compose.report.json` — machine-readable diagnostics when `--format json` (schema: `schemas/report.schema.json`)
 

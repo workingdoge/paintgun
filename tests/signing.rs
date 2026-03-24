@@ -89,6 +89,7 @@ fn write_ctc_fixture(root: &PathBuf) -> PathBuf {
             conflict_mode: ConflictMode::Semantic,
             normalizer_version: None,
         },
+        backend_artifacts: Vec::new(),
         native_api_versions: None,
         inputs: CtcInputs {
             resolver_spec: ManifestEntry {
@@ -159,6 +160,7 @@ fn write_compose_fixture(root: &PathBuf) -> PathBuf {
             conflict_mode: ConflictMode::Semantic,
             normalizer_version: None,
         },
+        backend_artifacts: Vec::new(),
         native_api_versions: None,
         summary: ComposeSummary {
             packs: 0,
@@ -226,6 +228,7 @@ fn write_compose_fixture_with_pack(root: &PathBuf, pack_dir: &Path) -> PathBuf {
             conflict_mode: ConflictMode::Semantic,
             normalizer_version: None,
         },
+        backend_artifacts: Vec::new(),
         native_api_versions: None,
         summary: ComposeSummary {
             packs: 1,

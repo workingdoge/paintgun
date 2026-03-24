@@ -3,7 +3,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use paintgun::cert::{build_ctc_manifest, ConflictMode, CtcSummary, NativeApiVersions};
+use paintgun::cert::{
+    build_ctc_manifest, BackendArtifactDescriptor, BackendArtifactDescriptorKind, ConflictMode,
+    CtcSummary, ManifestEntry, NativeApiVersions,
+};
 use paintgun::compose::{build_compose_manifest, ComposeWitnesses};
 use paintgun::emit::{KOTLIN_EMITTER_API_VERSION, SWIFT_EMITTER_API_VERSION};
 use paintgun::policy::{policy_digest, Policy};
@@ -51,8 +54,36 @@ fn empty_summary() -> CtcSummary {
     }
 }
 
+fn manifest_entry(path: &Path) -> ManifestEntry {
+    let bytes = fs::read(path).expect("read artifact");
+    let file = path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .expect("artifact file name")
+        .to_string();
+    ManifestEntry {
+        file,
+        sha256: format!("sha256:{}", paintgun::util::sha256_hex(&bytes)),
+        size: bytes.len() as u64,
+    }
+}
+
+fn backend_artifact(
+    backend_id: &str,
+    kind: BackendArtifactDescriptorKind,
+    path: &Path,
+    api_version: Option<&str>,
+) -> BackendArtifactDescriptor {
+    BackendArtifactDescriptor {
+        backend_id: backend_id.to_string(),
+        kind,
+        entry: manifest_entry(path),
+        api_version: api_version.map(str::to_string),
+    }
+}
+
 #[test]
-fn ctc_manifest_carries_swift_native_api_version() {
+fn ctc_manifest_carries_backend_artifacts_and_swift_native_api_version() {
     let out = temp_dir("ctc-native-swift");
     let resolver_path = out.join("resolver.json");
     let resolved_path = out.join("resolved.json");
@@ -61,6 +92,20 @@ fn ctc_manifest_carries_swift_native_api_version() {
     fs::write(&resolver_path, "{}").expect("write resolver");
     fs::write(&resolved_path, "{}").expect("write resolved");
     fs::write(&swift_path, "// swift").expect("write swift");
+    let backend_artifacts = vec![
+        backend_artifact(
+            "swift",
+            BackendArtifactDescriptorKind::PrimaryTokenOutput,
+            &swift_path,
+            Some(SWIFT_EMITTER_API_VERSION),
+        ),
+        backend_artifact(
+            "swift",
+            BackendArtifactDescriptorKind::PackageSource,
+            &swift_path,
+            Some(SWIFT_EMITTER_API_VERSION),
+        ),
+    ];
 
     let manifest = build_ctc_manifest(
         &empty_doc(),
@@ -75,10 +120,12 @@ fn ctc_manifest_carries_swift_native_api_version() {
         None,
         None,
         None,
+        backend_artifacts.clone(),
         empty_summary(),
         "sha256:witnesses".to_string(),
     );
 
+    assert_eq!(manifest.backend_artifacts, backend_artifacts);
     let native = manifest
         .native_api_versions
         .expect("expected nativeApiVersions for swift output");
@@ -87,7 +134,7 @@ fn ctc_manifest_carries_swift_native_api_version() {
 }
 
 #[test]
-fn ctc_manifest_carries_kotlin_native_api_version() {
+fn ctc_manifest_carries_backend_artifacts_and_kotlin_native_api_version() {
     let out = temp_dir("ctc-native-kotlin");
     let resolver_path = out.join("resolver.json");
     let resolved_path = out.join("resolved.json");
@@ -96,6 +143,20 @@ fn ctc_manifest_carries_kotlin_native_api_version() {
     fs::write(&resolver_path, "{}").expect("write resolver");
     fs::write(&resolved_path, "{}").expect("write resolved");
     fs::write(&kotlin_path, "// kotlin").expect("write kotlin");
+    let backend_artifacts = vec![
+        backend_artifact(
+            "kotlin",
+            BackendArtifactDescriptorKind::PrimaryTokenOutput,
+            &kotlin_path,
+            Some(KOTLIN_EMITTER_API_VERSION),
+        ),
+        backend_artifact(
+            "kotlin",
+            BackendArtifactDescriptorKind::PackageSource,
+            &kotlin_path,
+            Some(KOTLIN_EMITTER_API_VERSION),
+        ),
+    ];
 
     let manifest = build_ctc_manifest(
         &empty_doc(),
@@ -110,10 +171,12 @@ fn ctc_manifest_carries_kotlin_native_api_version() {
         None,
         None,
         None,
+        backend_artifacts.clone(),
         empty_summary(),
         "sha256:witnesses".to_string(),
     );
 
+    assert_eq!(manifest.backend_artifacts, backend_artifacts);
     let native = manifest
         .native_api_versions
         .expect("expected nativeApiVersions for kotlin output");
@@ -122,7 +185,7 @@ fn ctc_manifest_carries_kotlin_native_api_version() {
 }
 
 #[test]
-fn compose_manifest_preserves_native_api_versions() {
+fn compose_manifest_preserves_backend_artifacts_and_native_api_versions() {
     let policy = Policy::default();
     let witnesses = ComposeWitnesses {
         witness_schema: 1,
@@ -135,19 +198,30 @@ fn compose_manifest_preserves_native_api_versions() {
         swift: Some(SWIFT_EMITTER_API_VERSION.to_string()),
         kotlin: None,
     });
+    let out = temp_dir("compose-native-swift");
+    let swift_path = out.join("tokens.swift");
+    fs::write(&swift_path, "// swift").expect("write swift");
+    let backend_artifacts = vec![backend_artifact(
+        "swift",
+        BackendArtifactDescriptorKind::PrimaryTokenOutput,
+        &swift_path,
+        Some(SWIFT_EMITTER_API_VERSION),
+    )];
 
     let manifest = build_compose_manifest(
         &[],
-        Path::new(env!("CARGO_MANIFEST_DIR")),
+        &out,
         &BTreeMap::new(),
         &policy,
         ConflictMode::Semantic,
+        backend_artifacts.clone(),
         native_versions,
         "sha256:w".to_string(),
         &witnesses,
     )
     .expect("compose manifest");
 
+    assert_eq!(manifest.backend_artifacts, backend_artifacts);
     let native = manifest
         .native_api_versions
         .expect("expected nativeApiVersions on compose manifest");

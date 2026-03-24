@@ -115,6 +115,7 @@ fn verify_ctc_rejects_unsafe_manifest_entry_paths() {
             conflict_mode: ConflictMode::Semantic,
             normalizer_version: None,
         },
+        backend_artifacts: Vec::new(),
         native_api_versions: None,
         inputs: CtcInputs {
             resolver_spec: ManifestEntry {
@@ -239,6 +240,7 @@ fn verify_compose_rejects_unsafe_pack_dirs() {
             conflict_mode: ConflictMode::Semantic,
             normalizer_version: None,
         },
+        backend_artifacts: Vec::new(),
         native_api_versions: None,
         summary: ComposeSummary {
             packs: 1,

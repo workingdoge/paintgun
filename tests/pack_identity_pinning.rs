@@ -66,6 +66,7 @@ fn verify_enforces_pinned_pack_identity_content_hash() {
         None,
         None,
         Some(&validation_path),
+        Vec::new(),
         analysis.summary.clone(),
         witnesses_sha,
     );

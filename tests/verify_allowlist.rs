@@ -58,6 +58,7 @@ fn build_charter_pack(out: &Path) -> (PathBuf, PathBuf, paintgun::cert::CtcAnaly
         None,
         None,
         Some(&validation_path),
+        Vec::new(),
         analysis.summary.clone(),
         witnesses_sha256,
     );

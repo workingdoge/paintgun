@@ -28,6 +28,26 @@ fn report_schema() -> JSONSchema {
         .expect("compile report schema")
 }
 
+fn backend_artifacts_json() -> Value {
+    serde_json::json!([
+        {
+            "backendId": "css",
+            "kind": "tokenStylesheet",
+            "file": "tokens.vars.css",
+            "sha256": "sha256:dummy-css",
+            "size": 42
+        },
+        {
+            "backendId": "swift",
+            "kind": "primaryTokenOutput",
+            "file": "Tokens.swift",
+            "sha256": "sha256:dummy-swift",
+            "size": 84,
+            "apiVersion": "paintgun-swift-v1"
+        }
+    ])
+}
+
 #[test]
 fn pack_report_matches_schema() {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -36,7 +56,11 @@ fn pack_report_matches_schema() {
     let doc: ResolverDoc = read_json_file(&resolver_path).expect("resolver doc");
     let store = build_token_store(&doc, &resolver_path).expect("token store");
     let analysis = analyze_composability(&doc, &store, &resolver_path).expect("analysis");
-    let report = build_validation_report_json(&analysis);
+    let mut report = build_validation_report_json(&analysis);
+    report
+        .as_object_mut()
+        .expect("report object")
+        .insert("backendArtifacts".to_string(), backend_artifacts_json());
 
     report_schema().validate(&report).unwrap_or_else(|errs| {
         panic!(
@@ -69,6 +93,7 @@ fn dummy_manifest(name: &str) -> CtcManifest {
             conflict_mode: ConflictMode::Semantic,
             normalizer_version: None,
         },
+        backend_artifacts: Vec::new(),
         native_api_versions: None,
         inputs: CtcInputs {
             resolver_spec: ManifestEntry {
@@ -152,6 +177,28 @@ fn compose_report_matches_schema() {
             conflict_mode: ConflictMode::Semantic,
             normalizer_version: None,
         },
+        backend_artifacts: vec![
+            paintgun::cert::BackendArtifactDescriptor {
+                backend_id: "css".to_string(),
+                kind: paintgun::cert::BackendArtifactDescriptorKind::TokenStylesheet,
+                entry: ManifestEntry {
+                    file: "tokens.vars.css".to_string(),
+                    sha256: "sha256:dummy-css".to_string(),
+                    size: 42,
+                },
+                api_version: None,
+            },
+            paintgun::cert::BackendArtifactDescriptor {
+                backend_id: "swift".to_string(),
+                kind: paintgun::cert::BackendArtifactDescriptorKind::PrimaryTokenOutput,
+                entry: ManifestEntry {
+                    file: "Tokens.swift".to_string(),
+                    sha256: "sha256:dummy-swift".to_string(),
+                    size: 84,
+                },
+                api_version: Some("paintgun-swift-v1".to_string()),
+            },
+        ],
         native_api_versions: None,
         summary: ComposeSummary {
             packs: 2,

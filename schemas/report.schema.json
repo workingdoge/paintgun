@@ -47,11 +47,41 @@
       "type": "array",
       "items": { "$ref": "#/definitions/finding" }
     },
+    "backendArtifacts": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/backendArtifact" }
+    },
     "plannerTrace": {
       "$ref": "#/definitions/plannerTrace"
     }
   },
   "definitions": {
+    "backendArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["backendId", "kind", "file", "sha256", "size"],
+      "properties": {
+        "backendId": { "type": "string" },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "primaryTokenOutput",
+            "tokenStylesheet",
+            "systemStylesheet",
+            "typeDeclarations",
+            "packageManifest",
+            "packageSettings",
+            "packageBuildScript",
+            "packageSource",
+            "packageTest"
+          ]
+        },
+        "file": { "type": "string" },
+        "sha256": { "type": "string" },
+        "size": { "type": "integer", "minimum": 0 },
+        "apiVersion": { "type": "string" }
+      }
+    },
     "finding": {
       "type": "object",
       "additionalProperties": false,
