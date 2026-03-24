@@ -133,7 +133,7 @@ enum Command {
         #[arg(short, long, default_value = "dist")]
         out: PathBuf,
 
-        /// Target backend (built-ins: css | swift | kotlin)
+        /// Target backend (built-ins: css | swift | android-compose-tokens; alias: kotlin)
         #[arg(long, default_value = "css")]
         target: String,
 
@@ -306,7 +306,7 @@ enum Command {
         #[arg(short, long, default_value = "dist-compose")]
         out: PathBuf,
 
-        /// Target backend (built-ins: css | swift | kotlin)
+        /// Target backend (built-ins: css | swift | android-compose-tokens; alias: kotlin)
         #[arg(long, default_value = "css")]
         target: String,
 
@@ -611,7 +611,7 @@ fn native_versions_for_backend(backend: &dyn TargetBackend) -> Option<NativeApiV
             swift: backend.spec().api_version.map(str::to_string),
             kotlin: None,
         }),
-        LegacyTargetSlot::Kotlin => Some(NativeApiVersions {
+        LegacyTargetSlot::AndroidCompose => Some(NativeApiVersions {
             swift: None,
             kotlin: backend.spec().api_version.map(str::to_string),
         }),
@@ -989,7 +989,7 @@ fn run_build(
         LegacyTargetSlot::Swift => {
             tokens_swift_path = Some(primary_emission_path(&out, &emission)?);
         }
-        LegacyTargetSlot::Kotlin => {
+        LegacyTargetSlot::AndroidCompose => {
             tokens_kotlin_path = Some(primary_emission_path(&out, &emission)?);
         }
     }

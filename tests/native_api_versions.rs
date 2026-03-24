@@ -4,11 +4,12 @@ use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use paintgun::cert::{
-    build_ctc_manifest, BackendArtifactDescriptor, BackendArtifactDescriptorKind, ConflictMode,
-    CtcSummary, ManifestEntry, NativeApiVersions,
+    build_ctc_manifest, legacy_native_api_versions_from_backend_artifacts,
+    BackendArtifactDescriptor, BackendArtifactDescriptorKind, ConflictMode, CtcSummary,
+    ManifestEntry, NativeApiVersions,
 };
 use paintgun::compose::{build_compose_manifest, ComposeWitnesses};
-use paintgun::emit::{KOTLIN_EMITTER_API_VERSION, SWIFT_EMITTER_API_VERSION};
+use paintgun::emit::{ANDROID_COMPOSE_EMITTER_API_VERSION, SWIFT_EMITTER_API_VERSION};
 use paintgun::policy::{policy_digest, Policy};
 use paintgun::resolver::{ResolverDoc, TokenStore};
 
@@ -134,27 +135,27 @@ fn ctc_manifest_carries_backend_artifacts_and_swift_native_api_version() {
 }
 
 #[test]
-fn ctc_manifest_carries_backend_artifacts_and_kotlin_native_api_version() {
-    let out = temp_dir("ctc-native-kotlin");
+fn ctc_manifest_carries_backend_artifacts_and_android_native_api_version() {
+    let out = temp_dir("ctc-native-android");
     let resolver_path = out.join("resolver.json");
     let resolved_path = out.join("resolved.json");
-    let kotlin_path = out.join("tokens.kt");
+    let android_path = out.join("tokens.kt");
 
     fs::write(&resolver_path, "{}").expect("write resolver");
     fs::write(&resolved_path, "{}").expect("write resolved");
-    fs::write(&kotlin_path, "// kotlin").expect("write kotlin");
+    fs::write(&android_path, "// android").expect("write android source");
     let backend_artifacts = vec![
         backend_artifact(
-            "kotlin",
+            "android-compose-tokens",
             BackendArtifactDescriptorKind::PrimaryTokenOutput,
-            &kotlin_path,
-            Some(KOTLIN_EMITTER_API_VERSION),
+            &android_path,
+            Some(ANDROID_COMPOSE_EMITTER_API_VERSION),
         ),
         backend_artifact(
-            "kotlin",
+            "android-compose-tokens",
             BackendArtifactDescriptorKind::PackageSource,
-            &kotlin_path,
-            Some(KOTLIN_EMITTER_API_VERSION),
+            &android_path,
+            Some(ANDROID_COMPOSE_EMITTER_API_VERSION),
         ),
     ];
 
@@ -167,7 +168,7 @@ fn ctc_manifest_carries_backend_artifacts_and_kotlin_native_api_version() {
         &resolved_path,
         None,
         None,
-        Some(&kotlin_path),
+        Some(&android_path),
         None,
         None,
         None,
@@ -179,9 +180,34 @@ fn ctc_manifest_carries_backend_artifacts_and_kotlin_native_api_version() {
     assert_eq!(manifest.backend_artifacts, backend_artifacts);
     let native = manifest
         .native_api_versions
-        .expect("expected nativeApiVersions for kotlin output");
+        .expect("expected nativeApiVersions for android output");
     assert_eq!(native.swift, None);
-    assert_eq!(native.kotlin.as_deref(), Some(KOTLIN_EMITTER_API_VERSION));
+    assert_eq!(
+        native.kotlin.as_deref(),
+        Some(ANDROID_COMPOSE_EMITTER_API_VERSION)
+    );
+}
+
+#[test]
+fn legacy_kotlin_backend_id_still_projects_native_api_versions() {
+    let out = temp_dir("legacy-kotlin-backend-artifacts");
+    let kotlin_path = out.join("tokens.kt");
+    fs::write(&kotlin_path, "// legacy kotlin").expect("write legacy kotlin source");
+
+    let legacy_artifacts = vec![backend_artifact(
+        "kotlin",
+        BackendArtifactDescriptorKind::PrimaryTokenOutput,
+        &kotlin_path,
+        Some(ANDROID_COMPOSE_EMITTER_API_VERSION),
+    )];
+
+    let native = legacy_native_api_versions_from_backend_artifacts(&legacy_artifacts)
+        .expect("expected nativeApiVersions from legacy kotlin backend id");
+    assert_eq!(native.swift, None);
+    assert_eq!(
+        native.kotlin.as_deref(),
+        Some(ANDROID_COMPOSE_EMITTER_API_VERSION)
+    );
 }
 
 #[test]

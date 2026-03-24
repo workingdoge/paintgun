@@ -6,7 +6,7 @@ use paintgun::backend::{
     resolve_target_backend, supported_target_names, BackendArtifactKind, BackendRequest,
     BackendScope, BackendSource, LegacyTargetSlot,
 };
-use paintgun::emit::{Contract, KOTLIN_EMITTER_API_VERSION, SWIFT_EMITTER_API_VERSION};
+use paintgun::emit::{Contract, ANDROID_COMPOSE_EMITTER_API_VERSION, SWIFT_EMITTER_API_VERSION};
 use paintgun::policy::Policy;
 use paintgun::resolver::{
     axes_from_doc, build_token_store_for_inputs, read_json_file, ResolverDoc,
@@ -55,7 +55,10 @@ fn example_doc() -> ResolverDoc {
 
 #[test]
 fn registry_exposes_builtin_backend_specs() {
-    assert_eq!(supported_target_names(), vec!["css", "kotlin", "swift"]);
+    assert_eq!(
+        supported_target_names(),
+        vec!["android-compose-tokens", "css", "kotlin", "swift"]
+    );
 
     let css = resolve_target_backend("css").expect("css backend");
     assert_eq!(css.spec().legacy_slot, LegacyTargetSlot::Css);
@@ -67,10 +70,20 @@ fn registry_exposes_builtin_backend_specs() {
     assert_eq!(swift.spec().api_version, Some(SWIFT_EMITTER_API_VERSION));
     assert!(swift.spec().capabilities.emits_package_scaffold);
 
-    let kotlin = resolve_target_backend("kotlin").expect("kotlin backend");
-    assert_eq!(kotlin.spec().legacy_slot, LegacyTargetSlot::Kotlin);
-    assert_eq!(kotlin.spec().api_version, Some(KOTLIN_EMITTER_API_VERSION));
-    assert!(kotlin.spec().capabilities.emits_package_scaffold);
+    let android = resolve_target_backend("android-compose-tokens").expect("android backend");
+    assert_eq!(android.spec().legacy_slot, LegacyTargetSlot::AndroidCompose);
+    assert_eq!(
+        android.spec().api_version,
+        Some(ANDROID_COMPOSE_EMITTER_API_VERSION)
+    );
+    assert!(android.spec().capabilities.emits_package_scaffold);
+
+    let kotlin_alias = resolve_target_backend("kotlin").expect("kotlin alias backend");
+    assert_eq!(kotlin_alias.spec().id, "android-compose-tokens");
+    assert_eq!(
+        kotlin_alias.spec().api_version,
+        Some(ANDROID_COMPOSE_EMITTER_API_VERSION)
+    );
 }
 
 #[test]
@@ -152,9 +165,9 @@ fn native_backends_emit_primary_output_and_scaffold_artifacts() {
             BackendArtifactKind::PackageManifest,
         ),
         (
-            "kotlin",
+            "android-compose-tokens",
             "tokens.kt",
-            Some(KOTLIN_EMITTER_API_VERSION),
+            Some(ANDROID_COMPOSE_EMITTER_API_VERSION),
             BackendArtifactKind::PackageBuildScript,
         ),
     ] {
@@ -179,6 +192,7 @@ fn native_backends_emit_primary_output_and_scaffold_artifacts() {
         assert_eq!(primary.kind, BackendArtifactKind::PrimaryTokenOutput);
         assert_eq!(primary.relative_path, PathBuf::from(primary_path));
         assert_eq!(primary.api_version, expected_api);
+        assert_eq!(emission.backend_id, backend.spec().id);
         assert!(out.join(&primary.relative_path).is_file());
 
         let scaffold = emission.artifact(manifest_kind).expect("scaffold artifact");

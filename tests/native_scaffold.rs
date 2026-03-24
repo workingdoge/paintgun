@@ -4,7 +4,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use paintgun::emit::{
     emit_kotlin_module_scaffold, emit_store_kotlin, emit_store_swift, emit_swift_package_scaffold,
-    KOTLIN_EMITTER_API_VERSION, SWIFT_EMITTER_API_VERSION,
+    ANDROID_COMPOSE_EMITTER_API_VERSION, SWIFT_EMITTER_API_VERSION,
 };
 use paintgun::policy::Policy;
 use paintgun::resolver::{build_token_store, read_json_file, ResolverDoc};
@@ -68,43 +68,48 @@ fn swift_package_scaffold_is_emitted() {
 }
 
 #[test]
-fn kotlin_module_scaffold_is_emitted() {
+fn android_compose_module_scaffold_is_emitted() {
     let (_resolver_path, store) = example_store();
     let policy = Policy::default();
     let kotlin_source = emit_store_kotlin(&store, &policy);
-    let out = temp_dir("kotlin-scaffold");
+    let out = temp_dir("android-scaffold");
 
-    emit_kotlin_module_scaffold(&out, &kotlin_source).expect("emit kotlin scaffold");
+    emit_kotlin_module_scaffold(&out, &kotlin_source).expect("emit android scaffold");
 
-    let settings = out.join("kotlin/settings.gradle.kts");
-    let build = out.join("kotlin/build.gradle.kts");
-    let source = out.join("kotlin/src/main/kotlin/paintgun/PaintgunTokens.kt");
-    let test = out.join("kotlin/src/test/kotlin/paintgun/PaintgunTokensSmokeTest.kt");
+    let settings = out.join("android/settings.gradle.kts");
+    let build = out.join("android/build.gradle.kts");
+    let source = out.join("android/src/main/kotlin/paintgun/PaintgunTokens.kt");
+    let test = out.join("android/src/test/kotlin/paintgun/PaintgunTokensSmokeTest.kt");
     assert_exists(&settings);
     assert_exists(&build);
     assert_exists(&source);
     assert_exists(&test);
 
+    let settings_content = fs::read_to_string(settings).expect("read settings.gradle.kts");
+    assert!(
+        settings_content.contains("paintgun-android-compose-tokens"),
+        "android settings should use the platform-facing module name"
+    );
     let build_content = fs::read_to_string(build).expect("read build.gradle.kts");
     assert!(
         build_content.contains("kotlin(\"jvm\")"),
-        "kotlin module should declare jvm plugin"
+        "android module should declare jvm plugin"
     );
     let source_content = fs::read_to_string(source).expect("read kotlin source");
     assert!(
         source_content.contains("object PaintgunTokens"),
-        "kotlin source should include PaintgunTokens object"
+        "android source should include PaintgunTokens object"
     );
     assert!(
         source_content.contains(".toDouble()"),
-        "kotlin source should emit numeric values as Double expressions"
+        "android source should emit numeric values as Double expressions"
     );
     assert!(
         source_content.contains("PAINTGUN_EMITTER_API_VERSION"),
-        "kotlin source should include native API version marker"
+        "android source should include native API version marker"
     );
     assert!(
-        source_content.contains(KOTLIN_EMITTER_API_VERSION),
-        "kotlin source should carry expected API version"
+        source_content.contains(ANDROID_COMPOSE_EMITTER_API_VERSION),
+        "android source should carry expected API version"
     );
 }

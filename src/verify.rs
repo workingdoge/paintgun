@@ -493,7 +493,7 @@ pub fn verify_ctc_with_options(
     check_out("tokens.css", &manifest.outputs.tokens_css, &mut report);
     check_out("tokens.swift", &manifest.outputs.tokens_swift, &mut report);
     check_out(
-        "tokens.kotlin",
+        "tokens.android-compose",
         &manifest.outputs.tokens_kotlin,
         &mut report,
     );

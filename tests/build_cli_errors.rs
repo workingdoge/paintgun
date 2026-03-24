@@ -140,8 +140,52 @@ fn build_unknown_target_fails_via_registry_without_panic() {
     assert!(!output.status.success(), "expected build to fail");
     let stderr = String::from_utf8(output.stderr).expect("stderr utf8");
     assert!(stderr.contains("unknown --target wat"));
+    assert!(stderr.contains("android-compose-tokens"));
     assert!(stderr.contains("css"));
     assert!(stderr.contains("swift"));
     assert!(stderr.contains("kotlin"));
     assert_nonpanic_failure(&stderr);
+}
+
+#[test]
+fn build_kotlin_alias_emits_android_backend_identity() {
+    let root = temp_dir("build-kotlin-alias");
+    let out = root.join("dist");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_paint"))
+        .arg("build")
+        .arg(example_resolver())
+        .arg("--target")
+        .arg("kotlin")
+        .arg("--out")
+        .arg(&out)
+        .output()
+        .expect("run paint build");
+
+    assert!(
+        output.status.success(),
+        "expected alias build to succeed\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let manifest_path = out.join("ctc.manifest.json");
+    let manifest_bytes = fs::read(&manifest_path).expect("read ctc.manifest.json");
+    let manifest: serde_json::Value =
+        serde_json::from_slice(&manifest_bytes).expect("parse ctc.manifest.json");
+
+    let backend_artifacts = manifest["backendArtifacts"]
+        .as_array()
+        .expect("backendArtifacts array");
+    assert!(
+        backend_artifacts
+            .iter()
+            .all(|artifact| artifact["backendId"] == "android-compose-tokens"),
+        "expected canonical android backend ids in manifest, got:\n{}",
+        serde_json::to_string_pretty(&manifest).expect("serialize manifest for debug")
+    );
+    assert!(
+        out.join("android/build.gradle.kts").is_file(),
+        "expected Android scaffold under canonical android/ path"
+    );
 }

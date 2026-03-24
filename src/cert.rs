@@ -493,7 +493,7 @@ pub fn legacy_native_api_versions_from_backend_artifacts(
             "swift" => {
                 native_versions.swift = artifact.api_version.clone();
             }
-            "kotlin" => {
+            "android-compose-tokens" | "kotlin" => {
                 native_versions.kotlin = artifact.api_version.clone();
             }
             _ => {}
@@ -1145,7 +1145,8 @@ pub fn build_ctc_manifest(
             native_versions.swift = Some(crate::emit::SWIFT_EMITTER_API_VERSION.to_string());
         }
         if tokens_kotlin_path.is_some() {
-            native_versions.kotlin = Some(crate::emit::KOTLIN_EMITTER_API_VERSION.to_string());
+            native_versions.kotlin =
+                Some(crate::emit::ANDROID_COMPOSE_EMITTER_API_VERSION.to_string());
         }
         if native_versions.swift.is_none() && native_versions.kotlin.is_none() {
             None

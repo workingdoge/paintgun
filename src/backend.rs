@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use crate::emit::{
     emit_kotlin_module_scaffold, emit_store_kotlin, emit_store_swift, emit_swift_package_scaffold,
-    Contract, KOTLIN_EMITTER_API_VERSION, SWIFT_EMITTER_API_VERSION,
+    Contract, ANDROID_COMPOSE_EMITTER_API_VERSION, SWIFT_EMITTER_API_VERSION,
 };
 use crate::policy::Policy;
 use crate::resolver::{Input, ResolverDoc, TokenStore};
@@ -31,7 +31,7 @@ pub struct BackendCapabilities {
 pub enum LegacyTargetSlot {
     Css,
     Swift,
-    Kotlin,
+    AndroidCompose,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -121,14 +121,14 @@ pub trait TargetBackend {
 
 struct CssBackend;
 struct SwiftBackend;
-struct KotlinBackend;
+struct AndroidComposeBackend;
 
 static CSS_BACKEND: CssBackend = CssBackend;
 static SWIFT_BACKEND: SwiftBackend = SwiftBackend;
-static KOTLIN_BACKEND: KotlinBackend = KotlinBackend;
+static ANDROID_COMPOSE_BACKEND: AndroidComposeBackend = AndroidComposeBackend;
 
 fn builtin_backends() -> [&'static dyn TargetBackend; 3] {
-    [&CSS_BACKEND, &SWIFT_BACKEND, &KOTLIN_BACKEND]
+    [&CSS_BACKEND, &SWIFT_BACKEND, &ANDROID_COMPOSE_BACKEND]
 }
 
 pub fn resolve_target_backend(target: &str) -> Option<&'static dyn TargetBackend> {
@@ -294,18 +294,18 @@ impl TargetBackend for SwiftBackend {
     }
 }
 
-impl TargetBackend for KotlinBackend {
+impl TargetBackend for AndroidComposeBackend {
     fn spec(&self) -> BackendSpec {
         BackendSpec {
-            id: "kotlin",
-            aliases: &[],
-            api_version: Some(KOTLIN_EMITTER_API_VERSION),
+            id: "android-compose-tokens",
+            aliases: &["kotlin"],
+            api_version: Some(ANDROID_COMPOSE_EMITTER_API_VERSION),
             capabilities: BackendCapabilities {
                 requires_contracts: false,
                 emits_package_scaffold: true,
                 scope: BackendScope::TokenBackend,
             },
-            legacy_slot: LegacyTargetSlot::Kotlin,
+            legacy_slot: LegacyTargetSlot::AndroidCompose,
         }
     }
 
@@ -321,7 +321,7 @@ impl TargetBackend for KotlinBackend {
         let source_path = request.out_dir.join("tokens.kt");
         write_bytes(&source_path, kotlin.as_bytes())?;
         emit_kotlin_module_scaffold(request.out_dir, &kotlin).map_err(|e| {
-            BackendError::new(format!("failed to write kotlin module scaffold: {e}"))
+            BackendError::new(format!("failed to write android module scaffold: {e}"))
         })?;
 
         Ok(BackendEmission {
@@ -334,25 +334,25 @@ impl TargetBackend for KotlinBackend {
                 },
                 BackendArtifact {
                     kind: BackendArtifactKind::PackageSettings,
-                    relative_path: PathBuf::from("kotlin/settings.gradle.kts"),
+                    relative_path: PathBuf::from("android/settings.gradle.kts"),
                     api_version: None,
                 },
                 BackendArtifact {
                     kind: BackendArtifactKind::PackageBuildScript,
-                    relative_path: PathBuf::from("kotlin/build.gradle.kts"),
+                    relative_path: PathBuf::from("android/build.gradle.kts"),
                     api_version: None,
                 },
                 BackendArtifact {
                     kind: BackendArtifactKind::PackageSource,
                     relative_path: PathBuf::from(
-                        "kotlin/src/main/kotlin/paintgun/PaintgunTokens.kt",
+                        "android/src/main/kotlin/paintgun/PaintgunTokens.kt",
                     ),
                     api_version: self.spec().api_version,
                 },
                 BackendArtifact {
                     kind: BackendArtifactKind::PackageTest,
                     relative_path: PathBuf::from(
-                        "kotlin/src/test/kotlin/paintgun/PaintgunTokensSmokeTest.kt",
+                        "android/src/test/kotlin/paintgun/PaintgunTokensSmokeTest.kt",
                     ),
                     api_version: None,
                 },
