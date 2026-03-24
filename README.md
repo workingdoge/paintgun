@@ -68,7 +68,10 @@ The target-backend and system-package architecture is documented in [`docs/targe
 
 Outputs:
 
-- `dist/tokens.css` — emitted CSS
+- `dist/tokens.css` — compatibility CSS bundle for `--target css` (raw token vars + component-package stylesheet)
+- `dist/tokens.vars.css` — raw CSS custom-property token backend output for the CSS compatibility target
+- `dist/components.css` — component-contract stylesheet that references Paintgun CSS custom properties
+- `dist/tokens.d.ts` — component-contract TypeScript declarations for the CSS compatibility target
 - `dist/tokens.swift` — emitted Swift token map (when `--target swift`)
 - `dist/tokens.kt` — emitted Kotlin token map (when `--target kotlin`)
   - Native API markers are embedded as `PaintgunEmitterAPI.swiftVersion` (Swift) and `PAINTGUN_EMITTER_API_VERSION` (Kotlin).

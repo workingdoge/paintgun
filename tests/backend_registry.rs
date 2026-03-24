@@ -60,7 +60,7 @@ fn registry_exposes_builtin_backend_specs() {
     let css = resolve_target_backend("css").expect("css backend");
     assert_eq!(css.spec().legacy_slot, LegacyTargetSlot::Css);
     assert!(css.spec().capabilities.requires_contracts);
-    assert_eq!(css.spec().capabilities.scope, BackendScope::TokenBackend);
+    assert_eq!(css.spec().capabilities.scope, BackendScope::SystemPackage);
 
     let swift = resolve_target_backend("swift").expect("swift backend");
     assert_eq!(swift.spec().legacy_slot, LegacyTargetSlot::Swift);
@@ -99,11 +99,46 @@ fn css_backend_emits_typed_artifacts_for_build() {
     assert_eq!(primary.relative_path, PathBuf::from("tokens.css"));
     assert!(out.join(&primary.relative_path).is_file());
 
+    let token_css = emission
+        .artifact(BackendArtifactKind::TokenStylesheet)
+        .expect("raw token stylesheet");
+    assert_eq!(token_css.relative_path, PathBuf::from("tokens.vars.css"));
+    assert!(out.join(&token_css.relative_path).is_file());
+
+    let system_css = emission
+        .artifact(BackendArtifactKind::SystemStylesheet)
+        .expect("system stylesheet");
+    assert_eq!(system_css.relative_path, PathBuf::from("components.css"));
+    assert!(out.join(&system_css.relative_path).is_file());
+
     let dts = emission
         .artifact(BackendArtifactKind::TypeDeclarations)
         .expect("type declarations");
     assert_eq!(dts.relative_path, PathBuf::from("tokens.d.ts"));
     assert!(out.join(&dts.relative_path).is_file());
+
+    let compatibility_css = fs::read_to_string(out.join(&primary.relative_path))
+        .expect("read compatibility stylesheet");
+    let token_vars_css =
+        fs::read_to_string(out.join(&token_css.relative_path)).expect("read token stylesheet");
+    let component_css =
+        fs::read_to_string(out.join(&system_css.relative_path)).expect("read system stylesheet");
+    assert!(
+        compatibility_css.contains("--paintgun-"),
+        "compatibility css should include raw token variables"
+    );
+    assert!(
+        token_vars_css.contains("@layer tokens."),
+        "raw token stylesheet should contain token layers"
+    );
+    assert!(
+        component_css.contains("@layer components"),
+        "system stylesheet should contain components layer"
+    );
+    assert!(
+        component_css.contains("var(--paintgun-"),
+        "system stylesheet should reference token custom properties"
+    );
 }
 
 #[test]

@@ -8,12 +8,8 @@ fn read_from_manifest(relative: &str) -> String {
 }
 
 #[test]
-fn emit_module_delegates_kernel_logic_to_paintgun_emit() {
+fn emit_module_delegates_native_logic_to_paintgun_emit() {
     let src = read_from_manifest("src/emit.rs");
-    assert!(
-        src.contains("compile_component_css_with_layers_lookup("),
-        "src/emit.rs should delegate CSS layer compilation to paintgun-emit kernel"
-    );
     assert!(
         src.contains("emit_store_swift_with_lookup("),
         "src/emit.rs should delegate Swift emission to paintgun-emit kernel"
@@ -52,5 +48,28 @@ fn backend_module_hosts_target_registry_contract() {
         "pub fn supported_target_names",
     ] {
         assert!(src.contains(symbol), "src/backend.rs should host {symbol}");
+    }
+    assert!(
+        src.contains("emit_css_token_stylesheet_for_build("),
+        "src/backend.rs should delegate CSS token emission to src/web_css.rs"
+    );
+    assert!(
+        src.contains("emit_component_package_stylesheet("),
+        "src/backend.rs should delegate component package CSS to src/web_css.rs"
+    );
+}
+
+#[test]
+fn web_css_module_hosts_css_split_adapter() {
+    let src = read_from_manifest("src/web_css.rs");
+    for symbol in [
+        "pub fn css_custom_property_name",
+        "pub fn emit_css_token_stylesheet_for_build",
+        "pub fn emit_css_token_stylesheet_for_compose",
+        "pub fn emit_component_package_stylesheet",
+        "pub fn emit_component_package_types",
+        "pub fn assemble_css_compat_stylesheet",
+    ] {
+        assert!(src.contains(symbol), "src/web_css.rs should host {symbol}");
     }
 }

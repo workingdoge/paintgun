@@ -3,12 +3,16 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use crate::emit::{
-    build_layer_defs_from_axes, compile_component_css, compile_component_css_with_layers,
     emit_kotlin_module_scaffold, emit_store_kotlin, emit_store_swift, emit_swift_package_scaffold,
-    emit_tokens_d_ts, Contract, CssEmitter, KOTLIN_EMITTER_API_VERSION, SWIFT_EMITTER_API_VERSION,
+    Contract, KOTLIN_EMITTER_API_VERSION, SWIFT_EMITTER_API_VERSION,
 };
 use crate::policy::Policy;
 use crate::resolver::{Input, ResolverDoc, TokenStore};
+use crate::web_css::{
+    assemble_css_compat_stylesheet, emit_component_package_stylesheet,
+    emit_component_package_types, emit_css_token_stylesheet_for_build,
+    emit_css_token_stylesheet_for_compose,
+};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BackendScope {
@@ -33,6 +37,8 @@ pub enum LegacyTargetSlot {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BackendArtifactKind {
     PrimaryTokenOutput,
+    TokenStylesheet,
+    SystemStylesheet,
     TypeDeclarations,
     PackageManifest,
     PackageSettings,
@@ -155,51 +161,6 @@ fn write_bytes(path: &Path, bytes: impl AsRef<[u8]>) -> Result<(), BackendError>
         .map_err(|e| BackendError::new(format!("failed to write {}: {e}", path.display())))
 }
 
-fn layer_order_from_axes(axes: &BTreeMap<String, Vec<String>>) -> Vec<String> {
-    let mut out = Vec::new();
-    out.push("base".to_string());
-    let mut mods: Vec<String> = axes.keys().cloned().collect();
-    mods.sort();
-    out.extend(mods.clone());
-    for i in 0..mods.len() {
-        for j in (i + 1)..mods.len() {
-            out.push(format!("{}-{}", mods[i], mods[j]));
-        }
-    }
-    out
-}
-
-fn layer_order_from_doc(doc: &ResolverDoc) -> Vec<String> {
-    let mut names = Vec::new();
-    names.push("base".to_string());
-
-    let mut mods: Vec<String> = Vec::new();
-    for entry in &doc.resolution_order {
-        if let Some(name) = entry.modifier_name() {
-            if !mods.iter().any(|m| m == &name) {
-                mods.push(name);
-            }
-        }
-    }
-    if mods.is_empty() {
-        mods.extend(
-            doc.all_modifiers()
-                .into_iter()
-                .map(|(name, _)| name.to_string()),
-        );
-        mods.sort();
-    }
-    names.extend(mods.clone());
-
-    for i in 0..mods.len() {
-        for j in (i + 1)..mods.len() {
-            names.push(format!("{}-{}", mods[i], mods[j]));
-        }
-    }
-
-    names
-}
-
 impl TargetBackend for CssBackend {
     fn spec(&self) -> BackendSpec {
         BackendSpec {
@@ -209,7 +170,7 @@ impl TargetBackend for CssBackend {
             capabilities: BackendCapabilities {
                 requires_contracts: true,
                 emits_package_scaffold: false,
-                scope: BackendScope::TokenBackend,
+                scope: BackendScope::SystemPackage,
             },
             legacy_slot: LegacyTargetSlot::Css,
         }
@@ -223,53 +184,23 @@ impl TargetBackend for CssBackend {
         let contracts = request
             .contracts
             .ok_or_else(|| BackendError::new("backend css requires contracts"))?;
-        let emitter = CssEmitter {
-            color_policy: request.policy.css_color.clone(),
-        };
-        let preamble = match request.source {
+        let token_css = match request.source {
             BackendSource::Build { doc } => {
-                format!("@layer {};\n\n", layer_order_from_doc(doc).join(", "))
+                emit_css_token_stylesheet_for_build(doc, request.store, request.policy)
             }
             BackendSource::Compose { axes } => {
-                format!("@layer {};\n\n", layer_order_from_axes(axes).join(", "))
+                emit_css_token_stylesheet_for_compose(axes, request.store, request.policy)
             }
         };
-
-        let mut css = String::new();
-        css.push_str(&preamble);
-        match request.source {
-            BackendSource::Build { doc } => {
-                for contract in contracts {
-                    css.push_str(&format!("/* ═ {} ═ */\n\n", contract.component));
-                    css.push_str(&compile_component_css(
-                        contract,
-                        doc,
-                        request.store,
-                        request.policy,
-                        &emitter,
-                    ));
-                    css.push('\n');
-                }
-            }
-            BackendSource::Compose { axes } => {
-                let layer_defs = build_layer_defs_from_axes(axes);
-                for contract in contracts {
-                    css.push_str(&format!("/* ═ {} ═ */\n\n", contract.component));
-                    css.push_str(&compile_component_css_with_layers(
-                        contract,
-                        request.store,
-                        request.policy,
-                        &emitter,
-                        &layer_defs,
-                    ));
-                    css.push('\n');
-                }
-            }
-        }
-
+        let component_css = emit_component_package_stylesheet(contracts);
+        let compatibility_css = assemble_css_compat_stylesheet(&token_css, &component_css);
         let css_path = request.out_dir.join("tokens.css");
-        write_bytes(&css_path, css.as_bytes())?;
-        let dts = emit_tokens_d_ts(contracts);
+        write_bytes(&css_path, compatibility_css.as_bytes())?;
+        let token_css_path = request.out_dir.join("tokens.vars.css");
+        write_bytes(&token_css_path, token_css.as_bytes())?;
+        let component_css_path = request.out_dir.join("components.css");
+        write_bytes(&component_css_path, component_css.as_bytes())?;
+        let dts = emit_component_package_types(contracts);
         let dts_path = request.out_dir.join("tokens.d.ts");
         write_bytes(&dts_path, dts.as_bytes())?;
 
@@ -279,6 +210,16 @@ impl TargetBackend for CssBackend {
                 BackendArtifact {
                     kind: BackendArtifactKind::PrimaryTokenOutput,
                     relative_path: PathBuf::from("tokens.css"),
+                    api_version: None,
+                },
+                BackendArtifact {
+                    kind: BackendArtifactKind::TokenStylesheet,
+                    relative_path: PathBuf::from("tokens.vars.css"),
+                    api_version: None,
+                },
+                BackendArtifact {
+                    kind: BackendArtifactKind::SystemStylesheet,
+                    relative_path: PathBuf::from("components.css"),
                     api_version: None,
                 },
                 BackendArtifact {
