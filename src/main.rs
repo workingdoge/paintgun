@@ -405,8 +405,8 @@ fn collect_external_source_refs(doc: &ResolverDoc) -> Vec<String> {
         }
     }
     for modifier in doc.modifiers.values() {
-        for ctx in modifier.contexts.values() {
-            for src in &ctx.sources {
+        for sources in modifier.contexts.values() {
+            for src in sources {
                 if let Some(r) = &src.r#ref {
                     if !r.starts_with("#/") {
                         out.insert(r.clone());
