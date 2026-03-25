@@ -14,6 +14,13 @@ The current Premath code-home decision and extraction contract are documented in
 
 - `docs/premath_code_home.md`
 - `docs/premath_extraction_contract.md`
+- `docs/premath_standalone_prep.md`
+
+The Premath-only standalone CI/build entrypoint is:
+
+```bash
+./scripts/premath_workspace_ci.sh
+```
 
 ## Build & run
 

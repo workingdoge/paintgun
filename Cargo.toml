@@ -59,3 +59,16 @@ members = [
     "crates/paintgun-resolver-kernel",
 ]
 resolver = "2"
+
+[workspace.metadata.premath]
+msrv = "1.89"
+ci_entrypoint = "./scripts/premath_workspace_ci.sh"
+members = [
+    "premath-admissibility",
+    "premath-composability",
+    "premath-compose",
+    "premath-dsl",
+    "premath-gate",
+    "premath-kcir-kernel",
+    "premath-kcir",
+]

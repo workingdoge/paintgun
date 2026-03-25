@@ -3,6 +3,8 @@ name = "premath-composability"
 version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
+description = "Premath single-pack composability analysis kernel"
+rust-version = "1.89"
 publish = false
 
 [dependencies]
