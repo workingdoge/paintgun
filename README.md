@@ -10,6 +10,11 @@ Paintgun is a Rust toolchain for DTCG 2025.10 resolution, verification, and comp
   - Orthogonality overlaps
 - **Target emission** via `Emitter` trait (CSS emitter included).
 
+The current Premath code-home decision and extraction contract are documented in:
+
+- `docs/premath_code_home.md`
+- `docs/premath_extraction_contract.md`
+
 ## Build & run
 
 ```bash

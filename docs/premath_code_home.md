@@ -9,6 +9,8 @@ That repo remains the site, spec, governance, and curated-reference surface.
 
 If Premath code is extracted later, the target should be a sibling code repo or a dedicated code workspace, not the site repo.
 
+The execution contract for that later move is defined in `docs/premath_extraction_contract.md`.
+
 ## Recommendation
 
 The recommended operating model is:
