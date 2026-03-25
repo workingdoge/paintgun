@@ -84,6 +84,7 @@ fn fixture_error_code(err: &FixtureRunError) -> &'static str {
             ResolverError::UnsafePath { .. } => "unsafe_path",
             ResolverError::InvalidResolverRef { .. } => "invalid_resolver_ref",
             ResolverError::InvalidResolverInput { .. } => "invalid_resolver_input",
+            ResolverError::InvalidName { .. } => "invalid_name",
             ResolverError::CircularResolverRef { .. } => "circular_resolver_ref",
         },
         FixtureRunError::AdmissibilitySchema(_) => "invalid_admissibility_witness",

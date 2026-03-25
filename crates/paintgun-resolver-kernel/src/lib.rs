@@ -96,6 +96,107 @@ pub enum FlattenError {
         value: String,
         reason: String,
     },
+    InvalidName {
+        path: String,
+        name: String,
+        reason: String,
+    },
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+enum TokenNameError {
+    InvalidName {
+        path: String,
+        name: String,
+        reason: String,
+    },
+}
+
+fn root_path_label(path: &str) -> String {
+    if path.is_empty() {
+        "(root)".to_string()
+    } else {
+        path.to_string()
+    }
+}
+
+fn validate_token_name_segment(path: &str, name: &str) -> Result<(), TokenNameError> {
+    if name.starts_with('$') {
+        return Err(TokenNameError::InvalidName {
+            path: root_path_label(path),
+            name: name.to_string(),
+            reason: "token and group names must not begin with '$'".to_string(),
+        });
+    }
+    for ch in ['{', '}', '.'] {
+        if name.contains(ch) {
+            return Err(TokenNameError::InvalidName {
+                path: root_path_label(path),
+                name: name.to_string(),
+                reason: format!("token and group names must not contain {ch:?}"),
+            });
+        }
+    }
+    Ok(())
+}
+
+fn is_allowed_token_property(name: &str) -> bool {
+    matches!(
+        name,
+        "$value" | "$type" | "$description" | "$extensions" | "$deprecated"
+    )
+}
+
+fn is_allowed_group_property(name: &str) -> bool {
+    matches!(
+        name,
+        "$type" | "$description" | "$extensions" | "$deprecated" | "$extends" | "$root"
+    )
+}
+
+fn validate_token_tree_names(tree: &JValue) -> Result<(), TokenNameError> {
+    fn go(node: &JValue, path: &str) -> Result<(), TokenNameError> {
+        let obj = match node {
+            JValue::Object(map) => map,
+            _ => return Ok(()),
+        };
+
+        let is_token = obj.contains_key("$value");
+        for (key, value) in obj {
+            if key.starts_with('$') {
+                let allowed = if is_token {
+                    is_allowed_token_property(key)
+                } else {
+                    is_allowed_group_property(key)
+                };
+                if !allowed {
+                    return Err(TokenNameError::InvalidName {
+                        path: root_path_label(path),
+                        name: key.clone(),
+                        reason: "token and group names must not begin with '$'".to_string(),
+                    });
+                }
+                if key == "$root" {
+                    go(value, path)?;
+                }
+                continue;
+            }
+
+            validate_token_name_segment(path, key)?;
+            if let JValue::Object(_) = value {
+                let child_path = if path.is_empty() {
+                    key.clone()
+                } else {
+                    format!("{path}.{key}")
+                };
+                go(value, &child_path)?;
+            }
+        }
+
+        Ok(())
+    }
+
+    go(tree, "")
 }
 
 fn map_input_selection_error(err: InputSelectionError) -> FlattenError {
@@ -219,9 +320,20 @@ where
     }
 
     if source.r#ref.is_none() {
-        return Ok(JValue::Object(source.inline.clone()));
+        let tree = JValue::Object(source.inline.clone());
+        validate_token_tree_names(&tree).map_err(|err| match err {
+            TokenNameError::InvalidName { path, name, reason } => {
+                FlattenError::InvalidName { path, name, reason }
+            }
+        })?;
+        return Ok(tree);
     }
 
+    validate_token_tree_names(&tree).map_err(|err| match err {
+        TokenNameError::InvalidName { path, name, reason } => {
+            FlattenError::InvalidName { path, name, reason }
+        }
+    })?;
     Ok(tree)
 }
 
@@ -625,8 +737,18 @@ pub fn remove_key(mut obj: BTreeMap<String, JValue>, k: &str) -> BTreeMap<String
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ExtendsError {
-    CircularExtends { chain: Vec<String> },
-    InvalidType { path: String, reason: String },
+    CircularExtends {
+        chain: Vec<String>,
+    },
+    InvalidType {
+        path: String,
+        reason: String,
+    },
+    InvalidName {
+        path: String,
+        name: String,
+        reason: String,
+    },
 }
 
 fn lookup_extends_target_with_key<'a>(
@@ -731,6 +853,11 @@ fn resolve_extends_inner(
 }
 
 pub fn resolve_extends(tree: &JValue) -> Result<JValue, ExtendsError> {
+    validate_token_tree_names(tree).map_err(|err| match err {
+        TokenNameError::InvalidName { path, name, reason } => {
+            ExtendsError::InvalidName { path, name, reason }
+        }
+    })?;
     let mut memo: HashMap<String, JValue> = HashMap::new();
     resolve_extends_inner(tree, tree, "", &mut Vec::new(), &mut memo)
 }

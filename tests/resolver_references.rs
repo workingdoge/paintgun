@@ -521,3 +521,146 @@ fn token_store_build_fails_fast_on_type_canonicalization_errors() {
         other => panic!("expected invalid type error, got {other}"),
     }
 }
+
+#[test]
+fn token_store_build_rejects_invalid_token_name_segments() {
+    let root = temp_dir("resolver-invalid-token-name");
+    let resolver_path = root.join("resolver.json");
+    write_json(
+        &resolver_path,
+        serde_json::json!({
+            "version": "2025.10",
+            "sets": {
+                "base": {
+                    "sources": [
+                        {
+                            "color": {
+                                "$type": "color",
+                                "primary.dark": {
+                                    "$value": {
+                                        "colorSpace": "srgb",
+                                        "components": [0.1, 0.2, 0.3]
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "modifiers": {},
+            "resolutionOrder": [ { "$ref": "#/sets/base" } ]
+        }),
+    );
+
+    let doc: ResolverDoc = read_json_file(&resolver_path).expect("resolver doc");
+    let err = build_token_store_for_inputs(&doc, &resolver_path, &[Input::new()])
+        .expect_err("expected invalid name error");
+    match err {
+        ResolverError::InvalidName { path, name, reason } => {
+            assert_eq!(path, "color");
+            assert_eq!(name, "primary.dark");
+            assert!(
+                reason.contains("must not contain '.'"),
+                "unexpected reason: {reason}"
+            );
+        }
+        other => panic!("expected invalid name error, got {other}"),
+    }
+}
+
+#[test]
+fn token_store_build_rejects_unknown_dollar_prefixed_names() {
+    let root = temp_dir("resolver-invalid-dollar-name");
+    let resolver_path = root.join("resolver.json");
+    write_json(
+        &resolver_path,
+        serde_json::json!({
+            "version": "2025.10",
+            "sets": {
+                "base": {
+                    "sources": [
+                        {
+                            "$brand": {
+                                "primary": {
+                                    "$type": "color",
+                                    "$value": {
+                                        "colorSpace": "srgb",
+                                        "components": [0.1, 0.2, 0.3]
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "modifiers": {},
+            "resolutionOrder": [ { "$ref": "#/sets/base" } ]
+        }),
+    );
+
+    let doc: ResolverDoc = read_json_file(&resolver_path).expect("resolver doc");
+    let err = build_token_store_for_inputs(&doc, &resolver_path, &[Input::new()])
+        .expect_err("expected invalid name error");
+    match err {
+        ResolverError::InvalidName { path, name, reason } => {
+            assert_eq!(path, "(root)");
+            assert_eq!(name, "$brand");
+            assert!(
+                reason.contains("must not begin with '$'"),
+                "unexpected reason: {reason}"
+            );
+        }
+        other => panic!("expected invalid name error, got {other}"),
+    }
+}
+
+#[test]
+fn token_store_build_accepts_reserved_dtcg_properties() {
+    let root = temp_dir("resolver-allowed-dtcg-properties");
+    let resolver_path = root.join("resolver.json");
+    write_json(
+        &resolver_path,
+        serde_json::json!({
+            "version": "2025.10",
+            "sets": {
+                "base": {
+                    "sources": [
+                        {
+                            "color": {
+                                "$description": "base palette",
+                                "$extensions": {
+                                    "org.example.paintgun": {
+                                        "source": "fixture"
+                                    }
+                                },
+                                "primary": {
+                                    "$type": "color",
+                                    "$description": "primary brand",
+                                    "$extensions": {
+                                        "org.example.paintgun": {
+                                            "semantic": true
+                                        }
+                                    },
+                                    "$value": {
+                                        "colorSpace": "srgb",
+                                        "components": [0.1, 0.2, 0.3]
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "modifiers": {},
+            "resolutionOrder": [ { "$ref": "#/sets/base" } ]
+        }),
+    );
+
+    let doc: ResolverDoc = read_json_file(&resolver_path).expect("resolver doc");
+    let store = build_token_store_for_inputs(&doc, &resolver_path, &[Input::new()])
+        .expect("reserved properties should be accepted");
+    let token = store
+        .token_at("color.primary", &Input::new())
+        .expect("resolved token");
+    assert_eq!(token.path, "color.primary");
+}

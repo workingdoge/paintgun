@@ -65,6 +65,13 @@ pub enum ResolverError {
         reason: String,
     },
 
+    #[error("invalid token/group name {name:?} at {path}: {reason}")]
+    InvalidName {
+        path: String,
+        name: String,
+        reason: String,
+    },
+
     #[error("circular resolver reference chain: {chain:?}")]
     CircularResolverRef { chain: Vec<String> },
 }
@@ -93,6 +100,9 @@ fn map_extends_error(err: ExtendsError) -> ResolverError {
             ty: DtcgType::Typography,
             reason,
         },
+        ExtendsError::InvalidName { path, name, reason } => {
+            ResolverError::InvalidName { path, name, reason }
+        }
     }
 }
 
@@ -147,6 +157,9 @@ fn map_flatten_error(err: FlattenError) -> ResolverError {
             value,
             reason,
         },
+        FlattenError::InvalidName { path, name, reason } => {
+            ResolverError::InvalidName { path, name, reason }
+        }
     }
 }
 

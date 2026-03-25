@@ -1,0 +1,4 @@
+mode = "resolver"
+expect = "error"
+error_code = "invalid_name"
+error_contains = "must not begin with '$'"

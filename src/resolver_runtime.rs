@@ -18,6 +18,9 @@ fn map_extends_error(err: ExtendsError) -> ResolverError {
             ty: paintgun_dtcg::DtcgType::Typography,
             reason,
         },
+        ExtendsError::InvalidName { path, name, reason } => {
+            ResolverError::InvalidName { path, name, reason }
+        }
     }
 }
 
@@ -68,6 +71,9 @@ fn map_flatten_error(err: FlattenError) -> ResolverError {
             value,
             reason,
         },
+        FlattenError::InvalidName { path, name, reason } => {
+            ResolverError::InvalidName { path, name, reason }
+        }
     }
 }
 
