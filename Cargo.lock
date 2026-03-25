@@ -856,6 +856,7 @@ dependencies = [
  "paintgun-dtcg",
  "paintgun-policy",
  "serde",
+ "serde_json",
 ]
 
 [[package]]

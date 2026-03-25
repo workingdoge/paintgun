@@ -3,8 +3,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use crate::emit::{
-    emit_kotlin_module_scaffold, emit_store_kotlin, emit_store_swift, emit_swift_package_scaffold,
-    Contract, ANDROID_COMPOSE_EMITTER_API_VERSION, SWIFT_EMITTER_API_VERSION,
+    emit_kotlin_module_scaffold, emit_store_kotlin, emit_store_swift, emit_store_web_tokens_ts,
+    emit_swift_package_scaffold, emit_web_tokens_package_scaffold, Contract,
+    ANDROID_COMPOSE_EMITTER_API_VERSION, SWIFT_EMITTER_API_VERSION, WEB_TOKENS_TS_API_VERSION,
 };
 use crate::policy::Policy;
 use crate::resolver::{Input, ResolverDoc, TokenStore};
@@ -76,7 +77,7 @@ pub struct BackendSpec {
     pub aliases: &'static [&'static str],
     pub api_version: Option<&'static str>,
     pub capabilities: BackendCapabilities,
-    pub legacy_slot: LegacyTargetSlot,
+    pub legacy_slot: Option<LegacyTargetSlot>,
 }
 
 pub enum BackendSource<'a> {
@@ -122,13 +123,20 @@ pub trait TargetBackend {
 struct CssBackend;
 struct SwiftBackend;
 struct AndroidComposeBackend;
+struct WebTokensTsBackend;
 
 static CSS_BACKEND: CssBackend = CssBackend;
 static SWIFT_BACKEND: SwiftBackend = SwiftBackend;
 static ANDROID_COMPOSE_BACKEND: AndroidComposeBackend = AndroidComposeBackend;
+static WEB_TOKENS_TS_BACKEND: WebTokensTsBackend = WebTokensTsBackend;
 
-fn builtin_backends() -> [&'static dyn TargetBackend; 3] {
-    [&CSS_BACKEND, &SWIFT_BACKEND, &ANDROID_COMPOSE_BACKEND]
+fn builtin_backends() -> [&'static dyn TargetBackend; 4] {
+    [
+        &CSS_BACKEND,
+        &SWIFT_BACKEND,
+        &ANDROID_COMPOSE_BACKEND,
+        &WEB_TOKENS_TS_BACKEND,
+    ]
 }
 
 pub fn resolve_target_backend(target: &str) -> Option<&'static dyn TargetBackend> {
@@ -172,7 +180,7 @@ impl TargetBackend for CssBackend {
                 emits_package_scaffold: false,
                 scope: BackendScope::SystemPackage,
             },
-            legacy_slot: LegacyTargetSlot::Css,
+            legacy_slot: Some(LegacyTargetSlot::Css),
         }
     }
 
@@ -243,7 +251,7 @@ impl TargetBackend for SwiftBackend {
                 emits_package_scaffold: true,
                 scope: BackendScope::TokenBackend,
             },
-            legacy_slot: LegacyTargetSlot::Swift,
+            legacy_slot: Some(LegacyTargetSlot::Swift),
         }
     }
 
@@ -305,7 +313,7 @@ impl TargetBackend for AndroidComposeBackend {
                 emits_package_scaffold: true,
                 scope: BackendScope::TokenBackend,
             },
-            legacy_slot: LegacyTargetSlot::AndroidCompose,
+            legacy_slot: Some(LegacyTargetSlot::AndroidCompose),
         }
     }
 
@@ -354,6 +362,66 @@ impl TargetBackend for AndroidComposeBackend {
                     relative_path: PathBuf::from(
                         "android/src/test/kotlin/paintgun/PaintgunTokensSmokeTest.kt",
                     ),
+                    api_version: None,
+                },
+            ],
+        })
+    }
+}
+
+impl TargetBackend for WebTokensTsBackend {
+    fn spec(&self) -> BackendSpec {
+        BackendSpec {
+            id: "web-tokens-ts",
+            aliases: &[],
+            api_version: Some(WEB_TOKENS_TS_API_VERSION),
+            capabilities: BackendCapabilities {
+                requires_contracts: false,
+                emits_package_scaffold: true,
+                scope: BackendScope::TokenBackend,
+            },
+            legacy_slot: None,
+        }
+    }
+
+    fn required_inputs(&self, _axes: &BTreeMap<String, Vec<String>>) -> Vec<Input> {
+        Vec::new()
+    }
+
+    fn emit(&self, request: &BackendRequest<'_>) -> Result<BackendEmission, BackendError> {
+        let web_tokens = emit_store_web_tokens_ts(request.store, request.policy);
+        let source_path = request.out_dir.join("tokens.ts");
+        write_bytes(&source_path, web_tokens.as_bytes())?;
+        emit_web_tokens_package_scaffold(request.out_dir, &web_tokens).map_err(|e| {
+            BackendError::new(format!("failed to write web token package scaffold: {e}"))
+        })?;
+
+        Ok(BackendEmission {
+            backend_id: self.spec().id,
+            artifacts: vec![
+                BackendArtifact {
+                    kind: BackendArtifactKind::PrimaryTokenOutput,
+                    relative_path: PathBuf::from("tokens.ts"),
+                    api_version: self.spec().api_version,
+                },
+                BackendArtifact {
+                    kind: BackendArtifactKind::PackageManifest,
+                    relative_path: PathBuf::from("web/package.json"),
+                    api_version: None,
+                },
+                BackendArtifact {
+                    kind: BackendArtifactKind::PackageSettings,
+                    relative_path: PathBuf::from("web/tsconfig.json"),
+                    api_version: None,
+                },
+                BackendArtifact {
+                    kind: BackendArtifactKind::PackageSource,
+                    relative_path: PathBuf::from("web/src/index.ts"),
+                    api_version: self.spec().api_version,
+                },
+                BackendArtifact {
+                    kind: BackendArtifactKind::PackageTest,
+                    relative_path: PathBuf::from("web/src/index.test.ts"),
                     api_version: None,
                 },
             ],

@@ -6,7 +6,10 @@ use paintgun::backend::{
     resolve_target_backend, supported_target_names, BackendArtifactKind, BackendRequest,
     BackendScope, BackendSource, LegacyTargetSlot,
 };
-use paintgun::emit::{Contract, ANDROID_COMPOSE_EMITTER_API_VERSION, SWIFT_EMITTER_API_VERSION};
+use paintgun::emit::{
+    Contract, ANDROID_COMPOSE_EMITTER_API_VERSION, SWIFT_EMITTER_API_VERSION,
+    WEB_TOKENS_TS_API_VERSION,
+};
 use paintgun::policy::Policy;
 use paintgun::resolver::{
     axes_from_doc, build_token_store_for_inputs, read_json_file, ResolverDoc,
@@ -53,25 +56,46 @@ fn example_doc() -> ResolverDoc {
     read_json_file(&example_resolver()).expect("resolver doc")
 }
 
+fn backend_inputs_for_test(
+    backend: &dyn paintgun::backend::TargetBackend,
+    axes: &std::collections::BTreeMap<String, Vec<String>>,
+) -> Vec<paintgun::resolver::Input> {
+    let required = backend.required_inputs(axes);
+    if required.is_empty() {
+        paintgun::contexts::full_inputs(axes)
+    } else {
+        required
+    }
+}
+
 #[test]
 fn registry_exposes_builtin_backend_specs() {
     assert_eq!(
         supported_target_names(),
-        vec!["android-compose-tokens", "css", "kotlin", "swift"]
+        vec![
+            "android-compose-tokens",
+            "css",
+            "kotlin",
+            "swift",
+            "web-tokens-ts",
+        ]
     );
 
     let css = resolve_target_backend("css").expect("css backend");
-    assert_eq!(css.spec().legacy_slot, LegacyTargetSlot::Css);
+    assert_eq!(css.spec().legacy_slot, Some(LegacyTargetSlot::Css));
     assert!(css.spec().capabilities.requires_contracts);
     assert_eq!(css.spec().capabilities.scope, BackendScope::SystemPackage);
 
     let swift = resolve_target_backend("swift").expect("swift backend");
-    assert_eq!(swift.spec().legacy_slot, LegacyTargetSlot::Swift);
+    assert_eq!(swift.spec().legacy_slot, Some(LegacyTargetSlot::Swift));
     assert_eq!(swift.spec().api_version, Some(SWIFT_EMITTER_API_VERSION));
     assert!(swift.spec().capabilities.emits_package_scaffold);
 
     let android = resolve_target_backend("android-compose-tokens").expect("android backend");
-    assert_eq!(android.spec().legacy_slot, LegacyTargetSlot::AndroidCompose);
+    assert_eq!(
+        android.spec().legacy_slot,
+        Some(LegacyTargetSlot::AndroidCompose)
+    );
     assert_eq!(
         android.spec().api_version,
         Some(ANDROID_COMPOSE_EMITTER_API_VERSION)
@@ -84,6 +108,12 @@ fn registry_exposes_builtin_backend_specs() {
         kotlin_alias.spec().api_version,
         Some(ANDROID_COMPOSE_EMITTER_API_VERSION)
     );
+
+    let web = resolve_target_backend("web-tokens-ts").expect("web backend");
+    assert_eq!(web.spec().legacy_slot, None);
+    assert_eq!(web.spec().api_version, Some(WEB_TOKENS_TS_API_VERSION));
+    assert!(web.spec().capabilities.emits_package_scaffold);
+    assert_eq!(web.spec().capabilities.scope, BackendScope::TokenBackend);
 }
 
 #[test]
@@ -92,7 +122,7 @@ fn css_backend_emits_typed_artifacts_for_build() {
     let out = temp_dir("backend-css");
     let doc = example_doc();
     let axes = axes_from_doc(&doc);
-    let inputs = backend.required_inputs(&axes);
+    let inputs = backend_inputs_for_test(backend, &axes);
     let store =
         build_token_store_for_inputs(&doc, &example_resolver(), &inputs).expect("build store");
     let contracts = load_contracts(&example_contracts());
@@ -174,7 +204,7 @@ fn native_backends_emit_primary_output_and_scaffold_artifacts() {
         let backend = resolve_target_backend(target).expect("native backend");
         let out = temp_dir(&format!("backend-{target}"));
         let axes = axes_from_doc(&doc);
-        let inputs = backend.required_inputs(&axes);
+        let inputs = backend_inputs_for_test(backend, &axes);
         let store =
             build_token_store_for_inputs(&doc, &example_resolver(), &inputs).expect("build store");
 
@@ -210,4 +240,83 @@ fn native_backends_emit_primary_output_and_scaffold_artifacts() {
             "expected package test artifact for {target}"
         );
     }
+}
+
+#[test]
+fn web_tokens_backend_emits_typed_package_artifacts() {
+    let backend = resolve_target_backend("web-tokens-ts").expect("web backend");
+    let out = temp_dir("backend-web-tokens");
+    let doc = example_doc();
+    let axes = axes_from_doc(&doc);
+    let inputs = backend_inputs_for_test(backend, &axes);
+    let store =
+        build_token_store_for_inputs(&doc, &example_resolver(), &inputs).expect("build store");
+
+    let emission = backend
+        .emit(&BackendRequest {
+            source: BackendSource::Build { doc: &doc },
+            store: &store,
+            policy: &Policy::default(),
+            contracts: None,
+            out_dir: &out,
+        })
+        .expect("emit web token backend");
+
+    let primary = emission.primary_output().expect("primary web output");
+    assert_eq!(primary.kind, BackendArtifactKind::PrimaryTokenOutput);
+    assert_eq!(primary.relative_path, PathBuf::from("tokens.ts"));
+    assert_eq!(primary.api_version, Some(WEB_TOKENS_TS_API_VERSION));
+    assert_eq!(emission.backend_id, "web-tokens-ts");
+    assert!(out.join(&primary.relative_path).is_file());
+
+    let package_manifest = emission
+        .artifact(BackendArtifactKind::PackageManifest)
+        .expect("package manifest");
+    assert_eq!(
+        package_manifest.relative_path,
+        PathBuf::from("web/package.json")
+    );
+    assert!(out.join(&package_manifest.relative_path).is_file());
+
+    let package_settings = emission
+        .artifact(BackendArtifactKind::PackageSettings)
+        .expect("package settings");
+    assert_eq!(
+        package_settings.relative_path,
+        PathBuf::from("web/tsconfig.json")
+    );
+    assert!(out.join(&package_settings.relative_path).is_file());
+
+    let package_source = emission
+        .artifact(BackendArtifactKind::PackageSource)
+        .expect("package source");
+    assert_eq!(
+        package_source.relative_path,
+        PathBuf::from("web/src/index.ts")
+    );
+    assert!(out.join(&package_source.relative_path).is_file());
+
+    let package_test = emission
+        .artifact(BackendArtifactKind::PackageTest)
+        .expect("package test");
+    assert_eq!(
+        package_test.relative_path,
+        PathBuf::from("web/src/index.test.ts")
+    );
+    assert!(out.join(&package_test.relative_path).is_file());
+
+    let primary_content =
+        fs::read_to_string(out.join(&primary.relative_path)).expect("read primary web output");
+    assert!(
+        primary_content.contains("PAINTGUN_WEB_TOKENS_API_VERSION"),
+        "web token source should include API version marker"
+    );
+    assert!(
+        primary_content.contains("valuesByContext"),
+        "web token source should export typed token values by context"
+    );
+    assert!(
+        primary_content.contains("export type PaintTokenValue"),
+        "web token source should export typed token aliases"
+    );
 }

@@ -144,6 +144,7 @@ fn build_unknown_target_fails_via_registry_without_panic() {
     assert!(stderr.contains("css"));
     assert!(stderr.contains("swift"));
     assert!(stderr.contains("kotlin"));
+    assert!(stderr.contains("web-tokens-ts"));
     assert_nonpanic_failure(&stderr);
 }
 
@@ -187,5 +188,52 @@ fn build_kotlin_alias_emits_android_backend_identity() {
     assert!(
         out.join("android/build.gradle.kts").is_file(),
         "expected Android scaffold under canonical android/ path"
+    );
+}
+
+#[test]
+fn build_web_tokens_backend_emits_web_package_artifacts() {
+    let root = temp_dir("build-web-tokens");
+    let out = root.join("dist");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_paint"))
+        .arg("build")
+        .arg(example_resolver())
+        .arg("--target")
+        .arg("web-tokens-ts")
+        .arg("--out")
+        .arg(&out)
+        .output()
+        .expect("run paint build");
+
+    assert!(
+        output.status.success(),
+        "expected web tokens build to succeed\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let manifest_path = out.join("ctc.manifest.json");
+    let manifest_bytes = fs::read(&manifest_path).expect("read ctc.manifest.json");
+    let manifest: serde_json::Value =
+        serde_json::from_slice(&manifest_bytes).expect("parse ctc.manifest.json");
+
+    let backend_artifacts = manifest["backendArtifacts"]
+        .as_array()
+        .expect("backendArtifacts array");
+    assert!(
+        backend_artifacts
+            .iter()
+            .all(|artifact| artifact["backendId"] == "web-tokens-ts"),
+        "expected canonical web backend ids in manifest, got:\n{}",
+        serde_json::to_string_pretty(&manifest).expect("serialize manifest for debug")
+    );
+    assert!(
+        out.join("tokens.ts").is_file(),
+        "expected typed web token source at the output root"
+    );
+    assert!(
+        out.join("web/package.json").is_file(),
+        "expected web token package scaffold under web/"
     );
 }

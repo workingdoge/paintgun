@@ -14,22 +14,17 @@ That keeps Paint narrow enough to stay reliable while still making platform outp
 
 ## Current State
 
-Today the repo already has the right raw ingredients, but the boundary is implicit:
+Today the repo already has the right raw ingredients, and the boundary is getting clearer:
 
-- [`src/main.rs`](../src/main.rs) accepts built-in target ids such as `css`, `swift`, and `android-compose-tokens`, with `kotlin` retained as a compatibility alias.
+- [`src/main.rs`](../src/main.rs) accepts built-in target ids such as `css`, `swift`, `android-compose-tokens`, and `web-tokens-ts`, with `kotlin` retained as a compatibility alias.
 - [`src/emit.rs`](../src/emit.rs) is a thin adapter over [`crates/paintgun-emit`](../crates/paintgun-emit/src/lib.rs).
 - [`crates/paintgun-emit`](../crates/paintgun-emit/src/lib.rs) mixes:
   - backend-neutral value emission helpers,
   - concrete backends,
   - component-contract CSS emission,
-  - scaffold/package generation for Swift and Android/Kotlin.
+  - scaffold/package generation for Swift, Android/Kotlin, and typed web token packages.
 
-That is workable for the current built-ins, but it is the wrong shape for:
-
-- a typed web package backend,
-- Android-focused naming and packaging,
-- future backend families,
-- separating token backends from higher-level system packages.
+That is workable for the current built-ins, but it will still get stretched by future backend families unless the backend contract stays narrow and artifact-oriented.
 
 ## Recommended Architecture
 
@@ -210,7 +205,7 @@ Recommended order:
 1. Completed: typed backend registry and backend request/artifact contract.
 2. Completed: existing `css`, `swift`, and Android/Kotlin flows now run through that registry.
 3. Completed: CSS component-system emission is split from token backend emission.
-4. Next: add a typed web token-package backend.
+4. Completed: a typed `web-tokens-ts` backend now emits JS/TS token package artifacts distinct from the CSS compatibility target.
 5. Completed: the canonical Android backend id is `android-compose-tokens`, with `kotlin` retained as a compatibility alias.
 6. Completed: manifest metadata now records backend artifact descriptors instead of relying on target-specific fields alone.
 

@@ -133,7 +133,7 @@ enum Command {
         #[arg(short, long, default_value = "dist")]
         out: PathBuf,
 
-        /// Target backend (built-ins: css | swift | android-compose-tokens; alias: kotlin)
+        /// Target backend (built-ins: css | swift | android-compose-tokens | web-tokens-ts; alias: kotlin)
         #[arg(long, default_value = "css")]
         target: String,
 
@@ -306,7 +306,7 @@ enum Command {
         #[arg(short, long, default_value = "dist-compose")]
         out: PathBuf,
 
-        /// Target backend (built-ins: css | swift | android-compose-tokens; alias: kotlin)
+        /// Target backend (built-ins: css | swift | android-compose-tokens | web-tokens-ts; alias: kotlin)
         #[arg(long, default_value = "css")]
         target: String,
 
@@ -606,12 +606,12 @@ fn insert_backend_artifacts_field(
 
 fn native_versions_for_backend(backend: &dyn TargetBackend) -> Option<NativeApiVersions> {
     match backend.spec().legacy_slot {
-        LegacyTargetSlot::Css => None,
-        LegacyTargetSlot::Swift => Some(NativeApiVersions {
+        Some(LegacyTargetSlot::Css) | None => None,
+        Some(LegacyTargetSlot::Swift) => Some(NativeApiVersions {
             swift: backend.spec().api_version.map(str::to_string),
             kotlin: None,
         }),
-        LegacyTargetSlot::AndroidCompose => Some(NativeApiVersions {
+        Some(LegacyTargetSlot::AndroidCompose) => Some(NativeApiVersions {
             swift: None,
             kotlin: backend.spec().api_version.map(str::to_string),
         }),
@@ -983,15 +983,16 @@ fn run_build(
     let backend_artifacts = build_backend_artifact_descriptors(&emission, &out)?;
 
     match backend.spec().legacy_slot {
-        LegacyTargetSlot::Css => {
+        Some(LegacyTargetSlot::Css) => {
             tokens_css_path = Some(primary_emission_path(&out, &emission)?);
         }
-        LegacyTargetSlot::Swift => {
+        Some(LegacyTargetSlot::Swift) => {
             tokens_swift_path = Some(primary_emission_path(&out, &emission)?);
         }
-        LegacyTargetSlot::AndroidCompose => {
+        Some(LegacyTargetSlot::AndroidCompose) => {
             tokens_kotlin_path = Some(primary_emission_path(&out, &emission)?);
         }
+        None => {}
     }
     let tokens_dts_path = emission_path(&out, &emission, BackendArtifactKind::TypeDeclarations);
 

@@ -48,6 +48,9 @@ cargo run -- build examples/charter-steel/charter-steel.resolver.json --out dist
 # Android Compose tokens
 cargo run -- build examples/charter-steel/charter-steel.resolver.json --out dist --target android-compose-tokens
 
+# Typed web token package
+cargo run -- build examples/charter-steel/charter-steel.resolver.json --out dist --target web-tokens-ts
+
 # Compatibility alias during the transition
 cargo run -- build examples/charter-steel/charter-steel.resolver.json --out dist --target kotlin
 ```
@@ -78,8 +81,11 @@ Outputs:
 - `dist/tokens.swift` — emitted Swift token map (when `--target swift`)
 - `dist/tokens.kt` — emitted Android Compose token map (when `--target android-compose-tokens` or the `kotlin` compatibility alias)
   - Native API markers are embedded as `PaintgunEmitterAPI.swiftVersion` (Swift) and `PAINTGUN_EMITTER_API_VERSION` (Android Compose).
+- `dist/tokens.ts` — emitted typed web token package source (when `--target web-tokens-ts`)
+  - Exports `contexts`, `valuesByContext`, and typed token aliases for JS/TS consumers.
 - `dist/swift/` — Swift Package scaffold (`Package.swift`, module source, tests) when `--target swift`
 - `dist/android/` — Android Gradle module scaffold (`settings.gradle.kts`, `build.gradle.kts`, source, tests) when `--target android-compose-tokens` or the `kotlin` compatibility alias
+- `dist/web/` — web token package scaffold (`package.json`, `tsconfig.json`, source, test) when `--target web-tokens-ts`
 - `dist/resolved.json` — platform-neutral resolved IR (structured values)
 - `dist/ctc.witnesses.json` — composability witnesses (Kan/BC/orthogonality) including `conflictMode`, `policyDigest`, and `normalizerVersion` metadata
   - Includes `witnessSchema` version marker (currently `1`).
@@ -357,8 +363,8 @@ These thresholds are defined in `scripts/context_metrics.py` and emitted in `per
 Outputs:
 
 - `dist-compose/resolved.json` — composed resolved IR
-- `dist-compose/tokens.css` (or `tokens.swift` / `tokens.kt`) — emitted target artifact
-- `dist-compose/swift/` or `dist-compose/android/` — native package/module scaffold when using those targets
+- `dist-compose/tokens.css` (or `tokens.swift` / `tokens.kt` / `tokens.ts`) — emitted target artifact
+- `dist-compose/swift/`, `dist-compose/android/`, or `dist-compose/web/` — target package/module scaffold when using those targets
 - `dist-compose/compose.witnesses.json` — cross-pack conflicts (order dependence) with `inheritedFrom` links plus `conflictMode`/`policyDigest`/`normalizerVersion` metadata
   - Includes `witnessSchema` version marker (currently `1`).
   - Conflict witnesses and source lists are canonically ordered for deterministic diffs/CI runs.
