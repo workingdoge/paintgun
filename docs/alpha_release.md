@@ -1,0 +1,108 @@
+# Paint Alpha Release Boundary
+
+This document defines the first Paint alpha as a repo-local go/no-go decision, not a vague milestone.
+
+It ties together the current public commitments for:
+
+- backend identity and emitted artifact shape
+- CI/report stability
+- signing and trust defaults
+- DTCG 2025.10 review status
+- release packaging and verification gates
+
+## Alpha scope
+
+The alpha is intentionally narrow.
+
+Included in the alpha commitment:
+
+- the `paint` CLI for `build`, `compose`, `verify`, `verify-compose`, `sign`, `annotate-report`, and `explain`
+- the canonical backend ids documented in [`docs/backend_contract.md`](backend_contract.md)
+- the schema-backed report artifacts and exit-code behavior documented in [`docs/ci_contract.md`](ci_contract.md)
+- the signing defaults documented in [`docs/trust_policy.md`](trust_policy.md)
+- the source-install and release-tarball path documented in [`docs/releasing.md`](releasing.md)
+- the DTCG 2025.10 review documented in [`docs/dtcg_2025_10_review.md`](dtcg_2025_10_review.md)
+
+Not included in the alpha commitment:
+
+- package-manager distribution beyond source install and repo-built tarballs
+- plugin/extensibility infrastructure for third-party backends
+- design-tool authoring UX
+- framework or component-library generation inside Paint core
+- full `$extensions` round-tripping or `$description`-to-comment emission
+
+## Alpha commitments
+
+For alpha consumers, Paint commits to:
+
+- targeting the DTCG 2025.10 Format, Resolver, and Color modules as its supported standards surface
+- emitting canonical backend ids in manifests and reports:
+  - `web-css-vars`
+  - `swift-tokens`
+  - `android-compose-tokens`
+  - `web-tokens-ts`
+- keeping `backendArtifacts` as the primary machine-readable backend contract
+- treating `nativeApiVersions` only as a compatibility projection
+- keeping backend artifact paths relative to the owning output root
+- keeping signing optional by default unless callers opt into stricter verification flags
+
+## Open issues that block alpha
+
+These issues are alpha blockers and must be closed before cutting the first public alpha:
+
+- `tbp-dbb` Enforce DTCG token and group name restrictions
+- `tbp-mdw` Reject missing required resolver modifier inputs
+
+These do not currently block alpha by themselves, but they require an explicit release decision:
+
+- `tbp-32f` Normalize resolver inputs case-insensitively or document the deviation
+  - acceptable outcomes for alpha:
+    - the behavior is fixed, or
+    - the case-sensitive behavior remains but is called out explicitly in release notes and user docs
+
+## Go/No-Go gates
+
+The alpha is a `go` only if every required gate below is satisfied.
+
+| Gate | Evidence | Alpha rule |
+| --- | --- | --- |
+| Release docs are coherent | `docs/releasing.md`, `docs/backend_contract.md`, `docs/ci_contract.md`, `docs/trust_policy.md`, `docs/dtcg_2025_10_review.md` | all are present, current, and consistent with the public Paint surface |
+| DTCG review is current | [`docs/dtcg_2025_10_review.md`](dtcg_2025_10_review.md) | hard gaps have tracker coverage or are fixed |
+| Hard conformance blockers are closed | `tbp-dbb`, `tbp-mdw` | both must be closed |
+| SHOULD-level resolver input behavior is decided | `tbp-32f` or release notes/docs | either fixed or explicitly documented as an accepted alpha deviation |
+| Backend contract is frozen for alpha | [`docs/backend_contract.md`](backend_contract.md), [`tests/backend_contract.rs`](../tests/backend_contract.rs), [`tests/report_schema.rs`](../tests/report_schema.rs) | no unreviewed contract changes since the last alpha decision |
+| CI contract is frozen for alpha | [`docs/ci_contract.md`](ci_contract.md) and its referenced tests | exit-code and JSON/report behavior match the documented contract |
+| Core verification passes | `cargo test --workspace` | must pass on the candidate release commit |
+| Upstream spec-watch is clean | `python3 scripts/spec_watch.py check --targets spec-watch/targets.json --lock spec-watch/lock.json --artifact-dir spec-watch-artifacts` | must pass without drift unless the lock refresh is part of the release |
+| Install path works | `cargo install --locked --path . --root "$(mktemp -d)"` | must produce a usable `paint` binary |
+| Tarball packaging works | `./scripts/package_release.sh --out-dir "$(mktemp -d)"` | must produce a versioned tarball and `.sha256` sidecar |
+| Changelog is ready | `CHANGELOG.md` | must include the alpha release entry and explicitly call out any accepted deviations |
+
+## Alpha decision procedure
+
+1. Confirm the candidate commit is on canonical `main`.
+2. Confirm the blocking issues are closed.
+3. Run the required verification and packaging commands.
+4. Re-read the DTCG review and confirm no new material gaps have appeared since it was written.
+5. Decide whether any remaining SHOULD-level deviations are acceptable for alpha.
+6. Record the decision in the release notes/changelog.
+
+If any required gate fails, the decision is `no-go`.
+
+## Deferred beyond alpha
+
+The following are intentionally post-alpha unless re-scoped by new tracker work:
+
+- package-manager installs beyond Cargo source install
+- richer translation-tool metadata handling for `$extensions`
+- description propagation into generated code comments
+- backend/plugin SDK work
+- framework/component-library generation above the backend layer
+
+## Related docs
+
+- [`docs/releasing.md`](releasing.md)
+- [`docs/backend_contract.md`](backend_contract.md)
+- [`docs/ci_contract.md`](ci_contract.md)
+- [`docs/trust_policy.md`](trust_policy.md)
+- [`docs/dtcg_2025_10_review.md`](dtcg_2025_10_review.md)

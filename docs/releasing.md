@@ -1,6 +1,6 @@
-# Releasing tbp
+# Releasing Paint
 
-This document defines the first public release path for `tbp`. It is intentionally narrow: source installs are supported everywhere Rust stable works, and maintainers may additionally publish target-specific binary tarballs built from this repo.
+This document defines the first public release path for Paint. It is intentionally narrow: source installs are supported everywhere Rust stable works, and maintainers may additionally publish target-specific binary tarballs built from this repo.
 
 ## Supported install paths
 
@@ -9,7 +9,7 @@ Source install:
 ```bash
 ./scripts/link_premath_checkout.sh ../premath
 cargo install --locked --path .
-tbp --version
+paint --version
 ```
 
 Distributable artifact path:
@@ -19,15 +19,15 @@ Distributable artifact path:
 ```
 
 The packaging helper builds the current Cargo version for the host target by default and writes:
-- `release-artifacts/tbp-vX.Y.Z-<target>.tar.gz`
-- `release-artifacts/tbp-vX.Y.Z-<target>.tar.gz.sha256`
+- `release-artifacts/paintgun-vX.Y.Z-<target>.tar.gz`
+- `release-artifacts/paintgun-vX.Y.Z-<target>.tar.gz.sha256`
 
 Use `--target <triple>` to package a different Rust target when the toolchain is available.
 
 ## Artifact contents
 
 Each binary tarball contains:
-- `tbp`
+- `paint`
 - `README.md`
 - `SIGNING.md`
 - `CHANGELOG.md`
@@ -37,7 +37,7 @@ That is the minimum supported public artifact shape for the first release. Packa
 
 ## Versioning policy
 
-`tbp` uses SemVer tags in the form `vX.Y.Z`, and the tag must match the root crate version in `Cargo.toml`.
+`paintgun` uses SemVer tags in the form `vX.Y.Z`, and the tag must match the root crate version in `Cargo.toml`.
 
 Release policy:
 - `0.x.y` is pre-1.0. Breaking CLI or workflow changes may happen in a minor release, but they must be called out in `CHANGELOG.md` and release notes.

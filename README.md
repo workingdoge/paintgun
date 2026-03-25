@@ -90,6 +90,7 @@ The supported install paths, artifact shape, versioning policy, and maintainer c
 The target-backend and system-package architecture is documented in [`docs/target_backends.md`](docs/target_backends.md).
 The alpha-stable backend artifact contract is documented in [`docs/backend_contract.md`](docs/backend_contract.md).
 The DTCG 2025.10 design/conformance review is documented in [`docs/dtcg_2025_10_review.md`](docs/dtcg_2025_10_review.md).
+The alpha release boundary and go/no-go checklist are documented in [`docs/alpha_release.md`](docs/alpha_release.md).
 
 `build` supports two KCIR manifest wire formats via `--kcir-wire-format-id`:
 - `kcir.wire.legacy-fixed32.v1` (default)
@@ -308,7 +309,7 @@ cargo run -- annotate-report dist/validation.json \
 cargo run -- annotate-report dist-compose/compose.report.json --max 200
 ```
 
-`annotate-report` consumes the schema-backed report artifacts (`validation.json` / `compose.report.json`) and prints GitHub Actions annotation lines plus a final `tbp/report` summary notice. See [`docs/ci_contract.md`](docs/ci_contract.md) for the supported CI contract.
+`annotate-report` consumes the schema-backed report artifacts (`validation.json` / `compose.report.json`) and prints GitHub Actions annotation lines plus a final `paintgun/report` summary notice. See [`docs/ci_contract.md`](docs/ci_contract.md) for the supported CI contract.
 
 ## Multi-pack composition
 

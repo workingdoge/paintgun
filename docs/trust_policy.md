@@ -1,16 +1,16 @@
 # Trust Policy
 
-This document defines the public signing and verification contract for `tbp` artifacts in the current release line.
+This document defines the public signing and verification contract for Paint artifacts in the current release line.
 
 ## Public v1 policy
 
-For the first public `tbp` release track, signing is optional by default.
+For the first public Paint release track, signing is optional by default.
 
 That means:
 - unsigned pack manifests are valid input to `verify`
 - unsigned compose manifests are valid input to `verify-compose`
 - unsigned referenced pack manifests are valid during `verify-compose` unless the caller opts into stricter policy flags
-- once a manifest declares `trust.status = "signed"`, `tbp` always verifies the detached signature and trust metadata consistency
+- once a manifest declares `trust.status = "signed"`, `paint` always verifies the detached signature and trust metadata consistency
 
 Consumers that want signed-only enforcement can opt in without changing artifact shape:
 - `verify --require-signed`
@@ -40,7 +40,7 @@ Unsigned manifests:
 - are still valid in the default verifier profile for this release line
 
 Signed manifests:
-- must use the recognized scheme `tbp-detached-sha256-v1`
+- must use the recognized scheme `paintgun-detached-sha256-v1`
 - must include `trust.signatureFile`
 - must include `trust.claimsSha256`
 - may include `trust.signer`

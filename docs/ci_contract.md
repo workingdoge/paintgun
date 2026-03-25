@@ -63,8 +63,8 @@ Contract points:
 - `verify.ok` isolates the artifact/signature/path/witness verification step.
 - `semantics.ok` isolates optional semantic-policy checks such as `policyDigest` and `conflictMode`.
 - `errorDetails[].code` values are the stable CI-facing identifiers for machine matching.
-  - Per-pack verify codes come from `tbp::verify::error_codes`.
-  - Compose verify codes come from `tbp::compose::error_codes`.
+  - Per-pack verify codes come from `paintgun::verify::error_codes`.
+  - Compose verify codes come from `paintgun::compose::error_codes`.
 - `errors` arrays are human-readable summaries and should not be the primary machine-matching surface.
 
 ## Exit Codes
@@ -91,7 +91,7 @@ Important boundary:
 
 - zero or more GitHub Actions annotation commands to stdout
 - one final summary notice line with this stable prefix:
-  - `::notice title=tbp/report::`
+  - `::notice title=paintgun/report::`
 
 The summary notice includes:
 
