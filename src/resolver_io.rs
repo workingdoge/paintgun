@@ -62,6 +62,21 @@ pub fn flatten_with_io(
     )
 }
 
+pub fn flatten_unvalidated_with_io(
+    io: &impl ResolverIo,
+    doc: &ResolverDoc,
+    input: &Input,
+    base_dir: &Path,
+) -> Result<JValue, FlattenError> {
+    paintgun_resolver_kernel::flatten_unvalidated(
+        doc,
+        input,
+        base_dir,
+        &|b, r| io.resolve_existing_under(b, r),
+        &|p| io.read_json_value(p),
+    )
+}
+
 pub fn axes_relevant_to_tokens_with_io(
     io: &impl ResolverIo,
     doc: &ResolverDoc,

@@ -112,6 +112,11 @@ fn map_input_selection_error(err: InputSelectionError) -> FlattenError {
                 reason: "unknown modifier context value".to_string(),
             }
         }
+        InputSelectionError::MissingRequiredAxis { axis } => FlattenError::InvalidResolverInput {
+            axis,
+            value: "(missing)".to_string(),
+            reason: "missing required modifier input".to_string(),
+        },
     }
 }
 
@@ -453,18 +458,21 @@ where
     }
 }
 
-pub fn flatten<FResolvePath, FReadJson>(
+fn flatten_impl<FResolvePath, FReadJson>(
     doc: &ResolverDoc,
     input: &Input,
     base_dir: &Path,
     resolve_existing_under: &FResolvePath,
     read_json_file: &FReadJson,
+    validate_input: bool,
 ) -> Result<JValue, FlattenError>
 where
     FResolvePath: Fn(&Path, &str) -> Result<PathBuf, String>,
     FReadJson: Fn(&Path) -> Result<JValue, LoadFileError>,
 {
-    validate_input_selection(doc, input).map_err(map_input_selection_error)?;
+    if validate_input {
+        validate_input_selection(doc, input).map_err(map_input_selection_error)?;
+    }
     let mut merged = JValue::Object(BTreeMap::new());
     for entry in &doc.resolution_order {
         if let Some(tree) = resolve_order_entry(
@@ -479,6 +487,48 @@ where
         }
     }
     Ok(merged)
+}
+
+pub fn flatten<FResolvePath, FReadJson>(
+    doc: &ResolverDoc,
+    input: &Input,
+    base_dir: &Path,
+    resolve_existing_under: &FResolvePath,
+    read_json_file: &FReadJson,
+) -> Result<JValue, FlattenError>
+where
+    FResolvePath: Fn(&Path, &str) -> Result<PathBuf, String>,
+    FReadJson: Fn(&Path) -> Result<JValue, LoadFileError>,
+{
+    flatten_impl(
+        doc,
+        input,
+        base_dir,
+        resolve_existing_under,
+        read_json_file,
+        true,
+    )
+}
+
+pub fn flatten_unvalidated<FResolvePath, FReadJson>(
+    doc: &ResolverDoc,
+    input: &Input,
+    base_dir: &Path,
+    resolve_existing_under: &FResolvePath,
+    read_json_file: &FReadJson,
+) -> Result<JValue, FlattenError>
+where
+    FResolvePath: Fn(&Path, &str) -> Result<PathBuf, String>,
+    FReadJson: Fn(&Path) -> Result<JValue, LoadFileError>,
+{
+    flatten_impl(
+        doc,
+        input,
+        base_dir,
+        resolve_existing_under,
+        read_json_file,
+        false,
+    )
 }
 
 pub fn axes_relevant_to_tokens<FResolvePath, FReadJson>(

@@ -33,7 +33,7 @@ use paintgun::pipeline::{run_full_profile_pipeline, FullProfilePipelineRequest};
 use paintgun::policy::Policy;
 use paintgun::resolver::{
     axes_from_doc, axes_relevant_to_tokens, build_token_store_for_inputs, context_key,
-    read_json_file, Input, ResolverDoc, ResolverError,
+    filter_valid_inputs, read_json_file, Input, ResolverDoc, ResolverError,
 };
 use paintgun::signing::sign_manifest_file;
 use paintgun::verify::{verify_ctc_with_options, CtcVerifyOptions, VerifyProfile};
@@ -644,16 +644,14 @@ fn build_planner_trace(
     axes: &std::collections::BTreeMap<String, Vec<String>>,
     relevant_axes: Option<&std::collections::BTreeSet<String>>,
     contract_tokens: Option<&std::collections::BTreeSet<String>>,
+    partial_universe_inputs: &[Input],
     analysis_inputs: &[Input],
     resolver_inputs: &[Input],
 ) -> serde_json::Value {
     const TRACE_MAX_ENTRIES: usize = 200;
 
     let partial_universe_keys: std::collections::BTreeSet<String> =
-        paintgun::contexts::partial_inputs(axes)
-            .into_iter()
-            .map(|i| context_key(&i))
-            .collect();
+        partial_universe_inputs.iter().map(context_key).collect();
     let analysis_keys: std::collections::BTreeSet<String> =
         analysis_inputs.iter().map(context_key).collect();
     let resolver_keys: std::collections::BTreeSet<String> =
@@ -921,10 +919,14 @@ fn run_build(
         ),
         _ => None,
     };
-    let planned_inputs =
-        paintgun::contexts::plan_inputs(contexts.into(), &axes, relevant_axes.as_ref());
+    let partial_universe_inputs =
+        filter_valid_inputs(&doc, &paintgun::contexts::partial_inputs(&axes));
+    let planned_inputs = filter_valid_inputs(
+        &doc,
+        &paintgun::contexts::plan_inputs(contexts.into(), &axes, relevant_axes.as_ref()),
+    );
     let analysis_inputs = planned_inputs.clone();
-    let required_inputs = backend.required_inputs(&axes);
+    let required_inputs = filter_valid_inputs(&doc, &backend.required_inputs(&axes));
     let store_inputs = merge_planned_inputs(planned_inputs, required_inputs);
     let planner_trace_payload = if planner_trace {
         Some(build_planner_trace(
@@ -933,6 +935,7 @@ fn run_build(
             &axes,
             relevant_axes.as_ref(),
             contract_tokens.as_ref(),
+            &partial_universe_inputs,
             &analysis_inputs,
             &store_inputs,
         ))
@@ -1197,6 +1200,7 @@ fn run_compose(
     };
     let planned_inputs =
         paintgun::contexts::plan_inputs(contexts.into(), &compose_axes, relevant_axes.as_ref());
+    let partial_universe_inputs = paintgun::contexts::partial_inputs(&compose_axes);
     let planner_trace_payload = if planner_trace {
         Some(build_planner_trace(
             "compose",
@@ -1204,6 +1208,7 @@ fn run_compose(
             &compose_axes,
             relevant_axes.as_ref(),
             contract_tokens.as_ref(),
+            &partial_universe_inputs,
             &planned_inputs,
             &planned_inputs,
         ))

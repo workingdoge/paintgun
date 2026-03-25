@@ -8,7 +8,7 @@ use paintgun_resolver_model::{
 };
 
 use crate::resolver::ResolverError;
-use crate::resolver_io::{flatten_with_io, FsResolverIo};
+use crate::resolver_io::{flatten_unvalidated_with_io, flatten_with_io, FsResolverIo};
 
 fn map_extends_error(err: ExtendsError) -> ResolverError {
     match err {
@@ -85,18 +85,26 @@ fn map_input_selection_error(err: InputSelectionError) -> ResolverError {
                 reason: "unknown modifier context value".to_string(),
             }
         }
+        InputSelectionError::MissingRequiredAxis { axis } => ResolverError::InvalidResolverInput {
+            axis,
+            value: "(missing)".to_string(),
+            reason: "missing required modifier input".to_string(),
+        },
     }
 }
 
-pub fn build_token_store_for_inputs(
+fn build_token_store_for_inputs_impl(
     doc: &ResolverDoc,
     resolver_path: &Path,
     inputs: &[Input],
+    validate_inputs: bool,
 ) -> Result<TokenStore, ResolverError> {
     let base_dir = resolver_path.parent().unwrap_or_else(|| Path::new("."));
     let axes = axes_from_doc(doc);
-    for input in inputs {
-        validate_input_selection(doc, input).map_err(map_input_selection_error)?;
+    if validate_inputs {
+        for input in inputs {
+            validate_input_selection(doc, input).map_err(map_input_selection_error)?;
+        }
     }
     let planned_inputs = dedup_inputs_for_axes(inputs);
 
@@ -104,8 +112,12 @@ pub fn build_token_store_for_inputs(
 
     for input in planned_inputs {
         let key = context_key(&input);
-        let tree =
-            flatten_with_io(&FsResolverIo, doc, &input, base_dir).map_err(map_flatten_error)?;
+        let tree = if validate_inputs {
+            flatten_with_io(&FsResolverIo, doc, &input, base_dir).map_err(map_flatten_error)?
+        } else {
+            flatten_unvalidated_with_io(&FsResolverIo, doc, &input, base_dir)
+                .map_err(map_flatten_error)?
+        };
         let extended =
             paintgun_resolver_kernel::resolve_extends(&tree).map_err(map_extends_error)?;
 
@@ -132,11 +144,19 @@ pub fn build_token_store_for_inputs(
     })
 }
 
+pub fn build_token_store_for_inputs(
+    doc: &ResolverDoc,
+    resolver_path: &Path,
+    inputs: &[Input],
+) -> Result<TokenStore, ResolverError> {
+    build_token_store_for_inputs_impl(doc, resolver_path, inputs, true)
+}
+
 pub fn build_token_store(
     doc: &ResolverDoc,
     resolver_path: &Path,
 ) -> Result<TokenStore, ResolverError> {
     let axes = axes_from_doc(doc);
     let inputs = crate::contexts::partial_inputs(&axes);
-    build_token_store_for_inputs(doc, resolver_path, &inputs)
+    build_token_store_for_inputs_impl(doc, resolver_path, &inputs, false)
 }

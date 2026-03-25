@@ -12,7 +12,7 @@ use paintgun::emit::{
 };
 use paintgun::policy::Policy;
 use paintgun::resolver::{
-    axes_from_doc, build_token_store_for_inputs, read_json_file, ResolverDoc,
+    axes_from_doc, build_token_store_for_inputs, filter_valid_inputs, read_json_file, ResolverDoc,
 };
 
 fn temp_dir(prefix: &str) -> PathBuf {
@@ -57,6 +57,7 @@ fn example_doc() -> ResolverDoc {
 }
 
 fn backend_inputs_for_test(
+    doc: &ResolverDoc,
     backend: &dyn paintgun::backend::TargetBackend,
     axes: &std::collections::BTreeMap<String, Vec<String>>,
 ) -> Vec<paintgun::resolver::Input> {
@@ -64,7 +65,7 @@ fn backend_inputs_for_test(
     if required.is_empty() {
         paintgun::contexts::full_inputs(axes)
     } else {
-        required
+        filter_valid_inputs(doc, &required)
     }
 }
 
@@ -132,7 +133,7 @@ fn css_backend_emits_typed_artifacts_for_build() {
     let out = temp_dir("backend-css");
     let doc = example_doc();
     let axes = axes_from_doc(&doc);
-    let inputs = backend_inputs_for_test(backend, &axes);
+    let inputs = backend_inputs_for_test(&doc, backend, &axes);
     let store =
         build_token_store_for_inputs(&doc, &example_resolver(), &inputs).expect("build store");
     let contracts = load_contracts(&example_contracts());
@@ -214,7 +215,7 @@ fn native_backends_emit_primary_output_and_scaffold_artifacts() {
         let backend = resolve_target_backend(target).expect("native backend");
         let out = temp_dir(&format!("backend-{target}"));
         let axes = axes_from_doc(&doc);
-        let inputs = backend_inputs_for_test(backend, &axes);
+        let inputs = backend_inputs_for_test(&doc, backend, &axes);
         let store =
             build_token_store_for_inputs(&doc, &example_resolver(), &inputs).expect("build store");
 
@@ -258,7 +259,7 @@ fn web_tokens_backend_emits_typed_package_artifacts() {
     let out = temp_dir("backend-web-tokens");
     let doc = example_doc();
     let axes = axes_from_doc(&doc);
-    let inputs = backend_inputs_for_test(backend, &axes);
+    let inputs = backend_inputs_for_test(&doc, backend, &axes);
     let store =
         build_token_store_for_inputs(&doc, &example_resolver(), &inputs).expect("build store");
 

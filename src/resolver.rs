@@ -10,10 +10,11 @@ use crate::resolver_io::{
     axes_relevant_to_tokens_with_io, flatten_with_io, load_source_with_io, FsResolverIo,
 };
 pub use paintgun_resolver_model::{
-    axes_from_doc, context_key, dedup_inputs_for_axes, parse_context_key, validate_input_selection,
-    InlineResolverModifier, InlineResolverSet, Input, InputSelectionError, MaterializedToken,
-    ResolvedToken, ResolverDoc, ResolverModifier, ResolverModifierContext, ResolverOrderEntry,
-    ResolverOrderInlineType, ResolverOrderRefObject, ResolverSet, ResolverSource, TokenStore,
+    axes_from_doc, context_key, dedup_inputs_for_axes, filter_valid_inputs, parse_context_key,
+    validate_input_selection, InlineResolverModifier, InlineResolverSet, Input,
+    InputSelectionError, MaterializedToken, ResolvedToken, ResolverDoc, ResolverModifier,
+    ResolverModifierContext, ResolverOrderEntry, ResolverOrderInlineType, ResolverOrderRefObject,
+    ResolverSet, ResolverSource, TokenStore,
 };
 
 //──────────────────────────────────────────────────────────────────────────────

@@ -248,6 +248,52 @@ fn unknown_input_axis_or_value_is_error() {
 }
 
 #[test]
+fn missing_required_modifier_input_is_error() {
+    let root = temp_dir("resolver-missing-required-input");
+    let resolver_path = root.join("resolver.json");
+    write_json(
+        &resolver_path,
+        serde_json::json!({
+            "version": "2025.10",
+            "sets": {
+                "base": { "sources": [ {} ] }
+            },
+            "modifiers": {
+                "theme": {
+                    "contexts": {
+                        "light": [ {} ],
+                        "dark": [ {} ]
+                    }
+                }
+            },
+            "resolutionOrder": [
+                { "$ref": "#/sets/base" },
+                { "$ref": "#/modifiers/theme" }
+            ]
+        }),
+    );
+    let doc: ResolverDoc = read_json_file(&resolver_path).expect("resolver doc");
+
+    let err = build_token_store_for_inputs(&doc, &resolver_path, &[Input::new()])
+        .expect_err("expected missing required modifier input");
+    match err {
+        ResolverError::InvalidResolverInput {
+            axis,
+            value,
+            reason,
+        } => {
+            assert_eq!(axis, "theme");
+            assert_eq!(value, "(missing)");
+            assert!(
+                reason.contains("missing required modifier input"),
+                "unexpected reason: {reason}"
+            );
+        }
+        other => panic!("expected invalid resolver input error, got {other}"),
+    }
+}
+
+#[test]
 fn source_reference_to_set_with_local_overrides_is_supported() {
     let root = temp_dir("resolver-source-local-set-ref");
     let resolver_path = root.join("resolver.json");
@@ -321,7 +367,7 @@ fn source_reference_to_modifier_is_rejected() {
     );
 
     let doc: ResolverDoc = read_json_file(&resolver_path).expect("resolver doc");
-    let err = build_token_store_for_inputs(&doc, &resolver_path, &[Input::new()])
+    let err = build_token_store_for_inputs(&doc, &resolver_path, &[set_input("theme", "dark")])
         .expect_err("expected invalid resolver ref");
     match err {
         ResolverError::InvalidResolverRef { reference, reason } => {

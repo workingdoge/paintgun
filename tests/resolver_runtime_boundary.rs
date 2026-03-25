@@ -21,8 +21,8 @@ fn resolver_runtime_module_hosts_token_store_orchestration() {
         );
     }
     assert!(
-        src.contains("use crate::resolver_io::{flatten_with_io, FsResolverIo};"),
-        "src/resolver_runtime.rs should use resolver_io seam directly"
+        src.contains("use crate::resolver_io::{flatten_unvalidated_with_io, flatten_with_io, FsResolverIo};"),
+        "src/resolver_runtime.rs should use resolver_io seam directly for validated and planned contexts"
     );
     assert!(
         src.contains("paintgun_resolver_kernel::resolve_extends(&tree)"),

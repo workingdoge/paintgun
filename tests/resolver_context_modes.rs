@@ -6,7 +6,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use paintgun::contexts::{plan_inputs, ContextMode};
 use paintgun::resolver::{
     axes_from_doc, axes_relevant_to_tokens, build_token_store, build_token_store_for_inputs,
-    read_json_file, ResolverDoc,
+    filter_valid_inputs, read_json_file, ResolverDoc, ResolverError,
 };
 
 fn temp_dir(prefix: &str) -> PathBuf {
@@ -155,12 +155,28 @@ fn resolver_build_uses_planned_context_inputs() {
     let full_store =
         build_token_store_for_inputs(&doc, &resolver_path, &full_inputs).expect("full store");
     let partial_store = build_token_store(&doc, &resolver_path).expect("partial store");
-    let contract_store =
-        build_token_store_for_inputs(&doc, &resolver_path, &contract_inputs).expect("contract");
+    let contract_err = build_token_store_for_inputs(&doc, &resolver_path, &contract_inputs)
+        .expect_err("contract contexts without required modifiers should be rejected");
+    let valid_contract_inputs = filter_valid_inputs(&doc, &contract_inputs);
 
     assert_eq!(full_store.resolved_by_ctx.len(), 8);
     assert_eq!(partial_store.resolved_by_ctx.len(), 27);
-    assert_eq!(contract_store.resolved_by_ctx.len(), 3);
+    assert_eq!(valid_contract_inputs.len(), 0);
+    match contract_err {
+        ResolverError::InvalidResolverInput {
+            axis,
+            value,
+            reason,
+        } => {
+            assert_eq!(axis, "density");
+            assert_eq!(value, "(missing)");
+            assert!(
+                reason.contains("missing required modifier input"),
+                "unexpected reason: {reason}"
+            );
+        }
+        other => panic!("expected invalid resolver input error, got {other}"),
+    }
 
     for (ctx, toks) in &full_store.resolved_by_ctx {
         let from_partial = partial_store

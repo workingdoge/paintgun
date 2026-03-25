@@ -377,6 +377,7 @@ pub struct TokenStore {
 pub enum InputSelectionError {
     UnknownAxis { axis: String, value: String },
     UnknownContextValue { axis: String, value: String },
+    MissingRequiredAxis { axis: String },
 }
 
 pub fn axes_from_doc(doc: &ResolverDoc) -> BTreeMap<String, Vec<String>> {
@@ -404,6 +405,13 @@ pub fn validate_input_selection(
             return Err(InputSelectionError::UnknownContextValue {
                 axis: axis.clone(),
                 value: value.clone(),
+            });
+        }
+    }
+    for (axis, modifier) in doc.all_modifiers() {
+        if modifier.default.is_none() && !input.contains_key(axis) {
+            return Err(InputSelectionError::MissingRequiredAxis {
+                axis: axis.to_string(),
             });
         }
     }
@@ -441,6 +449,15 @@ pub fn dedup_inputs_for_axes(inputs: &[Input]) -> Vec<Input> {
     out.sort_by_key(context_key);
     out.dedup_by(|a, b| context_key(a) == context_key(b));
     out
+}
+
+pub fn filter_valid_inputs(doc: &ResolverDoc, inputs: &[Input]) -> Vec<Input> {
+    let filtered: Vec<Input> = inputs
+        .iter()
+        .filter(|input| validate_input_selection(doc, input).is_ok())
+        .cloned()
+        .collect();
+    dedup_inputs_for_axes(&filtered)
 }
 
 impl TokenStore {
