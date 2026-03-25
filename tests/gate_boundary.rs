@@ -24,7 +24,7 @@ fn paintgun_gate_module_is_adapter_only() {
 
 #[test]
 fn premath_gate_module_hosts_law_mapping() {
-    let gate_core_src = read_from_manifest("crates/premath-gate/src/lib.rs");
+    let gate_core_src = read_from_manifest("../premath/crates/premath-gate/src/lib.rs");
     for law in ["GATE-3.1", "GATE-3.2", "GATE-3.3", "GATE-3.4", "GATE-3.5"] {
         assert!(
             gate_core_src.contains(law),

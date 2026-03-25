@@ -19,12 +19,12 @@ clap = { version = "4.5", features = ["derive"] }
 thiserror = "1.0"
 sha2 = "0.10"
 hex = "0.4"
-premath-kcir = { path = "crates/premath-kcir" }
-premath-dsl = { path = "crates/premath-dsl" }
-premath-gate = { path = "crates/premath-gate" }
-premath-admissibility = { path = "crates/premath-admissibility" }
-premath-composability = { path = "crates/premath-composability" }
-premath-compose = { path = "crates/premath-compose" }
+premath-kcir = { path = "../premath/crates/premath-kcir" }
+premath-dsl = { path = "../premath/crates/premath-dsl" }
+premath-gate = { path = "../premath/crates/premath-gate" }
+premath-admissibility = { path = "../premath/crates/premath-admissibility" }
+premath-composability = { path = "../premath/crates/premath-composability" }
+premath-compose = { path = "../premath/crates/premath-compose" }
 paintgun-dtcg = { path = "crates/paintgun-dtcg" }
 paintgun-policy = { path = "crates/paintgun-policy" }
 paintgun-ids = { path = "crates/paintgun-ids" }
@@ -44,13 +44,6 @@ codegen-units = 1
 [workspace]
 members = [
     ".",
-    "crates/premath-kcir-kernel",
-    "crates/premath-kcir",
-    "crates/premath-dsl",
-    "crates/premath-gate",
-    "crates/premath-admissibility",
-    "crates/premath-composability",
-    "crates/premath-compose",
     "crates/paintgun-dtcg",
     "crates/paintgun-policy",
     "crates/paintgun-ids",
@@ -62,7 +55,7 @@ resolver = "2"
 
 [workspace.metadata.premath]
 msrv = "1.89"
-ci_entrypoint = "./scripts/premath_workspace_ci.sh"
+ci_entrypoint = "../premath"
 members = [
     "premath-admissibility",
     "premath-composability",

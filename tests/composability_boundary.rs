@@ -44,7 +44,7 @@ fn cert_module_reexports_composability_model() {
 
 #[test]
 fn premath_composability_hosts_generic_analysis_model() {
-    let model_src = read_from_manifest("crates/premath-composability/src/lib.rs");
+    let model_src = read_from_manifest("../premath/crates/premath-composability/src/lib.rs");
     for symbol in [
         "pub enum ConflictMode",
         "pub struct AnalysisSummary",

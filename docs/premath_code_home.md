@@ -2,26 +2,26 @@
 
 ## Decision
 
-Keep `premath-*` in this repository's Cargo workspace for now.
+`premath-*` now live in the dedicated sibling code repo/workspace at `/Users/arj/dev/fish/tools/premath`.
 
 Do not move Premath code into `/Users/arj/dev/fish/sites/premath`.
 That repo remains the site, spec, governance, and curated-reference surface.
 
-If Premath code is extracted later, the target should be a sibling code repo or a dedicated code workspace, not the site repo.
+The code-home decision is therefore no longer provisional: Premath code is extracted to a sibling code repo, not the site repo.
 
 The execution contract for that later move is defined in `docs/premath_extraction_contract.md`.
 
-## Recommendation
+## Resulting operating model
 
-The recommended operating model is:
+The current operating model is:
 
-- Code home now: keep `premath-*` under `crates/premath-*` in this repo.
-- Public packaging now: do not publish `premath-*` crates independently.
-- Versioning now: keep `premath-*` on the workspace's lockstep `0.x` version line with no standalone semver promise.
-- CI now: validate Premath through the existing workspace test suite and boundary tests that enforce the product/kernel split.
-- Extraction target later: a dedicated Premath code repo or code-only multi-workspace arrangement once the preconditions below are met.
+- Code home now: keep `premath-*` under `/Users/arj/dev/fish/tools/premath/crates/premath-*`.
+- Paint now consumes those crates from the sibling repo.
+- Public packaging now: still do not publish `premath-*` crates independently.
+- Versioning now: keep `premath-*` on the extracted workspace's lockstep `0.x` version line with no standalone semver promise yet.
+- CI now: validate Premath through the extracted workspace and use Paint boundary tests only for adapter behavior.
 
-This is the lowest-risk choice because it preserves the current working integration loop while making the eventual extraction target explicit.
+This keeps code ownership aligned with the extracted workspace while leaving publication and broader downstream adoption for later work.
 
 ## Options Considered
 
@@ -98,7 +98,7 @@ Required before extraction:
 
 ## Extraction Preconditions
 
-Do not extract Premath code until all of these are true:
+The extraction preconditions were satisfied enough to execute the first-wave move. Remaining work is now cutover polish rather than code-home indecision:
 
 1. `premath-*` public APIs are product-neutral.
 2. Product-specific nouns and contracts are out of the public surface.
@@ -109,10 +109,4 @@ Do not extract Premath code until all of these are true:
 
 ## Revisit Trigger
 
-Reopen this decision when either:
-
-- a second real consumer appears,
-- extraction-ready cleanup is complete across the remaining `premath-*` seams, or
-- release pressure makes independent Premath publication more valuable than in-repo coordination.
-
-Until then, keep Premath in-tree and treat this repo as the code home.
+Reopen this note only if the dedicated Premath code home itself needs to move again. The current code-home question is closed.

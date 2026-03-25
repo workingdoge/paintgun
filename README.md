@@ -22,6 +22,8 @@ The Premath-only standalone CI/build entrypoint is:
 ./scripts/premath_workspace_ci.sh
 ```
 
+That entrypoint now executes against the dedicated sibling code repo at `../premath`.
+
 ## Build & run
 
 ```bash

@@ -1,6 +1,6 @@
 # Premath Standalone Workspace Prep
 
-This document defines the standalone ownership boundary for the in-tree `premath-*` crates while they still live in the Paint workspace.
+This document defines the standalone ownership boundary for the extracted `premath-*` crates that Paint now consumes from the sibling Premath repo.
 
 ## Scope
 
@@ -14,7 +14,7 @@ The standalone subset is:
 - `premath-kcir-kernel`
 - `premath-kcir`
 
-These crates are the first extraction wave named in `docs/premath_extraction_contract.md`.
+These crates are the first extraction wave named in `docs/premath_extraction_contract.md`, and they now live in `/Users/arj/dev/fish/tools/premath`.
 
 ## Ownership boundary
 
@@ -28,7 +28,7 @@ The current boundary is:
 
 Generic artifact vocabulary such as `pack`, `manifest`, `context`, or `witness` remains acceptable where it describes kernel behavior rather than Paint-specific runtime contracts.
 
-## Standalone entrypoint
+## Standalone entrypoint used from Paint
 
 The Premath-only build/test entrypoint is:
 
@@ -45,7 +45,7 @@ Supported modes:
 ./scripts/premath_workspace_ci.sh fmt
 ```
 
-This entrypoint intentionally excludes the Paint CLI and product integration tests.
+This entrypoint intentionally excludes the Paint CLI and product integration tests, and delegates to the extracted Premath workspace.
 
 ## Metadata contract
 
@@ -56,7 +56,7 @@ Current standalone metadata for the `premath-*` crates:
 - documented MSRV: Rust `1.89`
 - package descriptions present in each crate manifest
 
-Workspace-level discovery metadata is recorded in `Cargo.toml` under `workspace.metadata.premath`.
+Workspace-level discovery metadata in Paint records the extracted member set and the external workspace entrypoint.
 
 ## Remaining blockers
 
@@ -64,8 +64,8 @@ There are no remaining direct Paint-code dependencies inside the `premath-*` cra
 
 The remaining extraction blockers are repo-level concerns:
 
-- creating the dedicated Premath code repo/workspace
-- physically moving the crate sources
-- rewiring Paint to consume the extracted workspace
+- final Paint cutover cleanup
+- CI and contributor-flow normalization around the extracted workspace
+- any future publication/release work
 
-Those blockers are handled by `tbp-e3k.3`, `tbp-e3k.4`, and `tbp-e3k.5`.
+Those blockers are handled by `tbp-e3k.5` and later follow-up work.
