@@ -33,7 +33,7 @@ use paintgun::pipeline::{run_full_profile_pipeline, FullProfilePipelineRequest};
 use paintgun::policy::Policy;
 use paintgun::resolver::{
     axes_from_doc, axes_relevant_to_tokens, build_token_store_for_inputs, context_key,
-    filter_valid_inputs, read_json_file, Input, ResolverDoc, ResolverError,
+    read_json_file, supporting_inputs_for_selection, Input, ResolverDoc, ResolverError,
 };
 use paintgun::signing::sign_manifest_file;
 use paintgun::verify::{verify_ctc_with_options, CtcVerifyOptions, VerifyProfile};
@@ -919,15 +919,15 @@ fn run_build(
         ),
         _ => None,
     };
-    let partial_universe_inputs =
-        filter_valid_inputs(&doc, &paintgun::contexts::partial_inputs(&axes));
-    let planned_inputs = filter_valid_inputs(
-        &doc,
-        &paintgun::contexts::plan_inputs(contexts.into(), &axes, relevant_axes.as_ref()),
-    );
+    let partial_universe_inputs = paintgun::contexts::partial_inputs(&axes);
+    let planned_inputs =
+        paintgun::contexts::plan_inputs(contexts.into(), &axes, relevant_axes.as_ref());
     let analysis_inputs = planned_inputs.clone();
-    let required_inputs = filter_valid_inputs(&doc, &backend.required_inputs(&axes));
-    let store_inputs = merge_planned_inputs(planned_inputs, required_inputs);
+    let required_inputs = backend.required_inputs(&axes);
+    let store_inputs = supporting_inputs_for_selection(
+        &doc,
+        &merge_planned_inputs(planned_inputs, required_inputs),
+    );
     let planner_trace_payload = if planner_trace {
         Some(build_planner_trace(
             "build",

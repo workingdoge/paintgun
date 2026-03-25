@@ -460,6 +460,52 @@ pub fn filter_valid_inputs(doc: &ResolverDoc, inputs: &[Input]) -> Vec<Input> {
     dedup_inputs_for_axes(&filtered)
 }
 
+pub fn supporting_inputs_for_selection(doc: &ResolverDoc, inputs: &[Input]) -> Vec<Input> {
+    let required_axes: Vec<(String, Vec<String>)> = doc
+        .all_modifiers()
+        .into_iter()
+        .filter_map(|(axis, modifier)| {
+            if modifier.default.is_some() {
+                return None;
+            }
+            let mut values: Vec<String> = modifier.contexts.keys().cloned().collect();
+            values.sort();
+            Some((axis.to_string(), values))
+        })
+        .collect();
+
+    fn expand_required_axes(
+        depth: usize,
+        required_axes: &[(String, Vec<String>)],
+        cur: &mut Input,
+        out: &mut Vec<Input>,
+    ) {
+        if depth == required_axes.len() {
+            out.push(cur.clone());
+            return;
+        }
+
+        let (axis, values) = &required_axes[depth];
+        if cur.contains_key(axis) {
+            expand_required_axes(depth + 1, required_axes, cur, out);
+            return;
+        }
+
+        for value in values {
+            cur.insert(axis.clone(), value.clone());
+            expand_required_axes(depth + 1, required_axes, cur, out);
+            cur.remove(axis);
+        }
+    }
+
+    let mut expanded = Vec::new();
+    for input in dedup_inputs_for_axes(inputs) {
+        let mut cur = input;
+        expand_required_axes(0, &required_axes, &mut cur, &mut expanded);
+    }
+    dedup_inputs_for_axes(&expanded)
+}
+
 impl TokenStore {
     pub fn tokens_at(&self, input: &Input) -> &[ResolvedToken] {
         self.resolved_by_ctx

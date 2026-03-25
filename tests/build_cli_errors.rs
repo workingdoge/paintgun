@@ -21,6 +21,11 @@ fn example_resolver() -> PathBuf {
     repo_root().join("examples/charter-steel/charter-steel.resolver.json")
 }
 
+fn write_json(path: &std::path::Path, value: serde_json::Value) {
+    let bytes = serde_json::to_vec_pretty(&value).expect("serialize json");
+    fs::write(path, bytes).expect("write json");
+}
+
 fn assert_nonpanic_failure(stderr: &str) {
     assert!(
         !stderr.contains("panicked at"),
@@ -230,6 +235,175 @@ fn build_kotlin_alias_emits_android_backend_identity() {
         out.join("android/build.gradle.kts").is_file(),
         "expected Android scaffold under canonical android/ path"
     );
+}
+
+#[test]
+fn build_from_contracts_expands_missing_required_modifiers_for_store_inputs() {
+    let root = temp_dir("build-from-contracts-required-modifiers");
+    let tokens = root.join("tokens");
+    fs::create_dir_all(&tokens).expect("tokens dir");
+
+    write_json(
+        &tokens.join("base.tokens.json"),
+        serde_json::json!({
+          "color": {
+            "surface": {
+              "bg": {
+                "$type": "color",
+                "$value": { "colorSpace": "srgb", "components": [1, 1, 1], "alpha": 1 }
+              }
+            }
+          }
+        }),
+    );
+    write_json(
+        &tokens.join("theme.dark.tokens.json"),
+        serde_json::json!({
+          "color": {
+            "surface": {
+              "bg": {
+                "$type": "color",
+                "$value": { "colorSpace": "srgb", "components": [0.1, 0.1, 0.1], "alpha": 1 }
+              }
+            }
+          }
+        }),
+    );
+    write_json(
+        &tokens.join("theme.light.tokens.json"),
+        serde_json::json!({}),
+    );
+    write_json(
+        &tokens.join("density.compact.tokens.json"),
+        serde_json::json!({
+          "dimension": {
+            "space": {
+              "md": {
+                "$type": "dimension",
+                "$value": { "value": "6", "unit": "px" }
+              }
+            }
+          }
+        }),
+    );
+    write_json(
+        &tokens.join("density.comfortable.tokens.json"),
+        serde_json::json!({}),
+    );
+    write_json(
+        &tokens.join("motion.reduced.tokens.json"),
+        serde_json::json!({
+          "dimension": {
+            "radius": {
+              "md": {
+                "$type": "dimension",
+                "$value": { "value": "3", "unit": "px" }
+              }
+            }
+          }
+        }),
+    );
+    write_json(
+        &tokens.join("motion.normal.tokens.json"),
+        serde_json::json!({}),
+    );
+
+    let resolver = root.join("fixture.resolver.json");
+    write_json(
+        &resolver,
+        serde_json::json!({
+          "version": "2025.10",
+          "sets": {
+            "base": { "sources": [ { "$ref": "tokens/base.tokens.json" } ] }
+          },
+          "modifiers": {
+            "theme": {
+              "contexts": {
+                "dark": [ { "$ref": "tokens/theme.dark.tokens.json" } ],
+                "light": [ { "$ref": "tokens/theme.light.tokens.json" } ]
+              }
+            },
+            "density": {
+              "contexts": {
+                "compact": [ { "$ref": "tokens/density.compact.tokens.json" } ],
+                "comfortable": [ { "$ref": "tokens/density.comfortable.tokens.json" } ]
+              }
+            },
+            "motion": {
+              "contexts": {
+                "reduced": [ { "$ref": "tokens/motion.reduced.tokens.json" } ],
+                "normal": [ { "$ref": "tokens/motion.normal.tokens.json" } ]
+              }
+            }
+          },
+          "resolutionOrder": [
+            { "$ref": "#/sets/base" },
+            { "$ref": "#/modifiers/theme" },
+            { "$ref": "#/modifiers/density" },
+            { "$ref": "#/modifiers/motion" }
+          ]
+        }),
+    );
+
+    let contracts = root.join("contracts.json");
+    write_json(
+        &contracts,
+        serde_json::json!({
+          "surface-card": {
+            "component": "SurfaceCard",
+            "slots": {
+              "background": {
+                "token": "color.surface.bg",
+                "property": "background"
+              }
+            }
+          }
+        }),
+    );
+
+    let out = root.join("dist");
+    let output = Command::new(env!("CARGO_BIN_EXE_paint"))
+        .arg("build")
+        .arg(&resolver)
+        .arg("--contracts")
+        .arg(&contracts)
+        .arg("--contexts")
+        .arg("from-contracts")
+        .arg("--target")
+        .arg("swift-tokens")
+        .arg("--format")
+        .arg("json")
+        .arg("--planner-trace")
+        .arg("--out")
+        .arg(&out)
+        .output()
+        .expect("run paint build");
+
+    assert!(
+        output.status.success(),
+        "expected build to succeed\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let resolved: serde_json::Value =
+        serde_json::from_slice(&fs::read(out.join("resolved.json")).expect("read resolved.json"))
+            .expect("parse resolved.json");
+    let contexts = resolved["contexts"].as_array().expect("resolved contexts");
+    assert_eq!(
+        contexts.len(),
+        8,
+        "store inputs should expand to the full set of valid required-modifier contexts"
+    );
+
+    let validation: serde_json::Value = serde_json::from_slice(
+        &fs::read(out.join("validation.json")).expect("read validation.json"),
+    )
+    .expect("parse validation.json");
+    let planner = &validation["plannerTrace"];
+    assert_eq!(planner["mode"], "from-contracts");
+    assert_eq!(planner["counts"]["analysisIncluded"], 3);
+    assert_eq!(planner["counts"]["resolverIncluded"], 8);
 }
 
 #[test]

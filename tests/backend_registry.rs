@@ -12,7 +12,8 @@ use paintgun::emit::{
 };
 use paintgun::policy::Policy;
 use paintgun::resolver::{
-    axes_from_doc, build_token_store_for_inputs, filter_valid_inputs, read_json_file, ResolverDoc,
+    axes_from_doc, build_token_store_for_inputs, read_json_file, supporting_inputs_for_selection,
+    ResolverDoc,
 };
 
 fn temp_dir(prefix: &str) -> PathBuf {
@@ -65,7 +66,7 @@ fn backend_inputs_for_test(
     if required.is_empty() {
         paintgun::contexts::full_inputs(axes)
     } else {
-        filter_valid_inputs(doc, &required)
+        supporting_inputs_for_selection(doc, &required)
     }
 }
 
