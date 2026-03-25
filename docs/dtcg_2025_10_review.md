@@ -35,7 +35,7 @@ This matches the DTCG Format module's examples for `$description`: design tools 
 | Resolver | Same-document and file-based reference objects | `pass` | `tests/resolver_references.rs`, `crates/paintgun-resolver-kernel/src/lib.rs` | Paint supports same-document resolver refs, local file refs, inline overrides, and cycle/error cases. |
 | Resolver | Resolution order and alias resolution stages | `pass` | `tests/resolver_references.rs`, `tests/conformance.rs`, `crates/paintgun-resolver-kernel/src/lib.rs` | Current tests cover ordering, conflict precedence, circular refs, unresolved aliases, and JSON Pointer edge cases. |
 | Resolver | Missing required modifier inputs | `gap` | `crates/paintgun-resolver-model/src/lib.rs`, `crates/paintgun-resolver-kernel/src/lib.rs` | `validate_input_selection()` only checks unknown axes and unknown context values. `resolve_modifier()` returns `Ok(None)` when a modifier has no default and the input omits it. DTCG Resolver requires this to error. Follow-up: `tbp-mdw`. |
-| Resolver | Case-insensitive input handling | `risk` | `crates/paintgun-resolver-model/src/lib.rs` exact-match lookups, `src/resolver.rs`, `src/resolver_runtime.rs` | The spec says inputs SHOULD be case-insensitive, but Paint currently treats modifier names and context values as exact matches. This is an interoperability choice that should either be normalized or clearly documented. Follow-up: `tbp-32f`. |
+| Resolver | Case-insensitive input handling | `risk` | `crates/paintgun-resolver-model/src/lib.rs` exact-match lookups, `src/resolver.rs`, `src/resolver_runtime.rs`, `README.md` | The spec says inputs SHOULD be case-insensitive, but Paint currently treats modifier names and context values as exact matches. Alpha decision: keep exact-match behavior for now and document it explicitly as an accepted interoperability tradeoff. |
 | Color | Structured color values, alpha, `hex`, and `none` support | `pass` | `crates/paintgun-resolver-kernel/src/lib.rs`, `tests/resolver_context_modes.rs`, conformance fixtures | Paint enforces object-based color values, supports `alpha`, validates 6-digit `hex`, and accepts `"none"` component values. |
 | Color | Supported color spaces and range checks | `pass` | `crates/paintgun-resolver-kernel/src/lib.rs` | Paint supports `srgb`, `srgb-linear`, `hsl`, `hwb`, `lab`, `lch`, `oklab`, `oklch`, `display-p3`, `a98-rgb`, `prophoto-rgb`, `rec2020`, `xyz-d65`, and `xyz-d50`, with range validation aligned to the module's intent. |
 
@@ -52,7 +52,7 @@ This matches the DTCG Format module's examples for `$description`: design tools 
 ### Interoperability risk
 
 1. Resolver input matching is case-sensitive.
-   The Resolver module only says this behavior is a SHOULD, not a MUST, but exact-match lookups are a practical compatibility footgun if Paint is used in mixed-case ecosystems or external pipelines.
+   The Resolver module only says this behavior is a SHOULD, not a MUST. Paint now documents this as an accepted alpha deviation rather than leaving it implicit, but it remains an interoperability tradeoff for mixed-case ecosystems or external pipelines.
 
 ### Deferred excellence items
 
@@ -66,7 +66,7 @@ This matches the DTCG Format module's examples for `$description`: design tools 
 
 - `tbp-dbb` Enforce DTCG token and group name restrictions
 - `tbp-mdw` Reject missing required resolver modifier inputs
-- `tbp-32f` Normalize resolver inputs case-insensitively or document the deviation
+- `tbp-32f` Resolved by documenting the accepted alpha deviation: resolver input matching remains case-sensitive
 
 ## Source references
 

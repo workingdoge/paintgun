@@ -11,3 +11,6 @@ The release process in `docs/releasing.md` assumes:
 
 ### Added
 - Release packaging guidance, changelog policy, and a maintainer packaging helper.
+
+### Changed
+- Documented the current resolver-input behavior as case-sensitive by exact match, as an explicit alpha-era deviation from the DTCG Resolver 2025.10 case-insensitivity SHOULD guidance.

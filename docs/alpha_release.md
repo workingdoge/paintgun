@@ -55,10 +55,8 @@ These issues are alpha blockers and must be closed before cutting the first publ
 
 These do not currently block alpha by themselves, but they require an explicit release decision:
 
-- `tbp-32f` Normalize resolver inputs case-insensitively or document the deviation
-  - acceptable outcomes for alpha:
-    - the behavior is fixed, or
-    - the case-sensitive behavior remains but is called out explicitly in release notes and user docs
+- Resolver input case sensitivity (`tbp-32f`)
+  - alpha decision: keep exact-match resolver input behavior for now and document it explicitly in user docs and release notes
 
 ## Go/No-Go gates
 
@@ -69,7 +67,7 @@ The alpha is a `go` only if every required gate below is satisfied.
 | Release docs are coherent | `docs/releasing.md`, `docs/backend_contract.md`, `docs/ci_contract.md`, `docs/trust_policy.md`, `docs/dtcg_2025_10_review.md` | all are present, current, and consistent with the public Paint surface |
 | DTCG review is current | [`docs/dtcg_2025_10_review.md`](dtcg_2025_10_review.md) | hard gaps have tracker coverage or are fixed |
 | Hard conformance blockers are closed | `tbp-dbb`, `tbp-mdw` | both must be closed |
-| SHOULD-level resolver input behavior is decided | `tbp-32f` or release notes/docs | either fixed or explicitly documented as an accepted alpha deviation |
+| SHOULD-level resolver input behavior is decided | `tbp-32f` resolution, release notes, and README | exact-match behavior is either replaced or explicitly documented as an accepted alpha deviation |
 | Backend contract is frozen for alpha | [`docs/backend_contract.md`](backend_contract.md), [`tests/backend_contract.rs`](../tests/backend_contract.rs), [`tests/report_schema.rs`](../tests/report_schema.rs) | no unreviewed contract changes since the last alpha decision |
 | CI contract is frozen for alpha | [`docs/ci_contract.md`](ci_contract.md) and its referenced tests | exit-code and JSON/report behavior match the documented contract |
 | Core verification passes | `cargo test --workspace` | must pass on the candidate release commit |
