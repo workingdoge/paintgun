@@ -112,7 +112,7 @@ Example shape:
 ```bash
 cargo run -- build examples/charter-steel/charter-steel.resolver.json \
   --out dist \
-  --target swift \
+  --target swift-tokens \
   --format json > /tmp/build.stdout.json
 
 cargo run -- verify dist/ctc.manifest.json --format json > /tmp/verify.json

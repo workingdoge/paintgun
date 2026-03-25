@@ -95,13 +95,13 @@ fn ctc_manifest_carries_backend_artifacts_and_swift_native_api_version() {
     fs::write(&swift_path, "// swift").expect("write swift");
     let backend_artifacts = vec![
         backend_artifact(
-            "swift",
+            "swift-tokens",
             BackendArtifactDescriptorKind::PrimaryTokenOutput,
             &swift_path,
             Some(SWIFT_EMITTER_API_VERSION),
         ),
         backend_artifact(
-            "swift",
+            "swift-tokens",
             BackendArtifactDescriptorKind::PackageSource,
             &swift_path,
             Some(SWIFT_EMITTER_API_VERSION),
@@ -211,6 +211,25 @@ fn legacy_kotlin_backend_id_still_projects_native_api_versions() {
 }
 
 #[test]
+fn legacy_swift_backend_id_still_projects_native_api_versions() {
+    let out = temp_dir("legacy-swift-backend-artifacts");
+    let swift_path = out.join("tokens.swift");
+    fs::write(&swift_path, "// legacy swift").expect("write legacy swift source");
+
+    let legacy_artifacts = vec![backend_artifact(
+        "swift",
+        BackendArtifactDescriptorKind::PrimaryTokenOutput,
+        &swift_path,
+        Some(SWIFT_EMITTER_API_VERSION),
+    )];
+
+    let native = legacy_native_api_versions_from_backend_artifacts(&legacy_artifacts)
+        .expect("expected nativeApiVersions from legacy swift backend id");
+    assert_eq!(native.swift.as_deref(), Some(SWIFT_EMITTER_API_VERSION));
+    assert_eq!(native.kotlin, None);
+}
+
+#[test]
 fn compose_manifest_preserves_backend_artifacts_and_native_api_versions() {
     let policy = Policy::default();
     let witnesses = ComposeWitnesses {
@@ -228,7 +247,7 @@ fn compose_manifest_preserves_backend_artifacts_and_native_api_versions() {
     let swift_path = out.join("tokens.swift");
     fs::write(&swift_path, "// swift").expect("write swift");
     let backend_artifacts = vec![backend_artifact(
-        "swift",
+        "swift-tokens",
         BackendArtifactDescriptorKind::PrimaryTokenOutput,
         &swift_path,
         Some(SWIFT_EMITTER_API_VERSION),

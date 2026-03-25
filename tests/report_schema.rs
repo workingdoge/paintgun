@@ -31,14 +31,14 @@ fn report_schema() -> JSONSchema {
 fn backend_artifacts_json() -> Value {
     serde_json::json!([
         {
-            "backendId": "css",
+            "backendId": "web-css-vars",
             "kind": "tokenStylesheet",
             "file": "tokens.vars.css",
             "sha256": "sha256:dummy-css",
             "size": 42
         },
         {
-            "backendId": "swift",
+            "backendId": "swift-tokens",
             "kind": "primaryTokenOutput",
             "file": "Tokens.swift",
             "sha256": "sha256:dummy-swift",
@@ -179,7 +179,7 @@ fn compose_report_matches_schema() {
         },
         backend_artifacts: vec![
             paintgun::cert::BackendArtifactDescriptor {
-                backend_id: "css".to_string(),
+                backend_id: "web-css-vars".to_string(),
                 kind: paintgun::cert::BackendArtifactDescriptorKind::TokenStylesheet,
                 entry: ManifestEntry {
                     file: "tokens.vars.css".to_string(),
@@ -189,7 +189,7 @@ fn compose_report_matches_schema() {
                 api_version: None,
             },
             paintgun::cert::BackendArtifactDescriptor {
-                backend_id: "swift".to_string(),
+                backend_id: "swift-tokens".to_string(),
                 kind: paintgun::cert::BackendArtifactDescriptorKind::PrimaryTokenOutput,
                 entry: ManifestEntry {
                     file: "Tokens.swift".to_string(),

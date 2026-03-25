@@ -16,7 +16,7 @@ That keeps Paint narrow enough to stay reliable while still making platform outp
 
 Today the repo already has the right raw ingredients, and the boundary is getting clearer:
 
-- [`src/main.rs`](../src/main.rs) accepts built-in target ids such as `css`, `swift`, `android-compose-tokens`, and `web-tokens-ts`, with `kotlin` retained as a compatibility alias.
+- [`src/main.rs`](../src/main.rs) accepts built-in target ids `web-css-vars`, `swift-tokens`, `android-compose-tokens`, and `web-tokens-ts`, with `css`, `swift`, and `kotlin` retained as compatibility aliases through alpha.
 - [`src/emit.rs`](../src/emit.rs) is a thin adapter over [`crates/paintgun-emit`](../crates/paintgun-emit/src/lib.rs).
 - [`crates/paintgun-emit`](../crates/paintgun-emit/src/lib.rs) mixes:
   - backend-neutral value emission helpers,
@@ -117,19 +117,19 @@ The CLI should evolve away from ad hoc names toward explicit backend ids.
 
 Recommended direction:
 
-- keep current compatibility aliases for now:
-  - `css`
-  - `swift`
-  - `kotlin`
-- introduce canonical backend ids:
+- canonical backend ids:
   - `web-css-vars`
   - `swift-tokens`
   - `android-compose-tokens`
   - `web-tokens-ts`
+- retained compatibility aliases through alpha:
+  - `css`
+  - `swift`
+  - `kotlin`
 
 Compatibility rule:
 
-- the old names stay as aliases for one compatibility period
+- the old names stay as aliases through alpha
 - docs and manifests move to canonical backend ids first
 
 In particular, `kotlin` is too language-shaped. The product surface should talk about the platform/backend intent, not just the implementation language.
@@ -203,7 +203,7 @@ That should wait until:
 Recommended order:
 
 1. Completed: typed backend registry and backend request/artifact contract.
-2. Completed: existing `css`, `swift`, and Android/Kotlin flows now run through that registry.
+2. Completed: existing web CSS, Swift, and Android/Kotlin flows now run through that registry.
 3. Completed: CSS component-system emission is split from token backend emission.
 4. Completed: a typed `web-tokens-ts` backend now emits JS/TS token package artifacts distinct from the CSS compatibility target.
 5. Completed: the canonical Android backend id is `android-compose-tokens`, with `kotlin` retained as a compatibility alias.

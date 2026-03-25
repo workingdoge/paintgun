@@ -101,7 +101,7 @@ fn verify_compose_format_json_success_emits_contract_shape() {
         .arg("--out")
         .arg(&pack_a)
         .arg("--target")
-        .arg("swift")
+        .arg("swift-tokens")
         .output()
         .expect("run tbp build pack-a");
     assert_success(&build_a, "tbp build pack-a");
@@ -113,7 +113,7 @@ fn verify_compose_format_json_success_emits_contract_shape() {
         .arg("--out")
         .arg(&pack_b)
         .arg("--target")
-        .arg("swift")
+        .arg("swift-tokens")
         .output()
         .expect("run tbp build pack-b");
     assert_success(&build_b, "tbp build pack-b");
@@ -126,7 +126,7 @@ fn verify_compose_format_json_success_emits_contract_shape() {
         .arg("--out")
         .arg(&compose_out)
         .arg("--target")
-        .arg("swift")
+        .arg("swift-tokens")
         .output()
         .expect("run tbp compose");
     assert_success(&compose, "tbp compose");

@@ -77,19 +77,29 @@ fn registry_exposes_builtin_backend_specs() {
             "css",
             "kotlin",
             "swift",
+            "swift-tokens",
+            "web-css-vars",
             "web-tokens-ts",
         ]
     );
 
-    let css = resolve_target_backend("css").expect("css backend");
+    let css = resolve_target_backend("web-css-vars").expect("css backend");
+    assert_eq!(css.spec().id, "web-css-vars");
     assert_eq!(css.spec().legacy_slot, Some(LegacyTargetSlot::Css));
     assert!(css.spec().capabilities.requires_contracts);
     assert_eq!(css.spec().capabilities.scope, BackendScope::SystemPackage);
 
-    let swift = resolve_target_backend("swift").expect("swift backend");
+    let css_alias = resolve_target_backend("css").expect("css alias");
+    assert_eq!(css_alias.spec().id, "web-css-vars");
+
+    let swift = resolve_target_backend("swift-tokens").expect("swift backend");
+    assert_eq!(swift.spec().id, "swift-tokens");
     assert_eq!(swift.spec().legacy_slot, Some(LegacyTargetSlot::Swift));
     assert_eq!(swift.spec().api_version, Some(SWIFT_EMITTER_API_VERSION));
     assert!(swift.spec().capabilities.emits_package_scaffold);
+
+    let swift_alias = resolve_target_backend("swift").expect("swift alias");
+    assert_eq!(swift_alias.spec().id, "swift-tokens");
 
     let android = resolve_target_backend("android-compose-tokens").expect("android backend");
     assert_eq!(
@@ -118,7 +128,7 @@ fn registry_exposes_builtin_backend_specs() {
 
 #[test]
 fn css_backend_emits_typed_artifacts_for_build() {
-    let backend = resolve_target_backend("css").expect("css backend");
+    let backend = resolve_target_backend("web-css-vars").expect("css backend");
     let out = temp_dir("backend-css");
     let doc = example_doc();
     let axes = axes_from_doc(&doc);
@@ -189,7 +199,7 @@ fn native_backends_emit_primary_output_and_scaffold_artifacts() {
     let doc = example_doc();
     for (target, primary_path, expected_api, manifest_kind) in [
         (
-            "swift",
+            "swift-tokens",
             "tokens.swift",
             Some(SWIFT_EMITTER_API_VERSION),
             BackendArtifactKind::PackageManifest,

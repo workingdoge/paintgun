@@ -49,7 +49,7 @@ cargo run -- build \
   examples/charter-steel/charter-steel.resolver.json \
   --contracts examples/charter-steel/component-contracts.json \
   --out dist \
-  --target css \
+  --target web-css-vars \
   --kcir-wire-format-id kcir.wire.legacy-fixed32.v1 \
   --policy examples/charter-steel/policy.json \
   --conflict-mode semantic \
@@ -61,7 +61,7 @@ Other targets:
 
 ```bash
 # Swift (runtime-friendly token map)
-cargo run -- build examples/charter-steel/charter-steel.resolver.json --out dist --target swift
+cargo run -- build examples/charter-steel/charter-steel.resolver.json --out dist --target swift-tokens
 
 # Android Compose tokens
 cargo run -- build examples/charter-steel/charter-steel.resolver.json --out dist --target android-compose-tokens
@@ -69,9 +69,11 @@ cargo run -- build examples/charter-steel/charter-steel.resolver.json --out dist
 # Typed web token package
 cargo run -- build examples/charter-steel/charter-steel.resolver.json --out dist --target web-tokens-ts
 
-# Compatibility alias during the transition
+# Compatibility alias during the alpha transition
 cargo run -- build examples/charter-steel/charter-steel.resolver.json --out dist --target kotlin
 ```
+
+Canonical backend ids are `web-css-vars`, `swift-tokens`, `android-compose-tokens`, and `web-tokens-ts`. The legacy names `css`, `swift`, and `kotlin` remain accepted as compatibility aliases through alpha.
 
 ## Install
 
@@ -93,16 +95,16 @@ The target-backend and system-package architecture is documented in [`docs/targe
 
 Outputs:
 
-- `dist/tokens.css` — compatibility CSS bundle for `--target css` (raw token vars + component-package stylesheet)
+- `dist/tokens.css` — compatibility CSS bundle for `--target web-css-vars` (raw token vars + component-package stylesheet)
 - `dist/tokens.vars.css` — raw CSS custom-property token backend output for the CSS compatibility target
 - `dist/components.css` — component-contract stylesheet that references Paintgun CSS custom properties
 - `dist/tokens.d.ts` — component-contract TypeScript declarations for the CSS compatibility target
-- `dist/tokens.swift` — emitted Swift token map (when `--target swift`)
+- `dist/tokens.swift` — emitted Swift token map (when `--target swift-tokens`)
 - `dist/tokens.kt` — emitted Android Compose token map (when `--target android-compose-tokens` or the `kotlin` compatibility alias)
   - Native API markers are embedded as `PaintgunEmitterAPI.swiftVersion` (Swift) and `PAINTGUN_EMITTER_API_VERSION` (Android Compose).
 - `dist/tokens.ts` — emitted typed web token package source (when `--target web-tokens-ts`)
   - Exports `contexts`, `valuesByContext`, and typed token aliases for JS/TS consumers.
-- `dist/swift/` — Swift Package scaffold (`Package.swift`, module source, tests) when `--target swift`
+- `dist/swift/` — Swift Package scaffold (`Package.swift`, module source, tests) when `--target swift-tokens`
 - `dist/android/` — Android Gradle module scaffold (`settings.gradle.kts`, `build.gradle.kts`, source, tests) when `--target android-compose-tokens` or the `kotlin` compatibility alias
 - `dist/web/` — web token package scaffold (`package.json`, `tsconfig.json`, source, test) when `--target web-tokens-ts`
 - `dist/resolved.json` — platform-neutral resolved IR (structured values)
@@ -315,7 +317,7 @@ cargo run -- compose \
   packs/core/dist \
   packs/brand/dist \
   --out dist-compose \
-  --target css \
+  --target web-css-vars \
   --contracts examples/charter-steel/component-contracts.json \
   --conflict-mode semantic \
   --contexts from-contracts \

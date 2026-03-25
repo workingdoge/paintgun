@@ -125,7 +125,7 @@ enum Command {
         /// Path to *.resolver.json
         resolver: PathBuf,
 
-        /// Path to component-contracts.json (required for --target css)
+        /// Path to component-contracts.json (required for --target web-css-vars or alias css)
         #[arg(long)]
         contracts: Option<PathBuf>,
 
@@ -133,8 +133,8 @@ enum Command {
         #[arg(short, long, default_value = "dist")]
         out: PathBuf,
 
-        /// Target backend (built-ins: css | swift | android-compose-tokens | web-tokens-ts; alias: kotlin)
-        #[arg(long, default_value = "css")]
+        /// Target backend (built-ins: web-css-vars | swift-tokens | android-compose-tokens | web-tokens-ts; aliases: css | swift | kotlin)
+        #[arg(long, default_value = "web-css-vars")]
         target: String,
 
         /// Optional policy JSON (normalization + emission preferences)
@@ -306,11 +306,11 @@ enum Command {
         #[arg(short, long, default_value = "dist-compose")]
         out: PathBuf,
 
-        /// Target backend (built-ins: css | swift | android-compose-tokens | web-tokens-ts; alias: kotlin)
-        #[arg(long, default_value = "css")]
+        /// Target backend (built-ins: web-css-vars | swift-tokens | android-compose-tokens | web-tokens-ts; aliases: css | swift | kotlin)
+        #[arg(long, default_value = "web-css-vars")]
         target: String,
 
-        /// Component contracts (required for --target css)
+        /// Component contracts (required for --target web-css-vars or alias css)
         #[arg(long)]
         contracts: Option<PathBuf>,
 

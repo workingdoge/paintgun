@@ -172,8 +172,8 @@ fn write_bytes(path: &Path, bytes: impl AsRef<[u8]>) -> Result<(), BackendError>
 impl TargetBackend for CssBackend {
     fn spec(&self) -> BackendSpec {
         BackendSpec {
-            id: "css",
-            aliases: &[],
+            id: "web-css-vars",
+            aliases: &["css"],
             api_version: None,
             capabilities: BackendCapabilities {
                 requires_contracts: true,
@@ -191,7 +191,7 @@ impl TargetBackend for CssBackend {
     fn emit(&self, request: &BackendRequest<'_>) -> Result<BackendEmission, BackendError> {
         let contracts = request
             .contracts
-            .ok_or_else(|| BackendError::new("backend css requires contracts"))?;
+            .ok_or_else(|| BackendError::new("backend web-css-vars requires contracts"))?;
         let token_css = match request.source {
             BackendSource::Build { doc } => {
                 emit_css_token_stylesheet_for_build(doc, request.store, request.policy)
@@ -243,8 +243,8 @@ impl TargetBackend for CssBackend {
 impl TargetBackend for SwiftBackend {
     fn spec(&self) -> BackendSpec {
         BackendSpec {
-            id: "swift",
-            aliases: &[],
+            id: "swift-tokens",
+            aliases: &["swift"],
             api_version: Some(SWIFT_EMITTER_API_VERSION),
             capabilities: BackendCapabilities {
                 requires_contracts: false,

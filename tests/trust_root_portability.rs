@@ -98,7 +98,7 @@ fn build_stages_self_contained_inputs_for_external_output_roots() {
         .arg("--out")
         .arg(&out)
         .arg("--target")
-        .arg("swift")
+        .arg("swift-tokens")
         .output()
         .expect("run paint build");
     assert_success(&build, "paint build");
@@ -164,7 +164,7 @@ fn compose_manifest_tracks_pack_dirs_relative_to_bundle_root() {
         .arg("--out")
         .arg(&pack_a)
         .arg("--target")
-        .arg("swift")
+        .arg("swift-tokens")
         .output()
         .expect("run paint build pack-a");
     assert_success(&build_a, "paint build pack-a");
@@ -175,7 +175,7 @@ fn compose_manifest_tracks_pack_dirs_relative_to_bundle_root() {
         .arg("--out")
         .arg(&pack_b)
         .arg("--target")
-        .arg("swift")
+        .arg("swift-tokens")
         .output()
         .expect("run paint build pack-b");
     assert_success(&build_b, "paint build pack-b");
@@ -188,7 +188,7 @@ fn compose_manifest_tracks_pack_dirs_relative_to_bundle_root() {
         .arg("--out")
         .arg(&compose_out)
         .arg("--target")
-        .arg("swift")
+        .arg("swift-tokens")
         .output()
         .expect("run paint compose");
     assert_success(&compose, "paint compose");

@@ -69,7 +69,7 @@ fn external_adoption_example_runs_end_to_end() {
         OsStr::new("--out"),
         core_out.as_os_str(),
         OsStr::new("--target"),
-        OsStr::new("css"),
+        OsStr::new("web-css-vars"),
         OsStr::new("--format"),
         OsStr::new("json"),
     ]);
@@ -111,7 +111,7 @@ fn external_adoption_example_runs_end_to_end() {
         OsStr::new("--out"),
         brand_out.as_os_str(),
         OsStr::new("--target"),
-        OsStr::new("css"),
+        OsStr::new("web-css-vars"),
         OsStr::new("--format"),
         OsStr::new("json"),
     ]);
@@ -150,7 +150,7 @@ fn external_adoption_example_runs_end_to_end() {
         OsStr::new("--out"),
         compose_out.as_os_str(),
         OsStr::new("--target"),
-        OsStr::new("css"),
+        OsStr::new("web-css-vars"),
         OsStr::new("--contracts"),
         contracts.as_os_str(),
         OsStr::new("--policy"),

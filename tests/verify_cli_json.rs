@@ -82,7 +82,7 @@ fn build_pack(root: &Path, name: &str, value: i32) -> PathBuf {
         .arg("--out")
         .arg(&out)
         .arg("--target")
-        .arg("swift")
+        .arg("swift-tokens")
         .output()
         .expect("run tbp build");
     assert_success(&build, "tbp build");

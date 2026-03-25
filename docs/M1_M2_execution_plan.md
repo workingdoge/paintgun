@@ -56,8 +56,8 @@ Scope: Convert Milestones 1-7 into issue-sized implementation tickets with CI-re
   - M4-T4 baseline: perf fixture + CI metrics capture added (`examples/perf-lattice`, `scripts/context_metrics.py`, `context-scaling-metrics` workflow artifact) with enforced gates (`partial > full-only > from-contracts`, min reduction `0.20`, min expansion `1.10`)
   - M4-T5 baseline: optional `--planner-trace` embeds planner inclusion/exclusion evidence in JSON reports with schema coverage
   - M2-T4 complete: defining-leaf precision now includes escaped JSON Pointer segments, `$root`, nested alias chains, and alias-through-`$extends` chains
-  - M6-T1 baseline: Swift target emits importable Swift Package scaffold in `dist/swift` / `dist-compose/swift` with module + tests
-  - M6-T2 baseline: Kotlin target emits Gradle module scaffold in `dist/kotlin` / `dist-compose/kotlin` with source + tests
+  - M6-T1 baseline: `swift-tokens` emits importable Swift Package scaffold in `dist/swift` / `dist-compose/swift` with module + tests
+  - M6-T2 baseline: `android-compose-tokens` emits a Gradle module scaffold in `dist/android` / `dist-compose/android` with source + tests
   - M6-T3 baseline: native emitters now publish explicit API versions in generated code and `nativeApiVersions` manifest metadata for pack + compose artifacts
   - M6-T4 baseline: CI now exercises generated Swift/Kotlin artifacts with native toolchain tests (`swift test` and Gradle test) for both pack and compose outputs
   - M7-T1 baseline: `ctc.manifest.json` now pins `packIdentity` (`packId` + `packVersion` + `contentHash`) and verify/compose-verify enforce identity consistency against referenced cert content
@@ -424,10 +424,10 @@ Goal: emitted native artifacts are consumable by real app toolchains.
 - Acceptance:
   - `swift test` passes in generated package fixture.
 
-### M6-T2: Kotlin/Compose emitter package scaffold
-- Outcome: generated Kotlin module/resources are directly consumable.
+### M6-T2: Android Compose emitter package scaffold
+- Outcome: generated Android Compose module/resources are directly consumable.
 - Changes:
-  - Emit Gradle module or resource package in `dist/kotlin`.
+  - Emit Gradle module or resource package in `dist/android`.
   - Emit typed wrappers for Compose consumption.
 - Acceptance:
   - `./gradlew test` passes in generated fixture module.

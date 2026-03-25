@@ -44,7 +44,7 @@ fn build_invalid_resolver_json_fails_without_panic() {
         .arg("build")
         .arg(&resolver)
         .arg("--target")
-        .arg("swift")
+        .arg("swift-tokens")
         .arg("--out")
         .arg(root.join("dist"))
         .output()
@@ -87,7 +87,7 @@ fn build_missing_policy_file_fails_without_panic() {
         .arg("build")
         .arg(example_resolver())
         .arg("--target")
-        .arg("swift")
+        .arg("swift-tokens")
         .arg("--policy")
         .arg(&missing_policy)
         .arg("--out")
@@ -111,7 +111,7 @@ fn build_output_path_file_fails_without_panic() {
         .arg("build")
         .arg(example_resolver())
         .arg("--target")
-        .arg("swift")
+        .arg("swift-tokens")
         .arg("--out")
         .arg(&out_path)
         .output()
@@ -142,10 +142,51 @@ fn build_unknown_target_fails_via_registry_without_panic() {
     assert!(stderr.contains("unknown --target wat"));
     assert!(stderr.contains("android-compose-tokens"));
     assert!(stderr.contains("css"));
-    assert!(stderr.contains("swift"));
     assert!(stderr.contains("kotlin"));
+    assert!(stderr.contains("swift"));
+    assert!(stderr.contains("swift-tokens"));
+    assert!(stderr.contains("web-css-vars"));
     assert!(stderr.contains("web-tokens-ts"));
     assert_nonpanic_failure(&stderr);
+}
+
+#[test]
+fn build_swift_alias_emits_canonical_backend_identity() {
+    let root = temp_dir("build-swift-alias");
+    let out = root.join("dist");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_paint"))
+        .arg("build")
+        .arg(example_resolver())
+        .arg("--target")
+        .arg("swift")
+        .arg("--out")
+        .arg(&out)
+        .output()
+        .expect("run paint build");
+
+    assert!(
+        output.status.success(),
+        "expected swift alias build to succeed\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let manifest_path = out.join("ctc.manifest.json");
+    let manifest_bytes = fs::read(&manifest_path).expect("read ctc.manifest.json");
+    let manifest: serde_json::Value =
+        serde_json::from_slice(&manifest_bytes).expect("parse ctc.manifest.json");
+
+    let backend_artifacts = manifest["backendArtifacts"]
+        .as_array()
+        .expect("backendArtifacts array");
+    assert!(
+        backend_artifacts
+            .iter()
+            .all(|artifact| artifact["backendId"] == "swift-tokens"),
+        "expected canonical swift backend ids in manifest, got:\n{}",
+        serde_json::to_string_pretty(&manifest).expect("serialize manifest for debug")
+    );
 }
 
 #[test]
@@ -188,6 +229,47 @@ fn build_kotlin_alias_emits_android_backend_identity() {
     assert!(
         out.join("android/build.gradle.kts").is_file(),
         "expected Android scaffold under canonical android/ path"
+    );
+}
+
+#[test]
+fn build_css_alias_emits_web_css_backend_identity() {
+    let root = temp_dir("build-css-alias");
+    let out = root.join("dist");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_paint"))
+        .arg("build")
+        .arg(example_resolver())
+        .arg("--contracts")
+        .arg(repo_root().join("examples/charter-steel/component-contracts.json"))
+        .arg("--target")
+        .arg("css")
+        .arg("--out")
+        .arg(&out)
+        .output()
+        .expect("run paint build");
+
+    assert!(
+        output.status.success(),
+        "expected css alias build to succeed\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let manifest_path = out.join("ctc.manifest.json");
+    let manifest_bytes = fs::read(&manifest_path).expect("read ctc.manifest.json");
+    let manifest: serde_json::Value =
+        serde_json::from_slice(&manifest_bytes).expect("parse ctc.manifest.json");
+
+    let backend_artifacts = manifest["backendArtifacts"]
+        .as_array()
+        .expect("backendArtifacts array");
+    assert!(
+        backend_artifacts
+            .iter()
+            .all(|artifact| artifact["backendId"] == "web-css-vars"),
+        "expected canonical web-css backend ids in manifest, got:\n{}",
+        serde_json::to_string_pretty(&manifest).expect("serialize manifest for debug")
     );
 }
 

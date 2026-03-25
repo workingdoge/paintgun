@@ -490,7 +490,7 @@ pub fn legacy_native_api_versions_from_backend_artifacts(
     let mut native_versions = NativeApiVersions::default();
     for artifact in backend_artifacts {
         match artifact.backend_id.as_str() {
-            "swift" => {
+            "swift-tokens" | "swift" => {
                 native_versions.swift = artifact.api_version.clone();
             }
             "android-compose-tokens" | "kotlin" => {
