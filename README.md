@@ -88,6 +88,7 @@ paint --version
 Maintainers can also build a target-specific release tarball with `./scripts/package_release.sh`.
 The supported install paths, artifact shape, versioning policy, and maintainer checklist are documented in `docs/releasing.md`.
 The target-backend and system-package architecture is documented in [`docs/target_backends.md`](docs/target_backends.md).
+The alpha-stable backend artifact contract is documented in [`docs/backend_contract.md`](docs/backend_contract.md).
 
 `build` supports two KCIR manifest wire formats via `--kcir-wire-format-id`:
 - `kcir.wire.legacy-fixed32.v1` (default)

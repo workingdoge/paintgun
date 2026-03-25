@@ -1,6 +1,6 @@
 # CI Contract
 
-This document defines the machine-readable surfaces that external CI is allowed to depend on in `tbp`.
+This document defines the machine-readable surfaces that external CI is allowed to depend on in Paint.
 
 ## Scope
 
@@ -13,6 +13,8 @@ The supported CI-facing commands and artifacts are:
 - `verify --format json`
 - `verify-compose --format json`
 - `annotate-report`
+
+The backend artifact-specific alpha contract is defined in [`docs/backend_contract.md`](backend_contract.md).
 
 Human-readable stdout and stderr outside those surfaces may change more freely than the contract below.
 
