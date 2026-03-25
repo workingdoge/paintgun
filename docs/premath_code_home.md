@@ -16,10 +16,10 @@ The execution contract for that later move is defined in `docs/premath_extractio
 The current operating model is:
 
 - Code home now: keep `premath-*` under `/Users/arj/dev/fish/tools/premath/crates/premath-*`.
-- Paint now consumes those crates from the sibling repo.
+- Paint now consumes those crates through a repo-local `./premath` projection of the extracted code home.
 - Public packaging now: still do not publish `premath-*` crates independently.
 - Versioning now: keep `premath-*` on the extracted workspace's lockstep `0.x` version line with no standalone semver promise yet.
-- CI now: validate Premath through the extracted workspace and use Paint boundary tests only for adapter behavior.
+- CI now: materialize the extracted code home into `./premath`, validate Premath there, and use Paint boundary tests only for adapter behavior.
 
 This keeps code ownership aligned with the extracted workspace while leaving publication and broader downstream adoption for later work.
 
@@ -68,14 +68,14 @@ This option is rejected.
 
 ## Packaging Policy
 
-Until extraction preconditions are met:
+Current packaging policy:
 
 - All `premath-*` crates stay `publish = false`.
 - No `premath-*` crate should claim independent API stability.
 - Workspace integration remains the source of truth for compatibility.
 - Breaking changes across `premath-*` crates may ship together with the product while they are still internal kernels.
 
-If Premath is extracted later:
+If Premath packaging broadens later:
 
 - Start with one dedicated code repo and one lockstep workspace version for all published `premath-*` crates.
 - Stay on `0.x` until there is a real external compatibility promise.
@@ -83,13 +83,14 @@ If Premath is extracted later:
 
 ## CI Expectations
 
-Current expectation while Premath stays in-tree:
+Current expectation after extraction:
 
-- `cargo test --workspace` remains required.
+- Paint contributors materialize the extracted code home into `./premath` before running Cargo commands.
+- `cargo test --workspace` remains required from the Paint repo after that projection exists.
 - Boundary tests must keep enforcing that product manifests, report contracts, path safety, signing policy, and CLI concerns stay out of `premath-*`.
 - Kernel crates should keep unit tests for deterministic witness assembly and law-evaluation behavior.
 
-Required before extraction:
+Required before broader publication:
 
 - A Premath-only CI entrypoint that can run without the product CLI.
 - Standalone crate docs and metadata suitable for external consumers.

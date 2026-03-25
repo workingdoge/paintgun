@@ -69,7 +69,7 @@ fn compose_module_hosts_paintgun_compose_adapter() {
 
 #[test]
 fn premath_compose_hosts_conflict_kernel() {
-    let src = read_from_manifest("../premath/crates/premath-compose/src/lib.rs");
+    let src = read_from_manifest("premath/crates/premath-compose/src/lib.rs");
     for symbol in [
         "pub const COMPOSE_WITNESS_SCHEMA_VERSION",
         "pub struct ComposeInheritedRef",

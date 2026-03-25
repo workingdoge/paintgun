@@ -19,12 +19,14 @@ clap = { version = "4.5", features = ["derive"] }
 thiserror = "1.0"
 sha2 = "0.10"
 hex = "0.4"
-premath-kcir = { path = "../premath/crates/premath-kcir" }
-premath-dsl = { path = "../premath/crates/premath-dsl" }
-premath-gate = { path = "../premath/crates/premath-gate" }
-premath-admissibility = { path = "../premath/crates/premath-admissibility" }
-premath-composability = { path = "../premath/crates/premath-composability" }
-premath-compose = { path = "../premath/crates/premath-compose" }
+# The extracted Premath code home stays external, but Paint consumes it through
+# a repo-local projection at ./premath.
+premath-kcir = { path = "premath/crates/premath-kcir" }
+premath-dsl = { path = "premath/crates/premath-dsl" }
+premath-gate = { path = "premath/crates/premath-gate" }
+premath-admissibility = { path = "premath/crates/premath-admissibility" }
+premath-composability = { path = "premath/crates/premath-composability" }
+premath-compose = { path = "premath/crates/premath-compose" }
 paintgun-dtcg = { path = "crates/paintgun-dtcg" }
 paintgun-policy = { path = "crates/paintgun-policy" }
 paintgun-ids = { path = "crates/paintgun-ids" }
@@ -55,7 +57,8 @@ resolver = "2"
 
 [workspace.metadata.premath]
 msrv = "1.89"
-ci_entrypoint = "../premath"
+consumer_projection = "premath"
+ci_entrypoint = "premath"
 members = [
     "premath-admissibility",
     "premath-composability",

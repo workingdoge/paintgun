@@ -22,7 +22,25 @@ The Premath-only standalone CI/build entrypoint is:
 ./scripts/premath_workspace_ci.sh
 ```
 
-That entrypoint now executes against the dedicated sibling code repo at `../premath`.
+That entrypoint executes against the repo-local Premath projection at `./premath`.
+
+## Premath prerequisite
+
+Paint no longer owns the `premath-*` crates in-tree. All Cargo commands in this repo now expect a repo-local projection of the extracted Premath code home at `./premath`.
+
+Canonical local layout:
+
+```bash
+# From the Paint repo root, project the sibling Premath repo into ./premath
+./scripts/link_premath_checkout.sh ../premath
+```
+
+Alternative:
+
+- clone the extracted Premath repo directly into `./premath`, or
+- set up your own projection and keep the resulting checkout or symlink at `./premath`.
+
+If `./premath` is missing, Cargo builds in this repo will fail because the extracted Premath crates are external dependencies now.
 
 ## Build & run
 
@@ -60,6 +78,7 @@ cargo run -- build examples/charter-steel/charter-steel.resolver.json --out dist
 From source:
 
 ```bash
+./scripts/link_premath_checkout.sh ../premath
 cargo install --locked --path .
 paint --version
 ```

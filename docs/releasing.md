@@ -7,6 +7,7 @@ This document defines the first public release path for `tbp`. It is intentional
 Source install:
 
 ```bash
+./scripts/link_premath_checkout.sh ../premath
 cargo install --locked --path .
 tbp --version
 ```
@@ -61,7 +62,13 @@ For the first public release, detached manifest signing is supported but not req
 ## Maintainer checklist
 
 1. Confirm the release version in `Cargo.toml` and update `CHANGELOG.md`.
-2. Run the release quality gates:
+2. Materialize the extracted Premath repo into the local `./premath` projection if it is not already present:
+
+   ```bash
+   ./scripts/link_premath_checkout.sh ../premath
+   ```
+
+3. Run the release quality gates:
 
    ```bash
    cargo test --workspace
@@ -69,15 +76,15 @@ For the first public release, detached manifest signing is supported but not req
    cargo install --locked --path . --root "$(mktemp -d)"
    ```
 
-3. Build at least one target-specific artifact:
+4. Build at least one target-specific artifact:
 
    ```bash
    ./scripts/package_release.sh
    ```
 
-4. If publishing multiple targets, rerun the helper with `--target <triple>` per target.
-5. Review whether the release ships unsigned artifacts or signed example manifests, and make that explicit in the release notes.
-6. Publish the tarball(s), `.sha256` sidecar(s), and the corresponding changelog/release notes together.
+5. If publishing multiple targets, rerun the helper with `--target <triple>` per target.
+6. Review whether the release ships unsigned artifacts or signed example manifests, and make that explicit in the release notes.
+7. Publish the tarball(s), `.sha256` sidecar(s), and the corresponding changelog/release notes together.
 
 ## Notes
 

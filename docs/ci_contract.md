@@ -4,6 +4,8 @@ This document defines the machine-readable surfaces that external CI is allowed 
 
 ## Scope
 
+All Cargo-based CI commands in this repo assume a repo-local Premath projection at `./premath`. In a local clone, materialize that projection first with `./scripts/link_premath_checkout.sh ../premath` or by checking out the extracted Premath repo directly into `./premath`.
+
 The supported CI-facing commands and artifacts are:
 
 - `build --format json`, which writes `validation.json`

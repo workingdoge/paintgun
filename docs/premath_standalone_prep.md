@@ -47,6 +47,12 @@ Supported modes:
 
 This entrypoint intentionally excludes the Paint CLI and product integration tests, and delegates to the extracted Premath workspace.
 
+Paint's general Cargo commands also consume Premath through a repo-local `./premath` projection. The supported local setup flow is:
+
+```bash
+./scripts/link_premath_checkout.sh ../premath
+```
+
 ## Metadata contract
 
 Current standalone metadata for the `premath-*` crates:

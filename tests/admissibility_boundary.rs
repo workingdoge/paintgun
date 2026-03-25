@@ -21,7 +21,7 @@ fn analysis_module_delegates_to_premath_admissibility() {
 
 #[test]
 fn premath_admissibility_module_hosts_poset_kernels() {
-    let src = read_from_manifest("../premath/crates/premath-admissibility/src/lib.rs");
+    let src = read_from_manifest("premath/crates/premath-admissibility/src/lib.rs");
     for symbol in [
         "pub fn kan_diag",
         "pub fn bc_violations",

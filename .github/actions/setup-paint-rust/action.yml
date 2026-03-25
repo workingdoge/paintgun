@@ -1,0 +1,22 @@
+name: Setup Paint Rust Environment
+description: Materialize the extracted Premath code home and install Rust.
+inputs:
+  premath-repository:
+    description: Repository slug for the extracted Premath code home.
+    required: true
+  premath-ref:
+    description: Git ref for the extracted Premath code home.
+    required: false
+    default: main
+runs:
+  using: composite
+  steps:
+    - name: Checkout Premath code home
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ inputs.premath-repository }}
+        ref: ${{ inputs.premath-ref }}
+        path: premath
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable

@@ -5,6 +5,7 @@
 /dist*/
 /release-artifacts/
 /spec-watch-artifacts/
+/premath
 
 # Dolt database files (added by bd init)
 .dolt/

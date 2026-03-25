@@ -2,7 +2,14 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-premath_root="${PREMATH_REPO_ROOT:-$repo_root/../premath}"
+premath_root="${PREMATH_REPO_ROOT:-$repo_root/premath}"
+
+if [ ! -d "$premath_root" ]; then
+  echo "missing Premath projection at $premath_root" >&2
+  echo "run ./scripts/link_premath_checkout.sh ../premath or materialize the extracted Premath repo at ./premath" >&2
+  exit 1
+fi
+
 cd "$premath_root"
 
 mode="${1:-all}"
