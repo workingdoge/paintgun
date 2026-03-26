@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { extname, join, normalize, resolve } from "node:path";
 
 const exampleRoot = resolve(import.meta.dir, "..");
+const demoMountPath = "/demo/";
 const demoBundle = join(exampleRoot, "demo", "dist", "main.js");
 
 const mimeTypes = new Map([
@@ -23,8 +24,12 @@ export function startDemoServer(port = 0) {
     port,
     fetch(request) {
       const url = new URL(request.url);
+      if (url.pathname === "/" || url.pathname === "/demo") {
+        return Response.redirect(new URL(demoMountPath, url), 302);
+      }
+
       const pathname =
-        url.pathname === "/"
+        url.pathname === demoMountPath
           ? "/demo/index.html"
           : url.pathname === "/favicon.ico"
             ? "/demo/favicon.svg"
@@ -49,5 +54,5 @@ export function startDemoServer(port = 0) {
 
 if (import.meta.main) {
   const server = startDemoServer(Number(Bun.env.PORT ?? "3000"));
-  console.log(`Paint demo host running at ${server.url}`);
+  console.log(`Paint demo host running at ${new URL(demoMountPath, server.url)}`);
 }

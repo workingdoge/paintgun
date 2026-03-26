@@ -39,9 +39,10 @@ bun run test
 - `demo/boot.ts` into `demo/dist/boot.js`
 - `demo/main.ts` into `demo/dist/main.js`
 
-`bun run serve:demo` builds that bundle and serves the example root with Bun so the demo can load:
+`bun run serve:demo` builds that bundle and serves the example at an explicit `/demo/` mount so the
+browser keeps the right base URL for relative module imports:
 
-- `demo/index.html`
+- `/demo/` -> `demo/index.html`
 - the bundled browser bootstrap and runtime entrypoints
 - the generated Paint CSS artifacts
 - the shared web runtime outputs

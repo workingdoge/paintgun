@@ -13,15 +13,32 @@ afterEach(() => {
 });
 
 describe("browser demo host", () => {
-  test("serves the demo page and bundled entrypoint", async () => {
+  test("mounts the demo at /demo/ and keeps relative imports aligned with that base", async () => {
     activeServer = startDemoServer(0);
 
-    const indexResponse = await fetch(new URL("/demo/index.html", activeServer.url));
+    const rootResponse = await fetch(new URL("/", activeServer.url), {
+      redirect: "manual",
+    });
+    expect(rootResponse.status).toBe(302);
+    expect(rootResponse.headers.get("location")?.endsWith("/demo/")).toBe(true);
+
+    const demoResponse = await fetch(new URL("/demo", activeServer.url), {
+      redirect: "manual",
+    });
+    expect(demoResponse.status).toBe(302);
+    expect(demoResponse.headers.get("location")?.endsWith("/demo/")).toBe(true);
+
+    const indexResponse = await fetch(new URL("/demo/", activeServer.url));
     const indexHtml = await indexResponse.text();
     expect(indexResponse.status).toBe(200);
+    expect(indexResponse.url.endsWith("/demo/")).toBe(true);
     expect(indexHtml).toContain("./dist/boot.js");
     expect(indexHtml).toContain("boot-error");
     expect(indexHtml).toContain("../generated/paint/css/tokens.vars.css");
+    expect(new URL("./dist/boot.js", indexResponse.url).pathname).toBe("/demo/dist/boot.js");
+    expect(new URL("../generated/paint/css/tokens.vars.css", indexResponse.url).pathname).toBe(
+      "/generated/paint/css/tokens.vars.css",
+    );
 
     const bootResponse = await fetch(new URL("/demo/dist/boot.js", activeServer.url));
     const bootBundle = await bootResponse.text();
