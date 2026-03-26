@@ -1,6 +1,12 @@
 # Premath Standalone Workspace Prep
 
-This document defines the standalone ownership boundary for the extracted `premath-*` crates that Paint now consumes from the sibling Premath repo.
+This document is intentionally narrow. It defines the Paint-side consumer
+boundary for the extracted `premath-*` crates that Paint consumes from the
+sibling Premath repo.
+
+The cross-repo ownership split and archive-porting boundary are canonical in:
+
+- `/Users/arj/dev/fish/tools/premath/docs/migration_boundary.md`
 
 ## Scope
 
@@ -16,11 +22,11 @@ The standalone subset is:
 
 These crates are the first extraction wave named in `docs/premath_extraction_contract.md`, and they now live in `/Users/arj/dev/fish/tools/premath`.
 
-## Ownership boundary
+## Paint-side boundary
 
 These crates are treated as reusable Premath kernels, not Paint product crates.
 
-The current boundary is:
+From the Paint side, the boundary is:
 
 - no `premath-*` crate depends on `paintgun-*`
 - no `premath-*` crate exposes Paintgun-branded public types

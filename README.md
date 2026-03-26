@@ -10,11 +10,18 @@ Paintgun is a Rust toolchain for DTCG 2025.10 resolution, verification, and comp
   - Orthogonality overlaps
 - **Target emission** via `Emitter` trait (CSS emitter included).
 
-The current Premath code-home decision and extraction contract are documented in:
+Paint-side Premath integration docs live in:
+
+- `docs/premath_standalone_prep.md`
+
+Cross-repo Premath ownership and archive-porting decisions are canonical in:
+
+- `/Users/arj/dev/fish/tools/premath/docs/migration_boundary.md`
+
+Historical extraction rationale remains in:
 
 - `docs/premath_code_home.md`
 - `docs/premath_extraction_contract.md`
-- `docs/premath_standalone_prep.md`
 
 The canonical Premath-repo CI/build entrypoint now lives in
 `/Users/arj/dev/fish/tools/premath/scripts/workspace_ci.sh`.
