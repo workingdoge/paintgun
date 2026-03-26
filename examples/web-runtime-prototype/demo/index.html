@@ -84,6 +84,28 @@
         margin: 0 0 0.5rem;
       }
 
+      .boot-status {
+        margin: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.35rem 0.7rem;
+        border-radius: 999px;
+        background: rgba(59, 130, 246, 0.16);
+        color: #bfdbfe;
+        font-size: 0.9rem;
+      }
+
+      body[data-demo-state="ready"] .boot-status {
+        background: rgba(34, 197, 94, 0.16);
+        color: #bbf7d0;
+      }
+
+      body[data-demo-state="error"] .boot-status {
+        background: rgba(248, 113, 113, 0.16);
+        color: #fecaca;
+      }
+
       .meta-list,
       .artifact-list {
         display: grid;
@@ -137,6 +159,15 @@
         color: #cbd5e1;
       }
 
+      .error-panel[hidden] {
+        display: none;
+      }
+
+      .error-panel {
+        border-color: rgba(248, 113, 113, 0.28);
+        background: rgba(69, 10, 10, 0.42);
+      }
+
       a {
         color: #93c5fd;
       }
@@ -154,6 +185,7 @@
         <p class="eyebrow">Paint Prototype</p>
         <h1 id="demo-title">Loading...</h1>
         <p class="lede" id="demo-lede"></p>
+        <p class="boot-status" id="demo-status">Waiting for browser host bootstrap…</p>
       </section>
 
       <section class="panel">
@@ -173,11 +205,72 @@
           <pre id="token-preview"></pre>
         </div>
       </section>
+
+      <section
+        class="panel error-panel"
+        id="boot-error"
+        hidden
+      >
+        <h2>Bootstrap Error</h2>
+        <p id="boot-error-message"></p>
+        <div class="token-preview">
+          <pre id="boot-error-stack"></pre>
+        </div>
+      </section>
     </main>
 
-    <script
-      type="module"
-      src="./dist/main.js"
-    ></script>
+    <script type="module">
+      const title = document.getElementById("demo-title");
+      const lede = document.getElementById("demo-lede");
+      const status = document.getElementById("demo-status");
+      const errorPanel = document.getElementById("boot-error");
+      const errorMessage = document.getElementById("boot-error-message");
+      const errorStack = document.getElementById("boot-error-stack");
+
+      function describeError(error) {
+        if (error instanceof Error) {
+          return {
+            message: error.message,
+            stack: error.stack || error.message,
+          };
+        }
+
+        return {
+          message: String(error),
+          stack: String(error),
+        };
+      }
+
+      function renderShellError(error) {
+        const details = describeError(error);
+        document.body.dataset.demoState = "error";
+        title.textContent = "Demo failed to boot";
+        lede.textContent =
+          "The browser host hit a bootstrap failure before the shared web runtime could render.";
+        status.textContent = "Browser host failed.";
+        errorPanel.hidden = false;
+        errorMessage.textContent = details.message;
+        errorStack.textContent = details.stack;
+      }
+
+      window.addEventListener("error", (event) => {
+        if (document.body.dataset.demoState !== "ready") {
+          renderShellError(event.error || event.message);
+        }
+      });
+
+      window.addEventListener("unhandledrejection", (event) => {
+        renderShellError(event.reason);
+      });
+
+      document.body.dataset.demoState = "loading";
+      status.textContent = "Loading demo bootstrap…";
+
+      import("./dist/boot.js")
+        .then(({ bootDemoHost }) => bootDemoHost(document))
+        .catch((error) => {
+          renderShellError(error);
+        });
+    </script>
   </body>
 </html>

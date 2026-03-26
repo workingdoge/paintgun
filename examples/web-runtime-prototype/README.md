@@ -34,12 +34,15 @@ bun run test
 2. compiles `system.schema.json` into `generated/system.web.json`
 3. generates the typed adapter in `src/generated/system-web.ts`
 
-`bun run build:demo` bundles the browser entrypoint at `demo/main.ts` into `demo/dist/main.js`.
+`bun run build:demo` bundles:
+
+- `demo/boot.ts` into `demo/dist/boot.js`
+- `demo/main.ts` into `demo/dist/main.js`
 
 `bun run serve:demo` builds that bundle and serves the example root with Bun so the demo can load:
 
 - `demo/index.html`
-- the bundled browser entrypoint
+- the bundled browser bootstrap and runtime entrypoints
 - the generated Paint CSS artifacts
 - the shared web runtime outputs
 
@@ -61,6 +64,7 @@ Authored in the design-system layer:
 - `src/components/paint-button.ts`
 - `src/stories/paint-button.stories.ts`
 - `demo/index.html`
+- `demo/boot.ts`
 - `demo/main.ts`
 
 This is the point of the prototype: the custom element and the Storybook consumer stay authored,
