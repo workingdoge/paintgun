@@ -170,6 +170,7 @@ Paint backend outputs:
 - generated `src/generated/system-web.ts`
 - one pure custom-element consumer
 - one Storybook CSF consumer
+- one static browser host at `demo/index.html`
 
 It is intentionally a prototype package, not a new Paint core feature.
 

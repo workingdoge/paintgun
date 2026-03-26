@@ -24,7 +24,8 @@ From the repo root:
 cd examples/web-runtime-prototype
 bun install
 bun run generate
-bun test
+bun run build:demo
+bun run test
 ```
 
 `bun run generate` does three things:
@@ -32,6 +33,15 @@ bun test
 1. runs Paint twice to refresh the real backend artifacts under `generated/paint/`
 2. compiles `system.schema.json` into `generated/system.web.json`
 3. generates the typed adapter in `src/generated/system-web.ts`
+
+`bun run build:demo` bundles the browser entrypoint at `demo/main.ts` into `demo/dist/main.js`.
+
+`bun run serve:demo` builds that bundle and serves the example root with Bun so the demo can load:
+
+- `demo/index.html`
+- the bundled browser entrypoint
+- the generated Paint CSS artifacts
+- the shared web runtime outputs
 
 ## What Is Real Versus Authored
 
@@ -50,6 +60,8 @@ Authored in the design-system layer:
 - `system.schema.json`
 - `src/components/paint-button.ts`
 - `src/stories/paint-button.stories.ts`
+- `demo/index.html`
+- `demo/main.ts`
 
 This is the point of the prototype: the custom element and the Storybook consumer stay authored,
 but they do not become the source of truth.

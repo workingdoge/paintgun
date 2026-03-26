@@ -7,8 +7,10 @@
     "generate:web-ir": "bun run ./scripts/build-system-web.ts",
     "generate:adapter": "bun run ./scripts/generate-web-adapter.ts",
     "generate": "bun run generate:paint && bun run generate:web-ir && bun run generate:adapter",
+    "build:demo": "bun run ./scripts/build-demo.ts",
+    "serve:demo": "bun run build:demo && bun run ./scripts/serve-demo.ts",
     "test": "bun test ./tests",
-    "check": "bun run generate && bun run test"
+    "check": "bun run generate && bun run build:demo && bun run test"
   },
   "devDependencies": {
     "happy-dom": "^20.0.10"
