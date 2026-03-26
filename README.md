@@ -16,13 +16,17 @@ The current Premath code-home decision and extraction contract are documented in
 - `docs/premath_extraction_contract.md`
 - `docs/premath_standalone_prep.md`
 
-The Premath-only standalone CI/build entrypoint is:
+The canonical Premath-repo CI/build entrypoint now lives in
+`/Users/arj/dev/fish/tools/premath/scripts/workspace_ci.sh`.
+
+`tbp` keeps a consumer-side wrapper for validating the projected Premath
+workspace from the Paint repo root:
 
 ```bash
 ./scripts/premath_workspace_ci.sh
 ```
 
-That entrypoint executes against the repo-local Premath projection at `./premath`.
+That wrapper executes against the repo-local Premath projection at `./premath`.
 
 ## Premath prerequisite
 

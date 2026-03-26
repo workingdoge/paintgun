@@ -30,7 +30,13 @@ Generic artifact vocabulary such as `pack`, `manifest`, `context`, or `witness` 
 
 ## Standalone entrypoint used from Paint
 
-The Premath-only build/test entrypoint is:
+The canonical Premath workspace entrypoint now lives in the extracted repo:
+
+```bash
+/Users/arj/dev/fish/tools/premath/scripts/workspace_ci.sh
+```
+
+From the Paint repo root, use the consumer-side wrapper:
 
 ```bash
 ./scripts/premath_workspace_ci.sh
@@ -45,7 +51,8 @@ Supported modes:
 ./scripts/premath_workspace_ci.sh fmt
 ```
 
-This entrypoint intentionally excludes the Paint CLI and product integration tests, and delegates to the extracted Premath workspace.
+This wrapper intentionally excludes the Paint CLI and product integration tests,
+and delegates to the extracted Premath workspace.
 
 Paint's general Cargo commands also consume Premath through a repo-local `./premath` projection. The supported local setup flow is:
 
