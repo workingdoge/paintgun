@@ -78,8 +78,6 @@ export class PaintButtonElement extends HTMLElement {
     return component.inputs.map((input) => input.attribute);
   }
 
-  #shadow = this.attachShadow({ mode: "open" });
-
   connectedCallback() {
     this.render();
   }
@@ -124,8 +122,9 @@ export class PaintButtonElement extends HTMLElement {
     const tone = this.tone;
     const emphasis = this.emphasis;
     const disabled = this.disabled;
+    const shadow = this.shadowRoot ?? this.attachShadow({ mode: "open" });
 
-    this.#shadow.innerHTML = `
+    shadow.innerHTML = `
       <style>${buttonStyles()}</style>
       <button
         part="${partName}"
@@ -138,7 +137,7 @@ export class PaintButtonElement extends HTMLElement {
       </button>
     `;
 
-    const button = this.#shadow.children.item(1);
+    const button = shadow.children.item(1);
     if (!button) {
       throw new Error("paint-button failed to render its internal control");
     }

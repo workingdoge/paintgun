@@ -37,10 +37,26 @@ describe("browser demo host", () => {
       new URL("/generated/paint/css/tokens.vars.css", activeServer.url),
     );
     expect(cssResponse.status).toBe(200);
+
+    const faviconResponse = await fetch(new URL("/favicon.ico", activeServer.url));
+    expect(faviconResponse.status).toBe(200);
   });
 
   test("keeps the demo page aligned with the built bundle name", async () => {
     const html = await readFile(join(exampleRoot, "demo", "index.html"), "utf8");
     expect(html).toContain("./dist/boot.js");
+  });
+
+  test("builds the browser bundles to a conservative syntax baseline", async () => {
+    const bootBundle = await readFile(join(exampleRoot, "demo", "dist", "boot.js"), "utf8");
+    const mainBundle = await readFile(join(exampleRoot, "demo", "dist", "main.js"), "utf8");
+
+    for (const bundle of [bootBundle, mainBundle]) {
+      expect(bundle.includes("#shadow")).toBe(false);
+      expect(bundle.includes("shadowRootRef;")).toBe(false);
+      expect(bundle.includes("?.")).toBe(false);
+      expect(bundle.includes("??")).toBe(false);
+      expect(bundle.includes("import.meta")).toBe(false);
+    }
   });
 });

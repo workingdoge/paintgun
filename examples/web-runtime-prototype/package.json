@@ -13,6 +13,7 @@
     "check": "bun run generate && bun run build:demo && bun run test"
   },
   "devDependencies": {
+    "esbuild": "^0.25.12",
     "happy-dom": "^20.0.10"
   }
 }

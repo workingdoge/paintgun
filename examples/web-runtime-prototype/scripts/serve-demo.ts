@@ -23,7 +23,12 @@ export function startDemoServer(port = 0) {
     port,
     fetch(request) {
       const url = new URL(request.url);
-      const pathname = url.pathname === "/" ? "/demo/index.html" : url.pathname;
+      const pathname =
+        url.pathname === "/"
+          ? "/demo/index.html"
+          : url.pathname === "/favicon.ico"
+            ? "/demo/favicon.svg"
+            : url.pathname;
       const safeRelative = normalize(pathname).replace(/^(\.\.(\/|\\|$))+/, "");
       const filePath = join(exampleRoot, safeRelative);
       const file = Bun.file(filePath);

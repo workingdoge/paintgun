@@ -253,12 +253,6 @@ export type WebComponent = (typeof webRuntime.webComponents)[number];
 export type WebArtifact = WebComponent["artifacts"]["required"][number];
 export type WebExample = WebComponent["examples"][number];
 
-const exampleRootUrl = new URL("../../", import.meta.url);
-
-export function getArtifactUrl(file: string): URL {
-  return new URL(file, exampleRootUrl);
-}
-
 export function getWebComponentById(id: string): WebComponent {
   const component = webRuntime.webComponents.find((candidate) => candidate.id === id);
   if (!component) {

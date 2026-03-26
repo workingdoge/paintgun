@@ -1,5 +1,4 @@
 import {
-  getArtifactUrl,
   type WebArtifact,
   type WebComponent,
   type WebExample,
@@ -28,8 +27,21 @@ export function stylesheetArtifacts(component: WebComponent): WebArtifact[] {
   );
 }
 
-export function stylesheetHrefs(component: WebComponent): string[] {
-  return stylesheetArtifacts(component).map((artifact) => getArtifactUrl(artifact.file).pathname);
+function normalizeArtifactBaseHref(artifactBaseHref: string): string {
+  if (!artifactBaseHref) {
+    return "";
+  }
+  return artifactBaseHref.endsWith("/") ? artifactBaseHref : `${artifactBaseHref}/`;
+}
+
+export function resolveArtifactHref(file: string, artifactBaseHref = ""): string {
+  return `${normalizeArtifactBaseHref(artifactBaseHref)}${file}`;
+}
+
+export function stylesheetHrefs(component: WebComponent, artifactBaseHref = ""): string[] {
+  return stylesheetArtifacts(component).map((artifact) =>
+    resolveArtifactHref(artifact.file, artifactBaseHref),
+  );
 }
 
 export function previewTokenArtifact(component: WebComponent): WebArtifact {

@@ -2,10 +2,10 @@ import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { describe, expect, test } from "bun:test";
 import {
-  getArtifactUrl,
   getWebComponentByTagName,
   webRuntime,
 } from "../src/generated/system-web.ts";
+import { resolveArtifactHref } from "../src/runtime/web-runtime.ts";
 
 const exampleRoot = resolve(import.meta.dir, "..");
 
@@ -29,7 +29,7 @@ describe("shared web runtime adapter", () => {
     ]) {
       const artifactPath = join(exampleRoot, artifact.file);
       expect(existsSync(artifactPath)).toBe(true);
-      expect(getArtifactUrl(artifact.file).pathname.endsWith(artifact.file)).toBe(true);
+      expect(resolveArtifactHref(artifact.file, "../")).toBe(`../${artifact.file}`);
     }
   });
 
