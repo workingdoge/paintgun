@@ -160,6 +160,19 @@ Generated output folders (`dist*`) are ignored by git.
 - composing them into a portable sibling bundle
 - strictly verifying the signed compose manifest and signed pack manifests
 
+## Web Runtime Prototype
+
+`examples/web-runtime-prototype/README.md` shows the first narrow design-system consumer path above
+Paint backend outputs:
+
+- authored `system.schema.json`
+- derived `generated/system.web.json`
+- generated `src/generated/system-web.ts`
+- one pure custom-element consumer
+- one Storybook CSF consumer
+
+It is intentionally a prototype package, not a new Paint core feature.
+
 ## Fixture tooling
 
 KCIR/NF conformance vectors can be built with:

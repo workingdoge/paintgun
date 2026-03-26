@@ -1,0 +1,37 @@
+{
+  "$description": "Compatibility contracts used to derive Paint backend artifacts for the web runtime prototype",
+  "paint-button": {
+    "component": "paint-button",
+    "description": "Prototype action button contract for the shared web runtime example",
+    "slots": {
+      "bg": {
+        "token": "color.surface.bg",
+        "property": "background"
+      },
+      "fg": {
+        "token": "color.text.primary",
+        "property": "color"
+      },
+      "border": {
+        "token": "color.surface.border",
+        "property": "border-color"
+      },
+      "radius": {
+        "token": "dimension.radius.md",
+        "property": "border-radius"
+      },
+      "padding-x": {
+        "token": "dimension.space.md",
+        "property": "padding-inline"
+      },
+      "padding-y": {
+        "token": "dimension.space.sm",
+        "property": "padding-block"
+      },
+      "transition": {
+        "token": "duration.fast",
+        "property": "transition-duration"
+      }
+    }
+  }
+}

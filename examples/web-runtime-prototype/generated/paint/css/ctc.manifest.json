@@ -1,0 +1,149 @@
+{
+  "ctcVersion": "0.1",
+  "kcirVersion": "2",
+  "tool": {
+    "name": "paintgun",
+    "version": "0.1.0"
+  },
+  "spec": "2025.10",
+  "packIdentity": {
+    "packId": "Charter Steel",
+    "packVersion": "2025.10",
+    "contentHash": "sha256:2a3520113f766546536a80ccdde423ea3543d0aaeed2238699115eb094ab3b32"
+  },
+  "trust": {
+    "status": "unsigned"
+  },
+  "profile": {
+    "schemeId": "hash",
+    "paramsHash": "sha256:3c6a2e995999fa03a91aa9384c57792b1084333eed709e7a4e3ea2333c9a6234",
+    "wireFormatId": "kcir.wire.legacy-fixed32.v1",
+    "wireFormatVersion": "1",
+    "evidenceFormatVersion": "1",
+    "anchor": {}
+  },
+  "axes": {
+    "mode": [
+      "docs",
+      "wellbeing"
+    ],
+    "theme": [
+      "dark",
+      "light"
+    ]
+  },
+  "semantics": {
+    "eqValueId": "dtcg-2025.10-typed-structural",
+    "policyDigest": "sha256:1c8ce2968e372271db47b353acc8cd77e2ba329b1746bc523dcbd3b932ecbc19",
+    "conflictMode": "semantic"
+  },
+  "backendArtifacts": [
+    {
+      "backendId": "web-css-vars",
+      "kind": "primaryTokenOutput",
+      "file": "tokens.css",
+      "sha256": "sha256:b4bb612ad7a7c571ab01fde258659b9e7e8ba09bd571c5345e832486fa48ad16",
+      "size": 2271
+    },
+    {
+      "backendId": "web-css-vars",
+      "kind": "systemStylesheet",
+      "file": "components.css",
+      "sha256": "sha256:3d30bbce79b728aed45e5bb347be171c88d3079ac01dc92cdf218214fe55c3a3",
+      "size": 448
+    },
+    {
+      "backendId": "web-css-vars",
+      "kind": "tokenStylesheet",
+      "file": "tokens.vars.css",
+      "sha256": "sha256:12bd70f8cc588b108b8e2622f6e9992e0fe7867897d57d71b34bd9d82a19588f",
+      "size": 1822
+    },
+    {
+      "backendId": "web-css-vars",
+      "kind": "typeDeclarations",
+      "file": "tokens.d.ts",
+      "sha256": "sha256:5caed2cb43d679d0837864866c7a243d735bb07baae949bf9a865694aafeefaf",
+      "size": 387
+    }
+  ],
+  "inputs": {
+    "resolverSpec": {
+      "file": "inputs/charter-steel.resolver.json",
+      "sha256": "sha256:d451cb17cdb0317593cc7ceae21591b3d99eaaeb50e5d4c2df0f52c07c7c7ad3",
+      "size": 1219
+    },
+    "tokenDocs": [
+      {
+        "file": "inputs/tokens/foundation.tokens.json",
+        "sha256": "sha256:680da2593168f5157a8a9c2ee4a34ed6ab27d3bc939f4a3560c782d3f1690408",
+        "size": 1896
+      },
+      {
+        "file": "inputs/tokens/mode/docs.tokens.json",
+        "sha256": "sha256:ff38183c05b47ea21f277381a0376b769bd02dc8f8d30fba6612973c68ea5978",
+        "size": 36
+      },
+      {
+        "file": "inputs/tokens/mode/wellbeing.tokens.json",
+        "sha256": "sha256:1ba79908378a67bb82d8b55abd92286b83425d54929cced23054a3d7f830a5b8",
+        "size": 896
+      },
+      {
+        "file": "inputs/tokens/theme/dark.tokens.json",
+        "sha256": "sha256:2f6cf1cc5eb6f9bae72b64bce8472e37648262c6e715417d32d9bbf156775740",
+        "size": 920
+      },
+      {
+        "file": "inputs/tokens/theme/light.tokens.json",
+        "sha256": "sha256:ff38183c05b47ea21f277381a0376b769bd02dc8f8d30fba6612973c68ea5978",
+        "size": 36
+      }
+    ]
+  },
+  "outputs": {
+    "resolvedJson": {
+      "file": "resolved.json",
+      "sha256": "sha256:2a3520113f766546536a80ccdde423ea3543d0aaeed2238699115eb094ab3b32",
+      "size": 17575
+    },
+    "tokensCss": {
+      "file": "tokens.css",
+      "sha256": "sha256:b4bb612ad7a7c571ab01fde258659b9e7e8ba09bd571c5345e832486fa48ad16",
+      "size": 2271
+    },
+    "tokensDts": {
+      "file": "tokens.d.ts",
+      "sha256": "sha256:5caed2cb43d679d0837864866c7a243d735bb07baae949bf9a865694aafeefaf",
+      "size": 387
+    },
+    "authoredJson": {
+      "file": "authored.json",
+      "sha256": "sha256:81b882e54f308c289bcceeb18d411ff812d3c9f3f8c3fa908dfc07f5be6f6e85",
+      "size": 182
+    },
+    "validationTxt": {
+      "file": "validation.txt",
+      "sha256": "sha256:d215bf1eecf5bb42d0245e6c099f4db891ffce736f64048908730193e9848728",
+      "size": 534
+    }
+  },
+  "summary": {
+    "tokens": 0,
+    "contexts": 4,
+    "kan_gaps": 0,
+    "kan_conflicts": 0,
+    "kan_inherited": 0,
+    "bc_violations": 0,
+    "orthogonality_overlaps": 0
+  },
+  "witnessesSha256": "sha256:5d395f46e8f3ad520a66995bff21fcc68edc107124ada94440e9b926c152d845",
+  "requiredArtifacts": [
+    {
+      "kind": "ctcWitnesses",
+      "file": "ctc.witnesses.json",
+      "sha256": "sha256:5d395f46e8f3ad520a66995bff21fcc68edc107124ada94440e9b926c152d845",
+      "size": 244
+    }
+  ]
+}

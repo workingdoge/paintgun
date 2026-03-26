@@ -1,0 +1,15 @@
+{
+  "spec": "2025.10",
+  "tool": "paintgun",
+  "axes": {
+    "mode": [
+      "docs",
+      "wellbeing"
+    ],
+    "theme": [
+      "dark",
+      "light"
+    ]
+  },
+  "contexts": []
+}

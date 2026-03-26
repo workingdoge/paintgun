@@ -1,0 +1,74 @@
+{
+  "color": {
+    "$type": "color",
+    "palette": {
+      "white": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.99, 0, 0],
+          "hex": "#fefefe"
+        }
+      },
+      "black": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.15, 0, 0],
+          "hex": "#1a1a1a"
+        }
+      },
+      "steel-50": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.97, 0.005, 250],
+          "hex": "#f5f6f8"
+        }
+      },
+      "steel-900": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.2, 0.02, 260],
+          "hex": "#1a1a2e"
+        }
+      }
+    },
+    "surface": {
+      "bg": {
+        "$value": "{color.palette.steel-50}",
+        "$description": "Default surface background — overridden per theme"
+      }
+    },
+    "text": {
+      "primary": {
+        "$value": "{color.palette.black}"
+      },
+      "muted": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.55, 0.01, 250],
+          "hex": "#6b7280"
+        }
+      }
+    }
+  },
+  "dimension": {
+    "$type": "dimension",
+    "space": {
+      "xs":  { "$value": { "value": 4,  "unit": "px" } },
+      "sm":  { "$value": { "value": 8,  "unit": "px" } },
+      "md":  { "$value": { "value": 16, "unit": "px" } },
+      "lg":  { "$value": { "value": 24, "unit": "px" } },
+      "xl":  { "$value": { "value": 32, "unit": "px" } }
+    },
+    "radius": {
+      "sm":  { "$value": { "value": 4,  "unit": "px" } },
+      "md":  { "$value": { "value": 8,  "unit": "px" } },
+      "lg":  { "$value": { "value": 16, "unit": "px" } }
+    }
+  },
+  "duration": {
+    "$type": "duration",
+    "fast":   { "$value": { "value": 100, "unit": "ms" } },
+    "normal": { "$value": { "value": 200, "unit": "ms" } },
+    "slow":   { "$value": { "value": 400, "unit": "ms" } }
+  }
+}

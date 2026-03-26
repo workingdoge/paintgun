@@ -1,0 +1,27 @@
+[
+  {
+    "file": "inputs/tokens/foundation.tokens.json",
+    "sha256": "sha256:680da2593168f5157a8a9c2ee4a34ed6ab27d3bc939f4a3560c782d3f1690408",
+    "size": 1896
+  },
+  {
+    "file": "inputs/tokens/mode/docs.tokens.json",
+    "sha256": "sha256:ff38183c05b47ea21f277381a0376b769bd02dc8f8d30fba6612973c68ea5978",
+    "size": 36
+  },
+  {
+    "file": "inputs/tokens/mode/wellbeing.tokens.json",
+    "sha256": "sha256:1ba79908378a67bb82d8b55abd92286b83425d54929cced23054a3d7f830a5b8",
+    "size": 896
+  },
+  {
+    "file": "inputs/tokens/theme/dark.tokens.json",
+    "sha256": "sha256:2f6cf1cc5eb6f9bae72b64bce8472e37648262c6e715417d32d9bbf156775740",
+    "size": 920
+  },
+  {
+    "file": "inputs/tokens/theme/light.tokens.json",
+    "sha256": "sha256:ff38183c05b47ea21f277381a0376b769bd02dc8f8d30fba6612973c68ea5978",
+    "size": 36
+  }
+]

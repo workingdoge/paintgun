@@ -1,0 +1,246 @@
+{
+  "webSystem": {
+    "id": "paint-web-runtime-prototype",
+    "title": "Paint Web Runtime Prototype",
+    "release": "0.1.0-prototype",
+    "schemaVersion": "paint.design-system.schema.alpha1",
+    "paintSources": [
+      {
+        "id": "paintCss",
+        "manifest": "generated/paint/css/ctc.manifest.json",
+        "tool": {
+          "name": "paintgun",
+          "version": "0.1.0"
+        },
+        "spec": "2025.10",
+        "packIdentity": {
+          "packId": "Charter Steel",
+          "packVersion": "2025.10",
+          "contentHash": "sha256:2a3520113f766546536a80ccdde423ea3543d0aaeed2238699115eb094ab3b32"
+        }
+      },
+      {
+        "id": "paintWeb",
+        "manifest": "generated/paint/web/ctc.manifest.json",
+        "tool": {
+          "name": "paintgun",
+          "version": "0.1.0"
+        },
+        "spec": "2025.10",
+        "packIdentity": {
+          "packId": "Charter Steel",
+          "packVersion": "2025.10",
+          "contentHash": "sha256:2a3520113f766546536a80ccdde423ea3543d0aaeed2238699115eb094ab3b32"
+        }
+      }
+    ]
+  },
+  "webComponents": [
+    {
+      "id": "button",
+      "tagName": "paint-button",
+      "title": "Paint Button",
+      "description": "Prototype action surface authored above Paint backend outputs and the shared web runtime IR.",
+      "status": "prototype",
+      "compatibility": {
+        "contractComponent": "paint-button"
+      },
+      "accessibility": {
+        "role": "button",
+        "notes": [
+          "The authored web component owns keyboard semantics and event dispatch.",
+          "Paint remains responsible for token semantics and backend artifact generation."
+        ]
+      },
+      "parts": [
+        {
+          "name": "control",
+          "description": "Interactive button surface inside the custom element shadow tree."
+        }
+      ],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Text or inline content rendered inside the button control."
+        }
+      ],
+      "inputs": [
+        {
+          "name": "tone",
+          "label": "Tone",
+          "description": "Visual tone projection for the button.",
+          "kind": "enum",
+          "attribute": "tone",
+          "property": "tone",
+          "default": "neutral",
+          "options": [
+            "neutral",
+            "accent"
+          ]
+        },
+        {
+          "name": "emphasis",
+          "label": "Emphasis",
+          "description": "Whether the control renders as solid or outline.",
+          "kind": "enum",
+          "attribute": "emphasis",
+          "property": "emphasis",
+          "default": "solid",
+          "options": [
+            "solid",
+            "outline"
+          ]
+        },
+        {
+          "name": "disabled",
+          "label": "Disabled",
+          "description": "Disables the action and suppresses the custom event.",
+          "kind": "boolean",
+          "attribute": "disabled",
+          "property": "disabled",
+          "default": false
+        }
+      ],
+      "properties": [
+        {
+          "name": "tone",
+          "type": "\"neutral\" | \"accent\""
+        },
+        {
+          "name": "emphasis",
+          "type": "\"solid\" | \"outline\""
+        },
+        {
+          "name": "disabled",
+          "type": "boolean"
+        }
+      ],
+      "events": [
+        {
+          "name": "paint-press",
+          "detail": {
+            "tone": "string",
+            "emphasis": "string"
+          },
+          "bubbles": true,
+          "composed": true
+        }
+      ],
+      "styleHooks": [
+        {
+          "name": "--paintgun-color-surface-bg",
+          "source": "tokenStylesheet",
+          "token": "color.surface.bg"
+        },
+        {
+          "name": "--paintgun-color-surface-border",
+          "source": "tokenStylesheet",
+          "token": "color.surface.border"
+        },
+        {
+          "name": "--paintgun-color-text-primary",
+          "source": "tokenStylesheet",
+          "token": "color.text.primary"
+        },
+        {
+          "name": "--paintgun-dimension-radius-md",
+          "source": "tokenStylesheet",
+          "token": "dimension.radius.md"
+        },
+        {
+          "name": "--paintgun-dimension-space-md",
+          "source": "tokenStylesheet",
+          "token": "dimension.space.md"
+        },
+        {
+          "name": "--paintgun-dimension-space-sm",
+          "source": "tokenStylesheet",
+          "token": "dimension.space.sm"
+        },
+        {
+          "name": "--paintgun-duration-fast",
+          "source": "tokenStylesheet",
+          "token": "duration.fast"
+        }
+      ],
+      "artifacts": {
+        "required": [
+          {
+            "artifactId": "paint-token-vars",
+            "source": "paintCss",
+            "backendId": "web-css-vars",
+            "kind": "tokenStylesheet",
+            "file": "generated/paint/css/tokens.vars.css",
+            "sha256": "sha256:12bd70f8cc588b108b8e2622f6e9992e0fe7867897d57d71b34bd9d82a19588f",
+            "size": 1822
+          },
+          {
+            "artifactId": "paint-token-module",
+            "source": "paintWeb",
+            "backendId": "web-tokens-ts",
+            "kind": "primaryTokenOutput",
+            "file": "generated/paint/web/tokens.ts",
+            "sha256": "sha256:7c721e4971ff9aae4f527248ef8a18a93ceee4192b51719c64aacb4917ce0644",
+            "size": 29371,
+            "apiVersion": "paintgun-web-tokens-ts/v1"
+          }
+        ],
+        "optional": [
+          {
+            "artifactId": "paint-component-styles",
+            "source": "paintCss",
+            "backendId": "web-css-vars",
+            "kind": "systemStylesheet",
+            "file": "generated/paint/css/components.css",
+            "sha256": "sha256:3d30bbce79b728aed45e5bb347be171c88d3079ac01dc92cdf218214fe55c3a3",
+            "size": 448
+          },
+          {
+            "artifactId": "paint-token-types",
+            "source": "paintCss",
+            "backendId": "web-css-vars",
+            "kind": "typeDeclarations",
+            "file": "generated/paint/css/tokens.d.ts",
+            "sha256": "sha256:5caed2cb43d679d0837864866c7a243d735bb07baae949bf9a865694aafeefaf",
+            "size": 387
+          }
+        ]
+      },
+      "examples": [
+        {
+          "id": "default",
+          "label": "Ship changes",
+          "context": "mode:docs,theme:light",
+          "args": {
+            "tone": "neutral",
+            "emphasis": "solid",
+            "disabled": false,
+            "label": "Ship changes"
+          }
+        },
+        {
+          "id": "accent",
+          "label": "Promote release",
+          "context": "mode:docs,theme:dark",
+          "args": {
+            "tone": "accent",
+            "emphasis": "solid",
+            "disabled": false,
+            "label": "Promote release"
+          }
+        },
+        {
+          "id": "outline",
+          "label": "Defer publish",
+          "context": "mode:docs,theme:light",
+          "args": {
+            "tone": "neutral",
+            "emphasis": "outline",
+            "disabled": false,
+            "label": "Defer publish"
+          }
+        }
+      ]
+    }
+  ]
+}

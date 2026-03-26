@@ -1,0 +1,15 @@
+═══════════════════════════════════════
+  AA-VS/Paintgun Validation Report
+═══════════════════════════════════════
+
+Orthogonality:
+  (no overlaps)
+
+Beck–Chevalley:
+  ✓ 0/0 token×context pairs commute
+
+Kan completion:
+  ✓ 0/0 explicit values
+  ⚠ 0/0 inherited (unique ancestor, no explicit value)
+  ✗ 0/0 tiebreaks (conflicting ancestors)
+  ✗ 0/0 gaps (no ancestor)

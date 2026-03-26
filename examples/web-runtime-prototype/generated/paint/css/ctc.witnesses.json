@@ -1,0 +1,10 @@
+{
+  "witnessSchema": 1,
+  "conflictMode": "semantic",
+  "policyDigest": "sha256:1c8ce2968e372271db47b353acc8cd77e2ba329b1746bc523dcbd3b932ecbc19",
+  "gaps": [],
+  "conflicts": [],
+  "inherited": [],
+  "bcViolations": [],
+  "orthogonality": []
+}

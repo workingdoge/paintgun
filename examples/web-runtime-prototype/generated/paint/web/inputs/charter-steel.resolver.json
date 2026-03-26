@@ -1,0 +1,58 @@
+{
+  "name": "Charter Steel",
+  "version": "2025.10",
+  "description": "AA-VS design system — charter steel palette with docs/wellbeing modes",
+  "sets": {
+    "foundation": {
+      "description": "Base palette and typography scale",
+      "sources": [
+        {
+          "$ref": "tokens/foundation.tokens.json"
+        }
+      ]
+    }
+  },
+  "modifiers": {
+    "theme": {
+      "description": "Color theme — affects surface, text, and border tokens",
+      "contexts": {
+        "light": [
+          {
+            "$ref": "tokens/theme/light.tokens.json"
+          }
+        ],
+        "dark": [
+          {
+            "$ref": "tokens/theme/dark.tokens.json"
+          }
+        ]
+      }
+    },
+    "mode": {
+      "description": "Product mode — docs (analytical) vs wellbeing (warm)",
+      "contexts": {
+        "docs": [
+          {
+            "$ref": "tokens/mode/docs.tokens.json"
+          }
+        ],
+        "wellbeing": [
+          {
+            "$ref": "tokens/mode/wellbeing.tokens.json"
+          }
+        ]
+      }
+    }
+  },
+  "resolutionOrder": [
+    {
+      "$ref": "#/sets/foundation"
+    },
+    {
+      "$ref": "#/modifiers/theme"
+    },
+    {
+      "$ref": "#/modifiers/mode"
+    }
+  ]
+}

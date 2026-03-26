@@ -1,0 +1,12 @@
+@layer components {
+  /* ═ paint-button ═ */
+  paint-button {
+    background: var(--paintgun-color-surface-bg);
+    border-color: var(--paintgun-color-surface-border);
+    border-radius: var(--paintgun-dimension-radius-md);
+    color: var(--paintgun-color-text-primary);
+    padding-block: var(--paintgun-dimension-space-sm);
+    padding-inline: var(--paintgun-dimension-space-md);
+    transition-duration: var(--paintgun-duration-fast);
+  }
+}

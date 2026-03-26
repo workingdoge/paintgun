@@ -1,0 +1,39 @@
+{
+  "color": {
+    "$type": "color",
+    "surface": {
+      "bg": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.2, 0.02, 260],
+          "hex": "#1a1a2e"
+        },
+        "$description": "Dark surface — steel-900"
+      },
+      "border": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.35, 0.02, 260],
+          "hex": "#374151"
+        }
+      }
+    },
+    "text": {
+      "primary": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.95, 0, 0],
+          "hex": "#f3f4f6"
+        }
+      },
+      "muted": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.65, 0.01, 250],
+          "hex": "#9ca3af"
+        },
+        "$description": "Muted text in dark — overridden here, not in mode. Kan will inherit this to (dark, wellbeing) if no explicit cross value."
+      }
+    }
+  }
+}
