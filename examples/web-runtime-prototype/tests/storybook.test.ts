@@ -20,6 +20,20 @@ describe("storybook consumer", () => {
       expect.stringContaining("generated/paint/css/components.css"),
     ]);
     expect(meta.parameters.paintRuntime.previewTokenArtifact.backendId).toBe("web-tokens-ts");
+    expect(meta.parameters.paintRuntime.previewTokens).toEqual([
+      expect.objectContaining({
+        token: "color.surface.bg",
+        value: "#f5f6f8",
+      }),
+      expect.objectContaining({
+        token: "color.text.primary",
+        value: "#1a1a1a",
+      }),
+      expect.objectContaining({
+        token: "dimension.radius.md",
+        value: "8px",
+      }),
+    ]);
   });
 
   test("renders stories as real custom elements instead of story-owned truth", () => {

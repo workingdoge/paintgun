@@ -13,6 +13,7 @@ The prototype is intentionally narrow:
 - one canonical schema file: `system.schema.json`
 - one shared web runtime IR: `generated/system.web.json`
 - one generated adapter: `src/generated/system-web.ts`
+- one shared design-system view-model layer: `src/model/design-system.ts`
 - one pure custom element consumer: `src/components/paint-button.ts`
 - one Storybook-format consumer: `src/stories/paint-button.stories.ts`
 
@@ -62,6 +63,7 @@ Generated from the canonical schema:
 Authored in the design-system layer:
 
 - `system.schema.json`
+- `src/model/design-system.ts`
 - `src/components/paint-button.ts`
 - `src/stories/paint-button.stories.ts`
 - `demo/index.html`

@@ -5,6 +5,7 @@ import {
   getWebComponentByTagName,
   webRuntime,
 } from "../src/generated/system-web.ts";
+import { artifactViewModels } from "../src/model/design-system.ts";
 import { resolveArtifactHref } from "../src/runtime/web-runtime.ts";
 
 const exampleRoot = resolve(import.meta.dir, "..");
@@ -38,5 +39,10 @@ describe("shared web runtime adapter", () => {
       "paintCss",
       "paintWeb",
     ]);
+  });
+
+  test("exposes view-model artifact metadata for docs consumers", () => {
+    const component = getWebComponentByTagName("paint-button");
+    expect(artifactViewModels(component)).toHaveLength(4);
   });
 });

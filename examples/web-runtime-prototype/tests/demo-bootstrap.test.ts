@@ -40,7 +40,8 @@ describe("demo bootstrap", () => {
     expect(document.body.dataset.demoState).toBe("ready");
     expect(document.getElementById("demo-title")?.textContent).toBe("Paint Web Runtime Prototype");
     expect(document.getElementById("demo-grid")?.children.length).toBe(3);
-    expect(document.getElementById("artifact-list")?.children.length).toBe(2);
+    expect(document.getElementById("artifact-list")?.children.length).toBe(4);
+    expect(document.getElementById("token-preview")?.textContent).toContain("#f5f6f8");
     expect(document.getElementById("boot-error")?.hasAttribute("hidden")).toBe(true);
   });
 

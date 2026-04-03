@@ -1,6 +1,5 @@
-import { valuesByContext } from "../generated/paint/web/tokens.ts";
-import { getWebComponentByTagName, webRuntime } from "../src/generated/system-web.ts";
-import { applyArgsToElement, stylesheetArtifacts } from "../src/runtime/web-runtime.ts";
+import { buildComponentShowcaseModel } from "../src/model/design-system.ts";
+import { applyArgsToElement } from "../src/runtime/web-runtime.ts";
 import { registerPaintPrototype } from "../src/register.ts";
 
 function requiredElement(document: Document, id: string): HTMLElement {
@@ -14,12 +13,7 @@ function requiredElement(document: Document, id: string): HTMLElement {
 export function startDemo(document: Document = globalThis.document) {
   registerPaintPrototype();
 
-  const component = getWebComponentByTagName("paint-button");
-  const previewContext =
-    component.examples.length > 0 && component.examples[0]
-      ? component.examples[0].context
-      : "mode:docs,theme:light";
-  const previewTokens = valuesByContext[previewContext as keyof typeof valuesByContext];
+  const showcase = buildComponentShowcaseModel("paint-button");
 
   const title = requiredElement(document, "demo-title");
   const lede = requiredElement(document, "demo-lede");
@@ -31,42 +25,89 @@ export function startDemo(document: Document = globalThis.document) {
   demoGrid.replaceChildren();
   artifactList.replaceChildren();
 
-  title.textContent = webRuntime.webSystem.title;
-  lede.textContent =
-    "This page is a browser host over the shared web runtime IR. The custom element, Storybook story, and this host all read the same generated adapter instead of inventing their own truth.";
-  summary.textContent = `${component.title} renders from ${component.examples.length} authored example(s) using Paint-generated CSS and token artifacts.`;
+  title.textContent = showcase.systemTitle;
+  lede.textContent = showcase.lede;
+  summary.textContent = showcase.summary;
 
-  for (const example of component.examples) {
-    const row = document.createElement("div");
-    row.className = "demo-row";
+  for (const example of showcase.examples) {
+    const card = document.createElement("article");
+    card.className = "demo-card";
 
-    const label = document.createElement("strong");
+    const header = document.createElement("div");
+    header.className = "demo-card-header";
+
+    const label = document.createElement("h3");
     label.textContent = example.label;
-    label.style.inlineSize = "12rem";
 
-    const element = document.createElement(component.tagName);
-    applyArgsToElement(element, component, example.args);
+    const context = document.createElement("span");
+    context.className = "pill";
+    context.textContent = example.context;
 
-    row.append(label, element);
-    demoGrid.append(row);
+    header.append(label, context);
+
+    const preview = document.createElement("div");
+    preview.className = "demo-card-preview";
+
+    const element = document.createElement(showcase.component.tagName);
+    applyArgsToElement(element, showcase.component, example.args);
+    preview.append(element);
+
+    const inputs = document.createElement("ul");
+    inputs.className = "chip-list";
+
+    for (const input of example.inputs) {
+      const item = document.createElement("li");
+      item.className = "chip";
+      item.innerHTML = `<span>${input.label}</span><strong>${input.value}</strong>`;
+      inputs.append(item);
+    }
+
+    card.append(header, preview, inputs);
+    demoGrid.append(card);
   }
 
-  for (const artifact of stylesheetArtifacts(component)) {
+  for (const artifact of showcase.artifacts) {
     const item = document.createElement("li");
-    item.innerHTML = `<strong>${artifact.kind}</strong><br /><code>${artifact.file}</code>`;
+    item.innerHTML = `
+      <div class="artifact-head">
+        <strong>${artifact.kindLabel}</strong>
+        <span class="pill ${artifact.requirement}">${artifact.requirement}</span>
+      </div>
+      <div class="artifact-meta">
+        <span>${artifact.backendId}</span>
+        <span>${artifact.sizeLabel}</span>
+      </div>
+      <code>${artifact.file}</code>
+      ${artifact.detail ? `<p class="artifact-detail">${artifact.detail}</p>` : ""}
+    `;
     artifactList.append(item);
   }
 
-  tokenPreview.textContent = JSON.stringify(
-    {
-      context: previewContext,
-      sample: {
-        "color.surface.bg": previewTokens["color.surface.bg"],
-        "color.text.primary": previewTokens["color.text.primary"],
-        "dimension.radius.md": previewTokens["dimension.radius.md"],
-      },
-    },
-    null,
-    2,
-  );
+  tokenPreview.replaceChildren();
+
+  const context = document.createElement("p");
+  context.className = "token-context";
+  context.textContent = showcase.tokenPreview.context;
+  tokenPreview.append(context);
+
+  const list = document.createElement("ul");
+  list.className = "token-list";
+
+  for (const entry of showcase.tokenPreview.entries) {
+    const item = document.createElement("li");
+    item.className = "token-row";
+    item.innerHTML = `
+      <div>
+        <strong>${entry.token}</strong>
+        <span>${entry.type}</span>
+      </div>
+      <div class="token-value">
+        <strong>${entry.value}</strong>
+        ${entry.detail ? `<span>${entry.detail}</span>` : ""}
+      </div>
+    `;
+    list.append(item);
+  }
+
+  tokenPreview.append(list);
 }

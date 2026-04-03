@@ -1,21 +1,22 @@
-import { valuesByContext } from "../../generated/paint/web/tokens.ts";
-import { getWebComponentByTagName } from "../generated/system-web.ts";
 import {
-  applyArgsToElement,
+  buildComponentShowcaseModel,
   exampleArgs,
   previewTokenArtifact,
   storyArgTypes,
+} from "../model/design-system.ts";
+import {
+  applyArgsToElement,
   stylesheetHrefs,
 } from "../runtime/web-runtime.ts";
 import { registerPaintPrototype } from "../register.ts";
 
 registerPaintPrototype();
 
-const component = getWebComponentByTagName("paint-button");
+const showcase = buildComponentShowcaseModel("paint-button");
+const component = showcase.component;
 const defaultArgs = exampleArgs(component, "default");
 const accentArgs = exampleArgs(component, "accent");
 const outlineArgs = exampleArgs(component, "outline");
-const previewTokens = valuesByContext["mode:docs,theme:light"];
 
 export function renderPaintButton(args: Record<string, string | boolean>) {
   const element = document.createElement(component.tagName);
@@ -36,10 +37,7 @@ const meta = {
       componentId: component.id,
       requiredStylesheets: stylesheetHrefs(component),
       previewTokenArtifact: previewTokenArtifact(component),
-      previewTokens: {
-        "color.surface.bg": previewTokens["color.surface.bg"],
-        "color.text.primary": previewTokens["color.text.primary"],
-      },
+      previewTokens: showcase.tokenPreview.entries,
     },
   },
   args: defaultArgs,

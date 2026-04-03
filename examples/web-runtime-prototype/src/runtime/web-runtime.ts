@@ -1,31 +1,7 @@
 import {
-  type WebArtifact,
   type WebComponent,
-  type WebExample,
 } from "../generated/system-web.ts";
-
-type StoryArgs = Record<string, string | boolean>;
-
-function defaultExample(component: WebComponent): WebExample {
-  const example = component.examples[0];
-  if (!example) {
-    throw new Error(`component ${component.id} is missing example metadata`);
-  }
-  return example;
-}
-
-export function exampleArgs(component: WebComponent, exampleId?: string): StoryArgs {
-  const example =
-    component.examples.find((candidate) => candidate.id === exampleId) ?? defaultExample(component);
-  return { ...example.args };
-}
-
-export function stylesheetArtifacts(component: WebComponent): WebArtifact[] {
-  return [...component.artifacts.required, ...component.artifacts.optional].filter(
-    (artifact) =>
-      artifact.kind === "tokenStylesheet" || artifact.kind === "systemStylesheet",
-  );
-}
+import { stylesheetArtifacts, type StoryArgs } from "../model/design-system.ts";
 
 function normalizeArtifactBaseHref(artifactBaseHref: string): string {
   if (!artifactBaseHref) {
@@ -41,44 +17,6 @@ export function resolveArtifactHref(file: string, artifactBaseHref = ""): string
 export function stylesheetHrefs(component: WebComponent, artifactBaseHref = ""): string[] {
   return stylesheetArtifacts(component).map((artifact) =>
     resolveArtifactHref(artifact.file, artifactBaseHref),
-  );
-}
-
-export function previewTokenArtifact(component: WebComponent): WebArtifact {
-  const artifact = [...component.artifacts.required, ...component.artifacts.optional].find(
-    (candidate) => candidate.kind === "primaryTokenOutput",
-  );
-  if (!artifact) {
-    throw new Error(`component ${component.id} is missing a primary token output artifact`);
-  }
-  return artifact;
-}
-
-export function storyArgTypes(component: WebComponent) {
-  return Object.fromEntries(
-    component.inputs.map((input) => {
-      const control =
-        input.kind === "boolean"
-          ? "boolean"
-          : {
-              type: "inline-radio",
-            };
-
-      return [
-        input.name,
-        {
-          control,
-          ...(input.options ? { options: [...input.options] } : {}),
-          description: input.description,
-          table: {
-            category: "web runtime input",
-            defaultValue: {
-              summary: String(input.default),
-            },
-          },
-        },
-      ];
-    }),
   );
 }
 
