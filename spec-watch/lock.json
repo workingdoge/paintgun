@@ -5,7 +5,7 @@
       "id": "tr-2025-10-index",
       "kind": "technical-report",
       "resolvedUrl": "https://www.designtokens.org/tr/2025.10/",
-      "sha256": "d4c430865f858940a15ce226d1d178f5b9c5f31852f196775f18229745b266a0",
+      "sha256": "3254c0f0c9ee8fb3fd60ddfc92ee8773b0335fd7f98316be0ec76d26ae69c89a",
       "size": 27221,
       "status": 200,
       "url": "https://www.designtokens.org/TR/2025.10/"
@@ -15,8 +15,8 @@
       "id": "tr-2025-10-format",
       "kind": "technical-report",
       "resolvedUrl": "https://www.designtokens.org/tr/2025.10/format/",
-      "sha256": "b11e5f232c088676d50c08fc0a62e60b3e631b41ed307b03cf1c856934d13870",
-      "size": 355728,
+      "sha256": "4194bd3e2ec54b8616ee5a6a796dbbc978a3111dcbd06d187562c729a1a284d0",
+      "size": 355894,
       "status": 200,
       "url": "https://www.designtokens.org/TR/2025.10/format/"
     },
@@ -25,7 +25,7 @@
       "id": "tr-2025-10-color",
       "kind": "technical-report",
       "resolvedUrl": "https://www.designtokens.org/tr/2025.10/color/",
-      "sha256": "db3f8fc81b9169a1224d357516537ed1f20a364f8b926571dccd0fa1d7f2e609",
+      "sha256": "93360979c21cc9cce21f9acc98d96d4ad8c7ff3eeb69d12e568816112ab542c9",
       "size": 153796,
       "status": 200,
       "url": "https://www.designtokens.org/TR/2025.10/color/"
@@ -35,7 +35,7 @@
       "id": "tr-2025-10-resolver",
       "kind": "technical-report",
       "resolvedUrl": "https://www.designtokens.org/tr/2025.10/resolver/",
-      "sha256": "68ef6cb3eba4d94686017c1edadcb4e5fd9d338d96f8a593766a0f8f57802989",
+      "sha256": "c4af4fdf724fc3d567b305622b76aadf5034d23c5de345a776f32b20b08d0350",
       "size": 149863,
       "status": 200,
       "url": "https://www.designtokens.org/TR/2025.10/resolver/"

@@ -34,4 +34,6 @@ When the spec-watch workflow fails:
 3. Open or update a `bd` follow-up issue in the canonical repo root so the drift has an explicit owner.
 4. If Paintgun should adopt the upstream change, update the code/docs as needed, run `python3 scripts/spec_watch.py refresh`, and commit the refreshed lock file in the same review.
 
+If the only drift is on the technical-report HTML pages while `spec-release-discovery` still reports the same stable version and the schema endpoints remain unchanged, treat that as editorial/site-build churn rather than an automatic runtime-support change. In that case, inspect the live report metadata, decide whether the rendered TR content is still the same supported release, and refresh `spec-watch/lock.json` only after that review.
+
 This flow keeps the watch deterministic without turning CI into a general-purpose crawler or auto-mutating issue bot.
