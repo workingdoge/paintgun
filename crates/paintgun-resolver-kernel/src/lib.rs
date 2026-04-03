@@ -154,6 +154,10 @@ fn is_allowed_group_property(name: &str) -> bool {
     )
 }
 
+fn unknown_reserved_property_reason() -> String {
+    "unknown reserved property for DTCG 2025.10".to_string()
+}
+
 fn validate_token_tree_names(tree: &JValue) -> Result<(), TokenNameError> {
     fn go(node: &JValue, path: &str) -> Result<(), TokenNameError> {
         let obj = match node {
@@ -173,7 +177,7 @@ fn validate_token_tree_names(tree: &JValue) -> Result<(), TokenNameError> {
                     return Err(TokenNameError::InvalidName {
                         path: root_path_label(path),
                         name: key.clone(),
-                        reason: "token and group names must not begin with '$'".to_string(),
+                        reason: unknown_reserved_property_reason(),
                     });
                 }
                 if key == "$root" {

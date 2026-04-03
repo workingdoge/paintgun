@@ -29,30 +29,28 @@ This matches the DTCG Format module's examples for `$description`: design tools 
 | Module | Topic | Status | Local evidence | Notes |
 | --- | --- | --- | --- | --- |
 | Format | Curly-brace aliases and JSON Pointer `$ref` support | `pass` | `crates/paintgun-resolver-kernel/src/lib.rs`, `tests/resolver_references.rs`, `tests/conformance/fixtures/alias_json_pointer*` | Paint normalizes curly-brace aliases, supports JSON Pointer syntax, rejects invalid escapes, and covers same-document pointer behavior in tests. |
-| Format | Token/group name character restrictions | `gap` | `crates/paintgun-resolver-kernel/src/lib.rs` tree walks skip `$`-prefixed keys and join path segments with `.`, but there is no visible validation path for illegal names | DTCG Format requires token and group names to not begin with `$` and to not contain `{`, `}`, or `.`. Paint does not currently surface those as load-time errors. Follow-up: `tbp-dbb`. |
+| Format | Token/group name character restrictions | `pass` | `crates/paintgun-resolver-kernel/src/lib.rs`, `tests/resolver_references.rs` | Paint now rejects leading `$` names plus `{`, `}`, and `.` in token/group names at load time, matching the Format module restrictions for the targeted 2025.10 surface. |
+| Format | Unknown future reserved `$properties` | `pass` | `crates/paintgun-resolver-kernel/src/lib.rs`, `tests/resolver_references.rs`, `README.md`, `docs/alpha_release.md` | Paint is intentionally version-strict to DTCG 2025.10. Unknown reserved `$...` properties are rejected by default, and support for newer reserved properties requires an explicit versioning decision rather than permissive fallback parsing. |
 | Format | `$description` usage | `deferred` | `README.md`, `docs/ci_contract.md`, `crates/paintgun-emit/src/lib.rs` | Paint has doc/report surfaces, but generated backend artifacts do not yet obviously render token descriptions as comments. This is optional and more about translation-tool polish than conformance. |
 | Format | `$extensions` strategy | `deferred` | no explicit `$extensions` handling found in `src`, `crates`, `tests`, `README.md`, or `docs` | DTCG allows vendor-specific extension data. Paint does not appear to preserve or expose it today. This is not a hard conformance failure, but it matters if Paint wants stronger translation-tool round-tripping. |
 | Resolver | Same-document and file-based reference objects | `pass` | `tests/resolver_references.rs`, `crates/paintgun-resolver-kernel/src/lib.rs` | Paint supports same-document resolver refs, local file refs, inline overrides, and cycle/error cases. |
 | Resolver | Resolution order and alias resolution stages | `pass` | `tests/resolver_references.rs`, `tests/conformance.rs`, `crates/paintgun-resolver-kernel/src/lib.rs` | Current tests cover ordering, conflict precedence, circular refs, unresolved aliases, and JSON Pointer edge cases. |
-| Resolver | Missing required modifier inputs | `gap` | `crates/paintgun-resolver-model/src/lib.rs`, `crates/paintgun-resolver-kernel/src/lib.rs` | `validate_input_selection()` only checks unknown axes and unknown context values. `resolve_modifier()` returns `Ok(None)` when a modifier has no default and the input omits it. DTCG Resolver requires this to error. Follow-up: `tbp-mdw`. |
+| Resolver | Missing required modifier inputs | `pass` | `crates/paintgun-resolver-model/src/lib.rs`, `crates/paintgun-resolver-kernel/src/lib.rs`, `tests/resolver_references.rs`, `tests/resolver_context_modes.rs` | Paint now rejects modifier inputs that omit required non-default branches and covers the behavior in regression tests and conformance fixtures. |
 | Resolver | Case-insensitive input handling | `risk` | `crates/paintgun-resolver-model/src/lib.rs` exact-match lookups, `src/resolver.rs`, `src/resolver_runtime.rs`, `README.md` | The spec says inputs SHOULD be case-insensitive, but Paint currently treats modifier names and context values as exact matches. Alpha decision: keep exact-match behavior for now and document it explicitly as an accepted interoperability tradeoff. |
 | Color | Structured color values, alpha, `hex`, and `none` support | `pass` | `crates/paintgun-resolver-kernel/src/lib.rs`, `tests/resolver_context_modes.rs`, conformance fixtures | Paint enforces object-based color values, supports `alpha`, validates 6-digit `hex`, and accepts `"none"` component values. |
 | Color | Supported color spaces and range checks | `pass` | `crates/paintgun-resolver-kernel/src/lib.rs` | Paint supports `srgb`, `srgb-linear`, `hsl`, `hwb`, `lab`, `lch`, `oklab`, `oklch`, `display-p3`, `a98-rgb`, `prophoto-rgb`, `rec2020`, `xyz-d65`, and `xyz-d50`, with range validation aligned to the module's intent. |
 
 ## Findings
 
-### Hard gaps
-
-1. Name restrictions are not enforced.
-   DTCG Format 2025.10 requires token and group names to avoid leading `$` plus `{`, `}`, and `.` anywhere in the name. Paint's current tree walking code treats `$`-prefixed keys as properties and joins path segments using `.`, but it does not appear to reject invalid names explicitly.
-
-2. Missing required resolver inputs do not currently error.
-   DTCG Resolver 2025.10 requires tools to reject inputs that omit modifiers without defaults. Paint currently lets that path fall through and simply omits the modifier branch.
-
-### Interoperability risk
+### Current interoperability risk
 
 1. Resolver input matching is case-sensitive.
    The Resolver module only says this behavior is a SHOULD, not a MUST. Paint now documents this as an accepted alpha deviation rather than leaving it implicit, but it remains an interoperability tradeoff for mixed-case ecosystems or external pipelines.
+
+### Version boundary decision
+
+1. Unknown future reserved `$properties` are rejected by default.
+   Paint targets DTCG 2025.10 explicitly. Unknown reserved `$...` properties are treated as version-incompatible input rather than silently ignored. If a newer DTCG revision adds reserved properties that Paint should support, that must come through an explicit versioning decision and tracked implementation work.
 
 ### Deferred excellence items
 
@@ -64,9 +62,8 @@ This matches the DTCG Format module's examples for `$description`: design tools 
 
 ## Follow-up issues
 
-- `tbp-dbb` Enforce DTCG token and group name restrictions
-- `tbp-mdw` Reject missing required resolver modifier inputs
 - `tbp-32f` Resolved by documenting the accepted alpha deviation: resolver input matching remains case-sensitive
+- `tbp-1qa` Resolved by keeping Paint version-strict to DTCG 2025.10 for reserved `$properties`
 
 ## Source references
 

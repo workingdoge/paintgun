@@ -569,7 +569,7 @@ fn token_store_build_rejects_invalid_token_name_segments() {
 }
 
 #[test]
-fn token_store_build_rejects_unknown_dollar_prefixed_names() {
+fn token_store_build_rejects_unknown_group_reserved_properties() {
     let root = temp_dir("resolver-invalid-dollar-name");
     let resolver_path = root.join("resolver.json");
     write_json(
@@ -606,7 +606,7 @@ fn token_store_build_rejects_unknown_dollar_prefixed_names() {
             assert_eq!(path, "(root)");
             assert_eq!(name, "$brand");
             assert!(
-                reason.contains("must not begin with '$'"),
+                reason.contains("unknown reserved property for DTCG 2025.10"),
                 "unexpected reason: {reason}"
             );
         }
@@ -663,4 +663,51 @@ fn token_store_build_accepts_reserved_dtcg_properties() {
         .token_at("color.primary", &Input::new())
         .expect("resolved token");
     assert_eq!(token.path, "color.primary");
+}
+
+#[test]
+fn token_store_build_rejects_unknown_token_reserved_properties() {
+    let root = temp_dir("resolver-unknown-token-property");
+    let resolver_path = root.join("resolver.json");
+    write_json(
+        &resolver_path,
+        serde_json::json!({
+            "version": "2025.10",
+            "sets": {
+                "base": {
+                    "sources": [
+                        {
+                            "color": {
+                                "primary": {
+                                    "$type": "color",
+                                    "$future": "unexpected",
+                                    "$value": {
+                                        "colorSpace": "srgb",
+                                        "components": [0.1, 0.2, 0.3]
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "modifiers": {},
+            "resolutionOrder": [ { "$ref": "#/sets/base" } ]
+        }),
+    );
+
+    let doc: ResolverDoc = read_json_file(&resolver_path).expect("resolver doc");
+    let err = build_token_store_for_inputs(&doc, &resolver_path, &[Input::new()])
+        .expect_err("expected invalid property error");
+    match err {
+        ResolverError::InvalidName { path, name, reason } => {
+            assert_eq!(path, "color.primary");
+            assert_eq!(name, "$future");
+            assert!(
+                reason.contains("unknown reserved property for DTCG 2025.10"),
+                "unexpected reason: {reason}"
+            );
+        }
+        other => panic!("expected invalid name error, got {other}"),
+    }
 }

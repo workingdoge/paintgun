@@ -14,3 +14,4 @@ The release process in `docs/releasing.md` assumes:
 
 ### Changed
 - Documented the current resolver-input behavior as case-sensitive by exact match, as an explicit alpha-era deviation from the DTCG Resolver 2025.10 case-insensitivity SHOULD guidance.
+- Documented and enforced the alpha policy that Paint stays version-strict to DTCG 2025.10 and rejects unknown reserved `$...` properties by default.

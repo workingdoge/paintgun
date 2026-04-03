@@ -374,6 +374,8 @@ cargo run -- compose \
 
 Resolver input matching is currently case-sensitive across Paint's resolver-facing surfaces. Modifier names and context values must match the resolver document's declared casing exactly. This is an explicit alpha-era deviation from the DTCG Resolver 2025.10 SHOULD-level guidance that tools treat inputs case-insensitively.
 
+Paint is version-strict to DTCG 2025.10. Unknown reserved `$...` properties are rejected instead of ignored, and there is no permissive compatibility mode in alpha. Supporting newer reserved properties requires an explicit Paint versioning decision rather than best-effort parsing.
+
 Compose bundles are trust-root relative rather than absolute: `compose.manifest.json` records each referenced pack directory relative to the compose output directory. Supported compose flow: archive `dist-compose/` together with the referenced pack directories under the same parent root before running `verify-compose`.
 
 ## Spec watch

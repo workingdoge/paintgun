@@ -36,6 +36,7 @@ Not included in the alpha commitment:
 For alpha consumers, Paint commits to:
 
 - targeting the DTCG 2025.10 Format, Resolver, and Color modules as its supported standards surface
+- rejecting unknown reserved `$...` properties for DTCG 2025.10 inputs by default
 - emitting canonical backend ids in manifests and reports:
   - `web-css-vars`
   - `swift-tokens`
@@ -48,15 +49,14 @@ For alpha consumers, Paint commits to:
 
 ## Open issues that block alpha
 
-These issues are alpha blockers and must be closed before cutting the first public alpha:
+There are currently no open conformance blocker issues from the reviewed DTCG 2025.10 surface.
 
-- `tbp-dbb` Enforce DTCG token and group name restrictions
-- `tbp-mdw` Reject missing required resolver modifier inputs
-
-These do not currently block alpha by themselves, but they require an explicit release decision:
+These accepted alpha-era decisions still need to stay explicit in docs and release notes:
 
 - Resolver input case sensitivity (`tbp-32f`)
   - alpha decision: keep exact-match resolver input behavior for now and document it explicitly in user docs and release notes
+- Unknown future reserved `$properties` (`tbp-1qa`)
+  - alpha decision: stay version-strict to DTCG 2025.10 by default, reject unknown reserved `$...` properties, and add future-property support only through an explicit versioning decision
 
 ## Go/No-Go gates
 
@@ -66,8 +66,9 @@ The alpha is a `go` only if every required gate below is satisfied.
 | --- | --- | --- |
 | Release docs are coherent | `docs/releasing.md`, `docs/backend_contract.md`, `docs/ci_contract.md`, `docs/trust_policy.md`, `docs/dtcg_2025_10_review.md` | all are present, current, and consistent with the public Paint surface |
 | DTCG review is current | [`docs/dtcg_2025_10_review.md`](dtcg_2025_10_review.md) | hard gaps have tracker coverage or are fixed |
-| Hard conformance blockers are closed | `tbp-dbb`, `tbp-mdw` | both must be closed |
+| Hard conformance blockers are closed | `docs/dtcg_2025_10_review.md`, tracker state | no open `gap` items remain from the reviewed DTCG 2025.10 surface |
 | SHOULD-level resolver input behavior is decided | `tbp-32f` resolution, release notes, and README | exact-match behavior is either replaced or explicitly documented as an accepted alpha deviation |
+| Reserved-property versioning behavior is decided | `tbp-1qa` resolution, release notes, and README | unknown reserved `$...` properties are either version-gated explicitly or documented as rejected for the supported DTCG 2025.10 surface |
 | Backend contract is frozen for alpha | [`docs/backend_contract.md`](backend_contract.md), [`tests/backend_contract.rs`](../tests/backend_contract.rs), [`tests/report_schema.rs`](../tests/report_schema.rs) | no unreviewed contract changes since the last alpha decision |
 | CI contract is frozen for alpha | [`docs/ci_contract.md`](ci_contract.md) and its referenced tests | exit-code and JSON/report behavior match the documented contract |
 | Core verification passes | `cargo test --workspace` | must pass on the candidate release commit |

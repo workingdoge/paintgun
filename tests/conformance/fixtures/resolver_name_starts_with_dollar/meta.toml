@@ -1,4 +1,4 @@
 mode = "resolver"
 expect = "error"
 error_code = "invalid_name"
-error_contains = "must not begin with '$'"
+error_contains = "unknown reserved property for DTCG 2025.10"
