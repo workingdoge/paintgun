@@ -39,6 +39,11 @@ Those belong in a web-facing projection layer, not in:
 - Storybook config
 - one specific web-component runtime library
 
+In practice, that means the authored prototype should not collapse canonical component semantics and
+web projection choices into one schema file. A separate authored web projection input is the right
+place for tag names, reflected attributes/properties, public events, style hooks, and artifact
+bindings before those choices are compiled into the generated web runtime IR.
+
 ## Public Web Contract
 
 The web runtime IR should describe the public contract a web consumer can rely on.

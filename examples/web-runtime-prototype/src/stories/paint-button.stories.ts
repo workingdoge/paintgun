@@ -1,9 +1,11 @@
 import {
   buildComponentShowcaseModel,
+} from "../model/showcase.ts";
+import {
   exampleArgs,
   previewTokenArtifact,
-  storyArgTypes,
-} from "../model/design-system.ts";
+} from "../model/runtime.ts";
+import { storyArgTypes } from "../model/storybook.ts";
 import {
   applyArgsToElement,
   stylesheetHrefs,

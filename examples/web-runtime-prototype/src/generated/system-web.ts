@@ -7,6 +7,7 @@ export const webRuntime = {
     "title": "Paint Web Runtime Prototype",
     "release": "0.1.0-prototype",
     "schemaVersion": "paint.design-system.schema.alpha1",
+    "projectionVersion": "paint.web.projection.alpha1",
     "paintSources": [
       {
         "id": "paintCss",
@@ -73,35 +74,35 @@ export const webRuntime = {
           "label": "Tone",
           "description": "Visual tone projection for the button.",
           "kind": "enum",
-          "attribute": "tone",
-          "property": "tone",
           "default": "neutral",
           "options": [
             "neutral",
             "accent"
-          ]
+          ],
+          "attribute": "tone",
+          "property": "tone"
         },
         {
           "name": "emphasis",
           "label": "Emphasis",
           "description": "Whether the control renders as solid or outline.",
           "kind": "enum",
-          "attribute": "emphasis",
-          "property": "emphasis",
           "default": "solid",
           "options": [
             "solid",
             "outline"
-          ]
+          ],
+          "attribute": "emphasis",
+          "property": "emphasis"
         },
         {
           "name": "disabled",
           "label": "Disabled",
           "description": "Disables the action and suppresses the custom event.",
           "kind": "boolean",
+          "default": false,
           "attribute": "disabled",
-          "property": "disabled",
-          "default": false
+          "property": "disabled"
         }
       ],
       "properties": [

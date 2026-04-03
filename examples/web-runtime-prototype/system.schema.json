@@ -5,14 +5,6 @@
     "title": "Paint Web Runtime Prototype",
     "release": "0.1.0-prototype"
   },
-  "artifactSources": {
-    "paintCss": {
-      "manifest": "generated/paint/css/ctc.manifest.json"
-    },
-    "paintWeb": {
-      "manifest": "generated/paint/web/ctc.manifest.json"
-    }
-  },
   "components": [
     {
       "id": "button",
@@ -29,8 +21,7 @@
           "Paint remains responsible for token semantics and backend artifact generation."
         ]
       },
-      "web": {
-        "tagName": "paint-button",
+      "surfaces": {
         "parts": [
           {
             "name": "control",
@@ -42,162 +33,74 @@
             "name": "default",
             "description": "Text or inline content rendered inside the button control."
           }
-        ],
-        "inputs": [
-          {
-            "name": "tone",
-            "label": "Tone",
-            "description": "Visual tone projection for the button.",
-            "kind": "enum",
-            "attribute": "tone",
-            "property": "tone",
-            "default": "neutral",
-            "options": ["neutral", "accent"]
-          },
-          {
-            "name": "emphasis",
-            "label": "Emphasis",
-            "description": "Whether the control renders as solid or outline.",
-            "kind": "enum",
-            "attribute": "emphasis",
-            "property": "emphasis",
-            "default": "solid",
-            "options": ["solid", "outline"]
-          },
-          {
-            "name": "disabled",
-            "label": "Disabled",
-            "description": "Disables the action and suppresses the custom event.",
-            "kind": "boolean",
-            "attribute": "disabled",
-            "property": "disabled",
-            "default": false
-          }
-        ],
-        "properties": [
-          {
-            "name": "tone",
-            "type": "\"neutral\" | \"accent\""
-          },
-          {
-            "name": "emphasis",
-            "type": "\"solid\" | \"outline\""
-          },
-          {
-            "name": "disabled",
-            "type": "boolean"
-          }
-        ],
-        "events": [
-          {
-            "name": "paint-press",
-            "detail": {
-              "tone": "string",
-              "emphasis": "string"
-            },
-            "bubbles": true,
-            "composed": true
-          }
-        ],
-        "styleHooks": [
-          {
-            "name": "--paintgun-color-surface-bg",
-            "source": "tokenStylesheet",
-            "token": "color.surface.bg"
-          },
-          {
-            "name": "--paintgun-color-surface-border",
-            "source": "tokenStylesheet",
-            "token": "color.surface.border"
-          },
-          {
-            "name": "--paintgun-color-text-primary",
-            "source": "tokenStylesheet",
-            "token": "color.text.primary"
-          },
-          {
-            "name": "--paintgun-dimension-radius-md",
-            "source": "tokenStylesheet",
-            "token": "dimension.radius.md"
-          },
-          {
-            "name": "--paintgun-dimension-space-md",
-            "source": "tokenStylesheet",
-            "token": "dimension.space.md"
-          },
-          {
-            "name": "--paintgun-dimension-space-sm",
-            "source": "tokenStylesheet",
-            "token": "dimension.space.sm"
-          },
-          {
-            "name": "--paintgun-duration-fast",
-            "source": "tokenStylesheet",
-            "token": "duration.fast"
-          }
-        ],
-        "artifactBindings": {
-          "required": [
-            {
-              "id": "paint-token-vars",
-              "source": "paintCss",
-              "kind": "tokenStylesheet"
-            },
-            {
-              "id": "paint-token-module",
-              "source": "paintWeb",
-              "kind": "primaryTokenOutput"
-            }
-          ],
-          "optional": [
-            {
-              "id": "paint-component-styles",
-              "source": "paintCss",
-              "kind": "systemStylesheet"
-            },
-            {
-              "id": "paint-token-types",
-              "source": "paintCss",
-              "kind": "typeDeclarations"
-            }
-          ]
-        },
-        "examples": [
-          {
-            "id": "default",
-            "label": "Ship changes",
-            "context": "mode:docs,theme:light",
-            "args": {
-              "tone": "neutral",
-              "emphasis": "solid",
-              "disabled": false,
-              "label": "Ship changes"
-            }
-          },
-          {
-            "id": "accent",
-            "label": "Promote release",
-            "context": "mode:docs,theme:dark",
-            "args": {
-              "tone": "accent",
-              "emphasis": "solid",
-              "disabled": false,
-              "label": "Promote release"
-            }
-          },
-          {
-            "id": "outline",
-            "label": "Defer publish",
-            "context": "mode:docs,theme:light",
-            "args": {
-              "tone": "neutral",
-              "emphasis": "outline",
-              "disabled": false,
-              "label": "Defer publish"
-            }
-          }
         ]
-      }
+      },
+      "inputs": [
+        {
+          "name": "tone",
+          "label": "Tone",
+          "description": "Visual tone projection for the button.",
+          "kind": "enum",
+          "default": "neutral",
+          "options": ["neutral", "accent"]
+        },
+        {
+          "name": "emphasis",
+          "label": "Emphasis",
+          "description": "Whether the control renders as solid or outline.",
+          "kind": "enum",
+          "default": "solid",
+          "options": ["solid", "outline"]
+        },
+        {
+          "name": "disabled",
+          "label": "Disabled",
+          "description": "Disables the action and suppresses the custom event.",
+          "kind": "boolean",
+          "default": false
+        }
+      ],
+      "examples": [
+        {
+          "id": "default",
+          "label": "Ship changes",
+          "context": "mode:docs,theme:light",
+          "inputs": {
+            "tone": "neutral",
+            "emphasis": "solid",
+            "disabled": false
+          },
+          "content": {
+            "label": "Ship changes"
+          }
+        },
+        {
+          "id": "accent",
+          "label": "Promote release",
+          "context": "mode:docs,theme:dark",
+          "inputs": {
+            "tone": "accent",
+            "emphasis": "solid",
+            "disabled": false
+          },
+          "content": {
+            "label": "Promote release"
+          }
+        },
+        {
+          "id": "outline",
+          "label": "Defer publish",
+          "context": "mode:docs,theme:light",
+          "inputs": {
+            "tone": "neutral",
+            "emphasis": "outline",
+            "disabled": false
+          },
+          "content": {
+            "label": "Defer publish"
+          }
+        }
+      ]
     }
   ]
 }

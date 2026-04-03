@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import {
   artifactViewModels,
-  buildComponentShowcaseModel,
   getPrototypeComponent,
 } from "../src/model/design-system.ts";
+import { buildComponentShowcaseModel } from "../src/model/showcase.ts";
 
 describe("design-system view model", () => {
   test("builds a reusable showcase model above the shared web runtime IR", () => {

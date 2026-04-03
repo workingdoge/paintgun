@@ -1,4 +1,4 @@
-import { buildComponentShowcaseModel } from "../src/model/design-system.ts";
+import { buildComponentShowcaseModel } from "../src/model/showcase.ts";
 import { applyArgsToElement } from "../src/runtime/web-runtime.ts";
 import { registerPaintPrototype } from "../src/register.ts";
 

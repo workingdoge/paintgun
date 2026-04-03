@@ -166,6 +166,7 @@ Generated output folders (`dist*`) are ignored by git.
 Paint backend outputs:
 
 - authored `system.schema.json`
+- authored `system.web.config.json`
 - derived `generated/system.web.json`
 - generated `src/generated/system-web.ts`
 - one pure custom-element consumer

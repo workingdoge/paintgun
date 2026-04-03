@@ -3,7 +3,8 @@
 This example proves the boundary shaped in `tbp-z74`:
 
 - Paint generates backend artifacts.
-- The authored design-system schema sits above those artifacts.
+- The canonical design-system schema sits above those artifacts.
+- An authored web projection sits between that schema and the generated web runtime IR.
 - A derived `system.web.json` becomes the shared web runtime IR.
 - Both a pure custom element and a Storybook CSF module consume the same generated adapter.
 
@@ -11,9 +12,10 @@ The prototype is intentionally narrow:
 
 - one component: `paint-button`
 - one canonical schema file: `system.schema.json`
+- one authored web projection file: `system.web.config.json`
 - one shared web runtime IR: `generated/system.web.json`
 - one generated adapter: `src/generated/system-web.ts`
-- one shared design-system view-model layer: `src/model/design-system.ts`
+- one split model layer under `src/model/*.ts`
 - one pure custom element consumer: `src/components/paint-button.ts`
 - one Storybook-format consumer: `src/stories/paint-button.stories.ts`
 
@@ -32,7 +34,7 @@ bun run test
 `bun run generate` does three things:
 
 1. runs Paint twice to refresh the real backend artifacts under `generated/paint/`
-2. compiles `system.schema.json` into `generated/system.web.json`
+2. compiles `system.schema.json` plus `system.web.config.json` into `generated/system.web.json`
 3. generates the typed adapter in `src/generated/system-web.ts`
 
 `bun run build:demo` bundles:
@@ -63,7 +65,12 @@ Generated from the canonical schema:
 Authored in the design-system layer:
 
 - `system.schema.json`
-- `src/model/design-system.ts`
+- `system.web.config.json`
+- `src/model/runtime.ts`
+- `src/model/artifacts.ts`
+- `src/model/tokens.ts`
+- `src/model/showcase.ts`
+- `src/model/storybook.ts`
 - `src/components/paint-button.ts`
 - `src/stories/paint-button.stories.ts`
 - `demo/index.html`

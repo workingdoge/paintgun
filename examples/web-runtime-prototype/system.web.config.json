@@ -1,0 +1,108 @@
+{
+  "projectionVersion": "paint.web.projection.alpha1",
+  "artifactSources": {
+    "paintCss": {
+      "manifest": "generated/paint/css/ctc.manifest.json"
+    },
+    "paintWeb": {
+      "manifest": "generated/paint/web/ctc.manifest.json"
+    }
+  },
+  "components": [
+    {
+      "componentId": "button",
+      "tagName": "paint-button",
+      "inputBindings": [
+        {
+          "input": "tone",
+          "attribute": "tone",
+          "property": "tone"
+        },
+        {
+          "input": "emphasis",
+          "attribute": "emphasis",
+          "property": "emphasis"
+        },
+        {
+          "input": "disabled",
+          "attribute": "disabled",
+          "property": "disabled"
+        }
+      ],
+      "events": [
+        {
+          "name": "paint-press",
+          "detail": {
+            "tone": "string",
+            "emphasis": "string"
+          },
+          "bubbles": true,
+          "composed": true
+        }
+      ],
+      "styleHooks": [
+        {
+          "name": "--paintgun-color-surface-bg",
+          "source": "tokenStylesheet",
+          "token": "color.surface.bg"
+        },
+        {
+          "name": "--paintgun-color-surface-border",
+          "source": "tokenStylesheet",
+          "token": "color.surface.border"
+        },
+        {
+          "name": "--paintgun-color-text-primary",
+          "source": "tokenStylesheet",
+          "token": "color.text.primary"
+        },
+        {
+          "name": "--paintgun-dimension-radius-md",
+          "source": "tokenStylesheet",
+          "token": "dimension.radius.md"
+        },
+        {
+          "name": "--paintgun-dimension-space-md",
+          "source": "tokenStylesheet",
+          "token": "dimension.space.md"
+        },
+        {
+          "name": "--paintgun-dimension-space-sm",
+          "source": "tokenStylesheet",
+          "token": "dimension.space.sm"
+        },
+        {
+          "name": "--paintgun-duration-fast",
+          "source": "tokenStylesheet",
+          "token": "duration.fast"
+        }
+      ],
+      "artifactBindings": {
+        "required": [
+          {
+            "id": "paint-token-vars",
+            "source": "paintCss",
+            "kind": "tokenStylesheet"
+          },
+          {
+            "id": "paint-token-module",
+            "source": "paintWeb",
+            "kind": "primaryTokenOutput"
+          }
+        ],
+        "optional": [
+          {
+            "id": "paint-component-styles",
+            "source": "paintCss",
+            "kind": "systemStylesheet"
+          },
+          {
+            "id": "paint-token-types",
+            "source": "paintCss",
+            "kind": "typeDeclarations"
+          }
+        ]
+      }
+    }
+  ]
+}

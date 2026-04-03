@@ -1,7 +1,11 @@
 import {
   type WebComponent,
 } from "../generated/system-web.ts";
-import { stylesheetArtifacts, type StoryArgs } from "../model/design-system.ts";
+import {
+  defaultExample,
+  stylesheetArtifacts,
+  type StoryArgs,
+} from "../model/runtime.ts";
 
 function normalizeArtifactBaseHref(artifactBaseHref: string): string {
   if (!artifactBaseHref) {
