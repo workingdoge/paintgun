@@ -43,15 +43,18 @@ Canonical local layout:
 
 ```bash
 # From the Paint repo root, project the sibling Premath repo into ./premath
-./scripts/link_premath_checkout.sh ../premath
+./scripts/link_premath_checkout.sh
 ```
 
 Alternative:
 
+- pass an explicit checkout path to `./scripts/link_premath_checkout.sh <path>`
 - clone the extracted Premath repo directly into `./premath`, or
 - set up your own projection and keep the resulting checkout or symlink at `./premath`.
 
 If `./premath` is missing, Cargo builds in this repo will fail because the extracted Premath crates are external dependencies now.
+
+In issue-scoped `jj` workspaces, `./scripts/link_premath_checkout.sh` will mirror the canonical repo's existing `./premath` projection when possible instead of assuming `../premath` relative to the workspace directory.
 
 ## Build & run
 
@@ -91,7 +94,7 @@ Canonical backend ids are `web-css-vars`, `swift-tokens`, `android-compose-token
 From source:
 
 ```bash
-./scripts/link_premath_checkout.sh ../premath
+./scripts/link_premath_checkout.sh
 cargo install --locked --path .
 paint --version
 ```

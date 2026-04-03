@@ -14,6 +14,8 @@ const paintGeneratedRoot = join(exampleRoot, "generated", "paint");
 const cssDest = join(paintGeneratedRoot, "css");
 const webDest = join(paintGeneratedRoot, "web");
 
+await $`"${join(repoRoot, "scripts", "ensure_premath_projection.sh")}"`.cwd(repoRoot).quiet();
+
 async function rebuildTarget(outDir: string, target: string, withContracts: boolean) {
   const command = [
     "cargo",

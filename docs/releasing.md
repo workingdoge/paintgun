@@ -7,7 +7,7 @@ This document defines the first public release path for Paint. It is intentional
 Source install:
 
 ```bash
-./scripts/link_premath_checkout.sh ../premath
+./scripts/link_premath_checkout.sh
 cargo install --locked --path .
 paint --version
 ```
@@ -65,7 +65,7 @@ For the first public release, detached manifest signing is supported but not req
 2. Materialize the extracted Premath repo into the local `./premath` projection if it is not already present:
 
    ```bash
-   ./scripts/link_premath_checkout.sh ../premath
+   ./scripts/link_premath_checkout.sh
    ```
 
 3. Run the release quality gates:
