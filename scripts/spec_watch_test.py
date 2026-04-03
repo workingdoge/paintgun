@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import contextlib
 import importlib.util
+import io
 from pathlib import Path
 import tempfile
 import types
@@ -109,7 +111,8 @@ class DiscoveryCheckTest(unittest.TestCase):
             )
 
             with mock.patch.object(spec_watch, "fetch_target", side_effect=responses):
-                rc = spec_watch.command_discover_check(args)
+                with contextlib.redirect_stdout(io.StringIO()):
+                    rc = spec_watch.command_discover_check(args)
 
             self.assertEqual(rc, 1)
             report = spec_watch.load_json(artifact_dir / "report.json")
