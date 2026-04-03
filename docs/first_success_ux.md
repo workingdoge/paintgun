@@ -108,13 +108,16 @@ For the first-failure case, the user must be able to answer:
 
 For first-success UX, `explain` must eventually make these fields legible:
 
-- witness or finding class
+- user-facing finding family
+- technical witness kind
 - affected token path or component contract path
 - authored source location or file/pointer blame when available
 - high-level cause summary
 - next-action guidance
 
 The exact wording may evolve, but the path from finding to action must stay stable.
+
+The stable family model for that presentation is defined in [`docs/witness_taxonomy.md`](witness_taxonomy.md).
 
 ## Machine vs Human Surfaces
 

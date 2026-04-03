@@ -104,6 +104,7 @@ The supported install paths, artifact shape, versioning policy, and maintainer c
 The canonical new-user success path is documented in [`docs/first_success_ux.md`](docs/first_success_ux.md).
 The target-backend and system-package architecture is documented in [`docs/target_backends.md`](docs/target_backends.md).
 The alpha-stable backend artifact contract is documented in [`docs/backend_contract.md`](docs/backend_contract.md).
+The user-facing finding families and remediation model are documented in [`docs/witness_taxonomy.md`](docs/witness_taxonomy.md).
 The DTCG 2025.10 design/conformance review is documented in [`docs/dtcg_2025_10_review.md`](docs/dtcg_2025_10_review.md).
 The alpha release boundary and go/no-go checklist are documented in [`docs/alpha_release.md`](docs/alpha_release.md).
 
@@ -324,7 +325,7 @@ cargo run -- explain conflict-1234abcd5678ef90 \
 ```
 
 `explain` prints:
-- witness type + summary
+- user-facing finding family plus technical witness type
 - primary source file path and JSON Pointer
 - shortest fix recipe
 
