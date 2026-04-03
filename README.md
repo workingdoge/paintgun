@@ -101,6 +101,7 @@ paint --version
 
 Maintainers can also build a target-specific release tarball with `./scripts/package_release.sh`.
 The supported install paths, artifact shape, versioning policy, and maintainer checklist are documented in `docs/releasing.md`.
+The canonical new-user success path is documented in [`docs/first_success_ux.md`](docs/first_success_ux.md).
 The target-backend and system-package architecture is documented in [`docs/target_backends.md`](docs/target_backends.md).
 The alpha-stable backend artifact contract is documented in [`docs/backend_contract.md`](docs/backend_contract.md).
 The DTCG 2025.10 design/conformance review is documented in [`docs/dtcg_2025_10_review.md`](docs/dtcg_2025_10_review.md).

@@ -2,6 +2,8 @@
 
 This document defines the first public release path for Paint. It is intentionally narrow: source installs are supported everywhere Rust stable works, and maintainers may additionally publish target-specific binary tarballs built from this repo.
 
+The consumer-facing install/build/verify/fix contract that this release path is expected to support is documented in [`docs/first_success_ux.md`](first_success_ux.md).
+
 ## Supported install paths
 
 Source install:

@@ -7,6 +7,7 @@ It ties together the current public commitments for:
 - backend identity and emitted artifact shape
 - CI/report stability
 - signing and trust defaults
+- first-success install/build/verify/fix expectations
 - DTCG 2025.10 review status
 - release packaging and verification gates
 
@@ -20,6 +21,7 @@ Included in the alpha commitment:
 - the canonical backend ids documented in [`docs/backend_contract.md`](backend_contract.md)
 - the schema-backed report artifacts and exit-code behavior documented in [`docs/ci_contract.md`](ci_contract.md)
 - the signing defaults documented in [`docs/trust_policy.md`](trust_policy.md)
+- the first-success user contract documented in [`docs/first_success_ux.md`](first_success_ux.md)
 - the source-install and release-tarball path documented in [`docs/releasing.md`](releasing.md)
 - the DTCG 2025.10 review documented in [`docs/dtcg_2025_10_review.md`](dtcg_2025_10_review.md)
 
@@ -65,6 +67,7 @@ The alpha is a `go` only if every required gate below is satisfied.
 | Gate | Evidence | Alpha rule |
 | --- | --- | --- |
 | Release docs are coherent | `docs/releasing.md`, `docs/backend_contract.md`, `docs/ci_contract.md`, `docs/trust_policy.md`, `docs/dtcg_2025_10_review.md` | all are present, current, and consistent with the public Paint surface |
+| First-success UX contract is explicit | [`docs/first_success_ux.md`](first_success_ux.md), `README.md` | install/build/verify/explain/fix expectations are documented and do not depend on contributor-only setup knowledge |
 | DTCG review is current | [`docs/dtcg_2025_10_review.md`](dtcg_2025_10_review.md) | hard gaps have tracker coverage or are fixed |
 | Hard conformance blockers are closed | `docs/dtcg_2025_10_review.md`, tracker state | no open `gap` items remain from the reviewed DTCG 2025.10 surface |
 | SHOULD-level resolver input behavior is decided | `tbp-32f` resolution, release notes, and README | exact-match behavior is either replaced or explicitly documented as an accepted alpha deviation |
@@ -103,5 +106,6 @@ The following are intentionally post-alpha unless re-scoped by new tracker work:
 - [`docs/releasing.md`](releasing.md)
 - [`docs/backend_contract.md`](backend_contract.md)
 - [`docs/ci_contract.md`](ci_contract.md)
+- [`docs/first_success_ux.md`](first_success_ux.md)
 - [`docs/trust_policy.md`](trust_policy.md)
 - [`docs/dtcg_2025_10_review.md`](dtcg_2025_10_review.md)
