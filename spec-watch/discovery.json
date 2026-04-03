@@ -1,0 +1,16 @@
+{
+  "expectedLatestStableVersion": "2025.10",
+  "sources": [
+    {
+      "id": "designtokens-technical-reports",
+      "kind": "designtokens-technical-reports",
+      "url": "https://www.designtokens.org/technical-reports/"
+    },
+    {
+      "id": "w3c-design-tokens-community",
+      "kind": "w3c-design-tokens-community",
+      "url": "https://www.w3.org/community/design-tokens/"
+    }
+  ],
+  "version": 1
+}

@@ -6,6 +6,7 @@ import hashlib
 import json
 import mimetypes
 from pathlib import Path
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -14,6 +15,8 @@ import urllib.request
 USER_AGENT = "paintgun-spec-watch/1"
 DEFAULT_TIMEOUT = 20.0
 LOCK_VERSION = 1
+DISCOVERY_VERSION = 1
+VERSION_RE = re.compile(r"^\d{4}\.\d{2}$")
 
 
 def parse_args() -> argparse.Namespace:
@@ -45,6 +48,27 @@ def parse_args() -> argparse.Namespace:
             default=None,
             help="Optional directory for reports and fetched payloads.",
         )
+
+    discover = subparsers.add_parser(
+        "discover-check",
+        help="Check trusted upstream index pages for newer stable DTCG releases.",
+    )
+    discover.add_argument(
+        "--discovery",
+        default="spec-watch/discovery.json",
+        help="Path to watched DTCG release discovery sources.",
+    )
+    discover.add_argument(
+        "--timeout",
+        type=float,
+        default=DEFAULT_TIMEOUT,
+        help="Per-request timeout in seconds.",
+    )
+    discover.add_argument(
+        "--artifact-dir",
+        default=None,
+        help="Optional directory for reports and fetched payloads.",
+    )
     return parser.parse_args()
 
 
@@ -107,6 +131,52 @@ def load_lock(path: Path) -> dict[str, dict]:
     return by_id
 
 
+def parse_version(value: object, field_name: str) -> str:
+    version = str(value or "").strip()
+    if not VERSION_RE.fullmatch(version):
+        raise SystemExit(f"{field_name} must be a YYYY.MM version string, got {value!r}")
+    return version
+
+
+def version_key(version: str) -> tuple[int, int]:
+    year, month = version.split(".", 1)
+    return (int(year), int(month))
+
+
+def load_discovery(path: Path) -> dict:
+    payload = load_json(path)
+    if payload.get("version") != DISCOVERY_VERSION:
+        raise SystemExit(f"{path} has unsupported version {payload.get('version')!r}")
+
+    expected_latest = parse_version(
+        payload.get("expectedLatestStableVersion"),
+        f"{path} expectedLatestStableVersion",
+    )
+    sources = payload.get("sources")
+    if not isinstance(sources, list) or not sources:
+        raise SystemExit(f"{path} must contain a non-empty sources list")
+
+    seen_ids: set[str] = set()
+    normalized: list[dict] = []
+    for raw in sources:
+        if not isinstance(raw, dict):
+            raise SystemExit(f"{path} contains a non-object source entry")
+        source_id = str(raw.get("id", "")).strip()
+        kind = str(raw.get("kind", "")).strip()
+        url = str(raw.get("url", "")).strip()
+        if not source_id or not kind or not url:
+            raise SystemExit(f"{path} contains an incomplete source entry: {raw!r}")
+        if source_id in seen_ids:
+            raise SystemExit(f"{path} contains duplicate source id {source_id!r}")
+        seen_ids.add(source_id)
+        normalized.append({"id": source_id, "kind": kind, "url": url})
+
+    return {
+        "expectedLatestStableVersion": expected_latest,
+        "sources": normalized,
+    }
+
+
 def fetch_target(target: dict, timeout: float) -> dict:
     request = urllib.request.Request(
         target["url"],
@@ -143,6 +213,34 @@ def fetch_target(target: dict, timeout: float) -> dict:
             "url": target["url"],
             "error": str(exc.reason),
         }
+
+
+def html_to_text(body: bytes) -> str:
+    html = body.decode("utf-8", errors="replace")
+    text = re.sub(r"<[^>]+>", " ", html)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def discover_versions_for_source(kind: str, text: str) -> list[str]:
+    if kind == "designtokens-technical-reports":
+        matches = re.findall(
+            r"\b(\d{4}\.\d{2})\b\s+Stable\s+\d{4}-\d{2}-\d{2}\b",
+            text,
+            flags=re.IGNORECASE,
+        )
+    elif kind == "w3c-design-tokens-community":
+        matches = re.findall(
+            r"Design Tokens (?:Format|Color|Resolver) Module (\d{4}\.\d{2})\b",
+            text,
+            flags=re.IGNORECASE,
+        )
+    else:
+        raise ValueError(f"unsupported discovery source kind {kind!r}")
+
+    versions = sorted({match for match in matches if VERSION_RE.fullmatch(match)}, key=version_key)
+    if not versions:
+        raise ValueError(f"no stable DTCG versions found for source kind {kind!r}")
+    return versions
 
 
 def to_lock_entry(observed: dict) -> dict:
@@ -199,6 +297,40 @@ def build_summary(report: dict) -> str:
             "2. Decide whether Paintgun code, tests, docs, or pinned expectations need updates.",
             "3. Open or update a `bd` follow-up issue in the canonical repo root.",
             "4. If the upstream change is accepted, run `python3 scripts/spec_watch.py refresh` and commit the updated lock file.",
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def build_discovery_summary(report: dict) -> str:
+    lines = [
+        "# Spec Release Discovery",
+        "",
+        f"- Expected latest stable version: {report['expectedLatestStableVersion']}",
+        f"- Observed latest stable version: {report.get('observedLatestStableVersion') or 'none'}",
+        f"- Sources checked: {report['checked']}",
+        f"- New versions: {report['newVersionCount']}",
+        f"- Errors: {report['errorCount']}",
+        f"- Mismatches: {report['mismatchCount']}",
+        "",
+        "| Source | Latest | Result | Notes |",
+        "| --- | --- | --- | --- |",
+    ]
+
+    for row in report["results"]:
+        latest = row.get("latestStableVersion") or "n/a"
+        note = row["note"].replace("\n", "<br>")
+        lines.append(f"| `{row['id']}` | `{latest}` | {row['result']} | {note} |")
+
+    lines.extend(
+        [
+            "",
+            "Triage:",
+            "1. Inspect `report.json` and any uploaded payload copies to confirm which trusted source changed.",
+            "2. If a newer stable version appears, open or update a `bd` review/adoption issue in the canonical repo root.",
+            "3. Review the new release against Paint's current support boundary before changing runtime behavior.",
+            "4. If Paint adopts the new stable version, update `spec-watch/discovery.json` and any linked docs in the same change.",
             "",
         ]
     )
@@ -342,12 +474,125 @@ def command_check(args: argparse.Namespace) -> int:
     return 0 if report["ok"] else 1
 
 
+def command_discover_check(args: argparse.Namespace) -> int:
+    discovery = load_discovery(Path(args.discovery))
+    expected_latest = discovery["expectedLatestStableVersion"]
+    sources = discovery["sources"]
+    artifact_dir = Path(args.artifact_dir) if args.artifact_dir else None
+    if artifact_dir is not None:
+        artifact_dir.mkdir(parents=True, exist_ok=True)
+
+    results: list[dict] = []
+    errors: list[dict] = []
+    new_versions: list[dict] = []
+    successful_results: list[dict] = []
+
+    for source in sources:
+        observed = fetch_target(source, args.timeout)
+        if "error" in observed:
+            errors.append({"id": source["id"], "url": source["url"], "error": observed["error"]})
+            results.append(
+                {
+                    "id": source["id"],
+                    "result": "error",
+                    "latestStableVersion": None,
+                    "note": observed["error"],
+                }
+            )
+            continue
+
+        if artifact_dir is not None:
+            write_payload(artifact_dir, observed)
+
+        try:
+            text = html_to_text(observed["body"])
+            versions = discover_versions_for_source(source["kind"], text)
+        except ValueError as exc:
+            errors.append({"id": source["id"], "url": source["url"], "error": str(exc)})
+            results.append(
+                {
+                    "id": source["id"],
+                    "result": "error",
+                    "latestStableVersion": None,
+                    "note": str(exc),
+                }
+            )
+            continue
+
+        latest_version = max(versions, key=version_key)
+        result = {
+            "id": source["id"],
+            "kind": source["kind"],
+            "url": source["url"],
+            "versions": versions,
+            "latestStableVersion": latest_version,
+            "result": "ok",
+            "note": "observed stable versions: " + ", ".join(versions),
+        }
+        successful_results.append(result)
+        results.append(result)
+
+        if version_key(latest_version) > version_key(expected_latest):
+            new_versions.append(
+                {
+                    "id": source["id"],
+                    "url": source["url"],
+                    "expectedLatestStableVersion": expected_latest,
+                    "observedLatestStableVersion": latest_version,
+                    "versions": versions,
+                }
+            )
+            result["result"] = "new-version"
+            result["note"] = f"observed newer stable version {latest_version}"
+
+    observed_latest = None
+    mismatches: list[dict] = []
+    observed_versions = sorted(
+        {row["latestStableVersion"] for row in successful_results},
+        key=version_key,
+    )
+    if observed_versions:
+        observed_latest = observed_versions[-1]
+        if len(observed_versions) > 1:
+            mismatches.append(
+                {
+                    "latestStableVersions": observed_versions,
+                    "sourceIds": [row["id"] for row in successful_results],
+                }
+            )
+
+    report = {
+        "version": DISCOVERY_VERSION,
+        "ok": not errors and not new_versions and not mismatches,
+        "checked": len(sources),
+        "expectedLatestStableVersion": expected_latest,
+        "observedLatestStableVersion": observed_latest,
+        "newVersionCount": len(new_versions),
+        "errorCount": len(errors),
+        "mismatchCount": len(mismatches),
+        "results": sorted(results, key=lambda item: item["id"]),
+        "newVersions": new_versions,
+        "errors": errors,
+        "mismatches": mismatches,
+    }
+    summary = build_discovery_summary(report)
+
+    if artifact_dir is not None:
+        write_json(artifact_dir / "report.json", report)
+        (artifact_dir / "summary.md").write_text(summary, encoding="utf-8")
+
+    print(summary)
+    return 0 if report["ok"] else 1
+
+
 def main() -> int:
     args = parse_args()
     if args.command == "refresh":
         return command_refresh(args)
     if args.command == "check":
         return command_check(args)
+    if args.command == "discover-check":
+        return command_discover_check(args)
     raise AssertionError(f"unsupported command {args.command!r}")
 
 

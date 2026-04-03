@@ -4,6 +4,8 @@
 
 The dedicated GitHub Actions workflow `.github/workflows/spec-watch.yml` runs on a weekly schedule and via manual dispatch. It fetches each canonical endpoint, compares status/content type/resolved URL/size/SHA-256 against the checked-in lock file, uploads a report artifact, and fails when drift is detected.
 
+This is the pinned-digest watch only. New upstream stable release detection lives in [`docs/spec_release_watch.md`](spec_release_watch.md) and `.github/workflows/spec-release-discovery.yml`.
+
 ## Manual Use
 
 Check the current upstream digests against the pinned lock:

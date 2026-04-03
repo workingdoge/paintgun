@@ -1,0 +1,38 @@
+name: Spec Release Discovery
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "47 9 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  spec-release-discovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check trusted DTCG release sources for newer stable versions
+        run: |
+          python3 scripts/spec_watch.py discover-check \
+            --discovery spec-watch/discovery.json \
+            --artifact-dir spec-release-discovery-artifacts
+
+      - name: Publish discovery summary
+        if: always()
+        run: |
+          if [ -f spec-release-discovery-artifacts/summary.md ]; then
+            cat spec-release-discovery-artifacts/summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload discovery artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: spec-release-discovery-report
+          path: spec-release-discovery-artifacts/
+          if-no-files-found: ignore
