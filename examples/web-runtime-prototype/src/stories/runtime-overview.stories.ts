@@ -114,11 +114,11 @@ function renderFindings() {
   }
   container.append(reports);
 
-  if (overview.findings.byKind.length > 0) {
+  if (overview.findings.byFamily.length > 0) {
     const byKind = document.createElement("ul");
     byKind.className = "paint-storybook-list";
-    for (const entry of overview.findings.byKind) {
-      byKind.append(listItem(entry.kind, String(entry.count)));
+    for (const entry of overview.findings.byFamily) {
+      byKind.append(listItem(entry.family, String(entry.count)));
     }
     container.append(byKind);
   }
@@ -135,6 +135,7 @@ function renderFindings() {
         "paint-storybook-card-copy",
         `${firstFinding.kind} · ${firstFinding.severity}${firstFinding.location ? ` · ${firstFinding.location}` : ""}`,
       ),
+      textElement("p", "paint-storybook-card-copy", `Next action: ${firstFinding.nextAction}`),
     );
     container.append(findingCard);
   }

@@ -107,6 +107,7 @@ Outputs:
   - Includes `backendArtifacts` entries for emitted backend files, with backend id, artifact kind, hash/size, and optional API version.
   - Preserves optional `nativeApiVersions` as a compatibility projection for Swift/Kotlin outputs.
 - `dist/validation.json` — machine-readable diagnostics when `--format json` (schema: `schemas/report.schema.json`)
+- `dist/diagnostics.pack.json` — editor-facing diagnostics projection generated for pack outputs (schema: `schemas/diagnostics.schema.json`)
 - `dist/manifest.json` — SHA-256 hashes of referenced token files (legacy, optional)
 - `dist/inputs/` — staged resolver + referenced token documents copied into a self-contained verification bundle
 
@@ -174,8 +175,15 @@ It is intentionally a prototype package, not a new Paint core feature.
 
 The contract for what future live consumers may depend on is documented in
 [`docs/live_consumer_contract.md`](docs/live_consumer_contract.md).
+The editor-facing diagnostics projection is documented in
+[`docs/diagnostics_projection.md`](docs/diagnostics_projection.md).
 The next editor/design-tool adapter seams are documented in
 [`docs/editor_design_tool_seam.md`](docs/editor_design_tool_seam.md).
+
+## VS Code Diagnostics Prototype
+
+`examples/vscode-diagnostics-prototype/README.md` shows the first read-only editor consumer path
+above generated `diagnostics.pack.json` outputs.
 
 ## Fixture tooling
 

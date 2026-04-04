@@ -15,6 +15,7 @@ pub mod cert;
 pub mod compose;
 pub mod contexts;
 pub use premath_dsl as dsl;
+pub mod diagnostics;
 pub mod dtcg;
 pub mod emit;
 pub mod explain;

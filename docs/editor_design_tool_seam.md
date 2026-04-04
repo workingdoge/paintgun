@@ -122,6 +122,9 @@ The next clean layer is a dedicated diagnostics projection, for example:
 - `diagnostics.pack.json`
 - `diagnostics.compose.json`
 
+The projection contract is documented in
+[`docs/diagnostics_projection.md`](diagnostics_projection.md).
+
 Suggested record shape:
 
 - stable finding id

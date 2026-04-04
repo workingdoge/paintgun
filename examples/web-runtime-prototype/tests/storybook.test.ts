@@ -66,7 +66,7 @@ describe("storybook consumer", () => {
     expect(text).toContain("Artifact bindings");
     expect(text).toContain("Build health");
     expect(text).toContain("Preview tokens");
-    expect(text).toContain("generated/paint/css/validation.json");
-    expect(text).toContain("generated/paint/web/validation.json");
+    expect(text).toContain("generated/paint/css/diagnostics.pack.json");
+    expect(text).toContain("generated/paint/web/diagnostics.pack.json");
   });
 });

@@ -1,0 +1,48 @@
+{
+  "name": "@paint/examples-vscode-diagnostics-prototype",
+  "displayName": "Paintgun Diagnostics Prototype",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Read-only VS Code prototype over Paintgun editor diagnostics projections.",
+  "engines": {
+    "vscode": "^1.99.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [
+    "onView:paintgunDiagnostics.findings",
+    "onCommand:paintgunDiagnostics.refresh",
+    "onCommand:paintgunDiagnostics.openFinding"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "paintgunDiagnostics.refresh",
+        "title": "Paintgun: Refresh Diagnostics"
+      },
+      {
+        "command": "paintgunDiagnostics.openFinding",
+        "title": "Paintgun: Open Finding"
+      }
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "paintgunDiagnostics.findings",
+          "name": "Paintgun Diagnostics"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "generate": "bash ./scripts/refresh_fixture.sh",
+    "build": "bun x tsc -p .",
+    "test": "bun test ./tests",
+    "check": "bun run generate && bun run build && bun run test"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "@types/vscode": "^1.99.1",
+    "typescript": "^5.8.3"
+  }
+}

@@ -64,8 +64,8 @@
       "backendId": "web-tokens-ts",
       "kind": "packageTest",
       "file": "web/src/index.test.ts",
-      "sha256": "sha256:d53139beb8bff47783f91dda93c24159f4eb1b8c3c67ec15b6aa41070fa821a4",
-      "size": 183
+      "sha256": "sha256:8ad1472bbf61041110c3cfd477cfeea82a59177365ed13f2237cc3e193785e2b",
+      "size": 349
     },
     {
       "backendId": "web-tokens-ts",

@@ -1,6 +1,10 @@
-import { valuesByContext } from "./index";
+import { contexts, valuesByContext } from "./index";
 
-const base = valuesByContext["(base)"];
-if (!base || Object.keys(base).length === 0) {
-  throw new Error("expected base token context");
+const firstContext = contexts[0]?.context;
+if (!firstContext) {
+  throw new Error("expected at least one emitted token context");
+}
+const tokens = valuesByContext[firstContext];
+if (!tokens || Object.keys(tokens).length === 0) {
+  throw new Error("expected emitted tokens for first context");
 }

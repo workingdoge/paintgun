@@ -1,0 +1,15 @@
+{
+  "color": {
+    "$type": "color",
+    "action": {
+      "primary": {
+        "$value": {
+          "colorSpace": "oklch",
+          "components": [0.72, 0.16, 250],
+          "hex": "#4f6ef7"
+        },
+        "$description": "The light theme defines the action color; dark intentionally omits it."
+      }
+    }
+  }
+}

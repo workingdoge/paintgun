@@ -24,6 +24,7 @@ use paintgun::compose::{
     compose_store_with_context_mode, load_pack, relevant_axes_for_contract_tokens,
     render_compose_report, union_axes, verify_compose_with_signing, ComposeManifest,
 };
+use paintgun::diagnostics::build_editor_diagnostics_projection_json;
 use paintgun::emit::Contract;
 use paintgun::explain::{explain_compose_witness, explain_ctc_witness};
 use paintgun::gate::GateResult;
@@ -1113,9 +1114,9 @@ fn run_build(
         "validation.txt",
         validation_txt.as_bytes(),
     )?;
+    let mut validation_json = paintgun::cert::build_validation_report_json(&analysis);
+    insert_backend_artifacts_field(&mut validation_json, &backend_artifacts)?;
     if matches!(format, CliFormat::Json) {
-        let mut validation_json = paintgun::cert::build_validation_report_json(&analysis);
-        insert_backend_artifacts_field(&mut validation_json, &backend_artifacts)?;
         if let Some(trace) = planner_trace_payload.clone() {
             let obj = validation_json.as_object_mut().ok_or_else(|| {
                 CliError::new("internal error: validation report JSON must be an object")
@@ -1125,6 +1126,14 @@ fn run_build(
         let validation_json_path = out.join("validation.json");
         write_json(&validation_json_path, "validation.json", &validation_json)?;
     }
+    let diagnostics_json =
+        build_editor_diagnostics_projection_json(&validation_json, "validation.json")
+            .map_err(|e| CliError::new(format!("failed to build diagnostics.pack.json: {e}")))?;
+    write_json(
+        &out.join("diagnostics.pack.json"),
+        "diagnostics.pack.json",
+        &diagnostics_json,
+    )?;
 
     let explicit = if let Some(pipeline) = &full_profile_pipeline {
         pipeline.resolve.explicit.clone()
@@ -1347,19 +1356,27 @@ fn run_compose(
         "compose.report.txt",
         report.as_bytes(),
     )?;
+    let mut report_json = paintgun::compose::build_compose_report_json(&manifest, &witnesses);
+    if let Some(trace) = planner_trace_payload {
+        let obj = report_json.as_object_mut().ok_or_else(|| {
+            CliError::new("internal error: compose report JSON must be an object")
+        })?;
+        obj.insert("plannerTrace".to_string(), trace);
+        paintgun::compose::refresh_compose_report_scale_metadata(
+            &mut report_json,
+            &manifest,
+            &witnesses,
+        );
+    }
+    let diagnostics_json =
+        build_editor_diagnostics_projection_json(&report_json, "compose.report.json")
+            .map_err(|e| CliError::new(format!("failed to build diagnostics.compose.json: {e}")))?;
+    write_json(
+        &out.join("diagnostics.compose.json"),
+        "diagnostics.compose.json",
+        &diagnostics_json,
+    )?;
     if matches!(format, CliFormat::Json) {
-        let mut report_json = paintgun::compose::build_compose_report_json(&manifest, &witnesses);
-        if let Some(trace) = planner_trace_payload {
-            let obj = report_json.as_object_mut().ok_or_else(|| {
-                CliError::new("internal error: compose report JSON must be an object")
-            })?;
-            obj.insert("plannerTrace".to_string(), trace);
-            paintgun::compose::refresh_compose_report_scale_metadata(
-                &mut report_json,
-                &manifest,
-                &witnesses,
-            );
-        }
         let report_json_bytes = json_bytes(&report_json, "compose.report.json")?;
         write_bytes(
             &out.join("compose.report.json"),

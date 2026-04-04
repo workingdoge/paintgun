@@ -1,0 +1,45 @@
+{
+  "backendArtifacts": [
+    {
+      "backendId": "web-css-vars",
+      "file": "tokens.css",
+      "kind": "primaryTokenOutput",
+      "sha256": "sha256:b4bb612ad7a7c571ab01fde258659b9e7e8ba09bd571c5345e832486fa48ad16",
+      "size": 2271
+    },
+    {
+      "backendId": "web-css-vars",
+      "file": "components.css",
+      "kind": "systemStylesheet",
+      "sha256": "sha256:3d30bbce79b728aed45e5bb347be171c88d3079ac01dc92cdf218214fe55c3a3",
+      "size": 448
+    },
+    {
+      "backendId": "web-css-vars",
+      "file": "tokens.vars.css",
+      "kind": "tokenStylesheet",
+      "sha256": "sha256:12bd70f8cc588b108b8e2622f6e9992e0fe7867897d57d71b34bd9d82a19588f",
+      "size": 1822
+    },
+    {
+      "backendId": "web-css-vars",
+      "file": "tokens.d.ts",
+      "kind": "typeDeclarations",
+      "sha256": "sha256:5caed2cb43d679d0837864866c7a243d735bb07baae949bf9a865694aafeefaf",
+      "size": 387
+    }
+  ],
+  "projectionKind": "editorDiagnostics",
+  "projectionVersion": 1,
+  "records": [],
+  "reportKind": "pack",
+  "sourceReport": {
+    "file": "validation.json"
+  },
+  "summary": {
+    "clean": true,
+    "families": [],
+    "severities": [],
+    "total": 0
+  }
+}

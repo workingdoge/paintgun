@@ -88,7 +88,7 @@ Examples:
 
 - `system.web.json` for web-facing runtime semantics
 - a future documentation projection IR for docs/catalog/search surfaces
-- future diagnostics or editor projection records where needed
+- `diagnostics.pack.json` and `diagnostics.compose.json` for read-only editor consumers
 
 Consumers should prefer these generated IRs over reading the authored canonical schema directly at
 runtime.
@@ -109,6 +109,7 @@ These adapters are transport conveniences, not new truth layers.
 Live consumers that surface verification should depend on:
 
 - machine-readable findings and report JSON
+- diagnostics projection records where a consumer wants a narrower editor-facing contract
 - stable family names, severity, and fixability concepts
 - the family-first presentation model described in [`docs/witness_taxonomy.md`](witness_taxonomy.md)
 

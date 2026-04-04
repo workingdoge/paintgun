@@ -38,22 +38,17 @@
       "size": 29371
     }
   ],
-  "conflictMode": "semantic",
-  "counts": {
-    "byKind": {},
-    "total": 0
-  },
-  "findings": [],
-  "policyDigest": "sha256:1c8ce2968e372271db47b353acc8cd77e2ba329b1746bc523dcbd3b932ecbc19",
+  "projectionKind": "editorDiagnostics",
+  "projectionVersion": 1,
+  "records": [],
   "reportKind": "pack",
-  "reportVersion": 1,
+  "sourceReport": {
+    "file": "validation.json"
+  },
   "summary": {
-    "bc_violations": 0,
-    "contexts": 4,
-    "kan_conflicts": 0,
-    "kan_gaps": 0,
-    "kan_inherited": 0,
-    "orthogonality_overlaps": 0,
-    "tokens": 0
+    "clean": true,
+    "families": [],
+    "severities": [],
+    "total": 0
   }
 }

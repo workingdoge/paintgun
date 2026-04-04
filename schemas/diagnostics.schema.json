@@ -1,0 +1,218 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Paintgun editor diagnostics projection",
+  "type": "object",
+  "required": [
+    "projectionVersion",
+    "projectionKind",
+    "reportKind",
+    "sourceReport",
+    "summary",
+    "records"
+  ],
+  "properties": {
+    "projectionVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "projectionKind": {
+      "type": "string",
+      "const": "editorDiagnostics"
+    },
+    "reportKind": {
+      "type": "string",
+      "enum": ["pack", "compose"]
+    },
+    "sourceReport": {
+      "type": "object",
+      "required": ["file"],
+      "properties": {
+        "file": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "summary": {
+      "type": "object",
+      "required": ["total", "clean", "families", "severities"],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "clean": {
+          "type": "boolean"
+        },
+        "families": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["familyId", "familyLabel", "count"],
+            "properties": {
+              "familyId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "familyLabel": {
+                "type": "string",
+                "minLength": 1
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "severities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["severity", "count"],
+            "properties": {
+              "severity": {
+                "type": "string",
+                "minLength": 1
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "backendArtifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["backendId", "kind", "file", "sha256", "size"],
+        "properties": {
+          "backendId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "primaryTokenOutput",
+              "tokenStylesheet",
+              "systemStylesheet",
+              "typeDeclarations",
+              "packageManifest",
+              "packageSettings",
+              "packageBuildScript",
+              "packageSource",
+              "packageTest"
+            ]
+          },
+          "file": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]+$"
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "apiVersion": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "recordId",
+          "witnessId",
+          "kind",
+          "familyId",
+          "familyLabel",
+          "severity",
+          "fixability",
+          "summary",
+          "meaning",
+          "nextAction"
+        ],
+        "properties": {
+          "recordId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "witnessId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "type": "string",
+            "minLength": 1
+          },
+          "familyId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "familyLabel": {
+            "type": "string",
+            "minLength": 1
+          },
+          "severity": {
+            "type": "string",
+            "minLength": 1
+          },
+          "fixability": {
+            "type": "string",
+            "minLength": 1
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1
+          },
+          "meaning": {
+            "type": "string",
+            "minLength": 1
+          },
+          "nextAction": {
+            "type": "string",
+            "minLength": 1
+          },
+          "tokenPath": {
+            "type": "string",
+            "minLength": 1
+          },
+          "context": {
+            "type": "string",
+            "minLength": 1
+          },
+          "filePath": {
+            "type": "string",
+            "minLength": 1
+          },
+          "jsonPointer": {
+            "type": "string",
+            "minLength": 1
+          },
+          "pack": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
