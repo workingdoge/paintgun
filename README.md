@@ -10,56 +10,32 @@ Paintgun is a Rust toolchain for DTCG 2025.10 resolution, verification, and comp
   - Orthogonality overlaps
 - **Target emission** via `Emitter` trait (CSS emitter included).
 
-Paint-side Premath integration docs live in:
+## Install
 
-- `docs/premath_standalone_prep.md`
+The supported public install path is tarball-first and does not require Cargo, `./premath`, or a repo checkout.
 
-Cross-repo Premath ownership and archive-porting decisions are canonical in:
-
-- `/Users/arj/dev/fish/tools/premath/docs/migration_boundary.md`
-
-Historical extraction rationale remains in:
-
-- `docs/premath_code_home.md`
-- `docs/premath_extraction_contract.md`
-
-The canonical Premath-repo CI/build entrypoint now lives in
-`/Users/arj/dev/fish/tools/premath/scripts/workspace_ci.sh`.
-
-`tbp` keeps a consumer-side wrapper for validating the projected Premath
-workspace from the Paint repo root:
+Quick install:
 
 ```bash
-./scripts/premath_workspace_ci.sh
+curl -fsSL https://raw.githubusercontent.com/workingdoge/paintgun/main/scripts/install_paint.sh -o install_paint.sh
+bash install_paint.sh
+paint --version
 ```
 
-That wrapper executes against the repo-local Premath projection at `./premath`.
-
-## Premath prerequisite
-
-Paint no longer owns the `premath-*` crates in-tree. All Cargo commands in this repo now expect a repo-local projection of the extracted Premath code home at `./premath`.
-
-Canonical local layout:
+Pinned install:
 
 ```bash
-# From the Paint repo root, project the sibling Premath repo into ./premath
-./scripts/link_premath_checkout.sh
+bash install_paint.sh --version 0.1.0
 ```
 
-Alternative:
-
-- pass an explicit checkout path to `./scripts/link_premath_checkout.sh <path>`
-- clone the extracted Premath repo directly into `./premath`, or
-- set up your own projection and keep the resulting checkout or symlink at `./premath`.
-
-If `./premath` is missing, Cargo builds in this repo will fail because the extracted Premath crates are external dependencies now.
-
-In issue-scoped `jj` workspaces, `./scripts/link_premath_checkout.sh` will mirror the canonical repo's existing `./premath` projection when possible instead of assuming `../premath` relative to the workspace directory.
+Manual release-tarball install and contributor source-build notes live in [`docs/install.md`](docs/install.md).
 
 ## Build & run
 
+The examples below assume you installed the public `paint` binary. If you are working from a source checkout instead, prefix the same commands with `cargo run --`.
+
 ```bash
-cargo run -- build \
+paint build \
   examples/charter-steel/charter-steel.resolver.json \
   --contracts examples/charter-steel/component-contracts.json \
   --out dist \
@@ -75,32 +51,23 @@ Other targets:
 
 ```bash
 # Swift (runtime-friendly token map)
-cargo run -- build examples/charter-steel/charter-steel.resolver.json --out dist --target swift-tokens
+paint build examples/charter-steel/charter-steel.resolver.json --out dist --target swift-tokens
 
 # Android Compose tokens
-cargo run -- build examples/charter-steel/charter-steel.resolver.json --out dist --target android-compose-tokens
+paint build examples/charter-steel/charter-steel.resolver.json --out dist --target android-compose-tokens
 
 # Typed web token package
-cargo run -- build examples/charter-steel/charter-steel.resolver.json --out dist --target web-tokens-ts
+paint build examples/charter-steel/charter-steel.resolver.json --out dist --target web-tokens-ts
 
 # Compatibility alias during the alpha transition
-cargo run -- build examples/charter-steel/charter-steel.resolver.json --out dist --target kotlin
+paint build examples/charter-steel/charter-steel.resolver.json --out dist --target kotlin
 ```
 
 Canonical backend ids are `web-css-vars`, `swift-tokens`, `android-compose-tokens`, and `web-tokens-ts`. The legacy names `css`, `swift`, and `kotlin` remain accepted as compatibility aliases through alpha.
 
-## Install
-
-From source:
-
-```bash
-./scripts/link_premath_checkout.sh
-cargo install --locked --path .
-paint --version
-```
-
 Maintainers can also build a target-specific release tarball with `./scripts/package_release.sh`.
-The supported install paths, artifact shape, versioning policy, and maintainer checklist are documented in `docs/releasing.md`.
+The supported public install path is documented in [`docs/install.md`](docs/install.md).
+The artifact shape, packaging policy, and maintainer checklist are documented in [`docs/releasing.md`](docs/releasing.md).
 The canonical new-user success path is documented in [`docs/first_success_ux.md`](docs/first_success_ux.md).
 The target-backend and system-package architecture is documented in [`docs/target_backends.md`](docs/target_backends.md).
 The alpha-stable backend artifact contract is documented in [`docs/backend_contract.md`](docs/backend_contract.md).
@@ -157,6 +124,26 @@ Generated output folders (`dist*`) are ignored by git.
 ./scripts/clean_dist.sh
 ```
 
+## Contributor source setup
+
+This section is contributor-facing. Repo-local Cargo builds from a source checkout still expect the extracted Premath code home to be projected at `./premath`.
+
+Canonical local layout:
+
+```bash
+./scripts/link_premath_checkout.sh
+cargo test --workspace
+```
+
+If `./premath` is missing, Cargo commands in this repo will fail because the extracted `premath-*` crates are external dependencies now.
+
+Useful contributor references:
+
+- [`docs/premath_standalone_prep.md`](docs/premath_standalone_prep.md)
+- [`docs/premath_code_home.md`](docs/premath_code_home.md)
+- [`docs/premath_extraction_contract.md`](docs/premath_extraction_contract.md)
+- `./scripts/premath_workspace_ci.sh`
+
 ## External Adoption Example
 
 `examples/adoption-starter/README.md` shows the supported clean-clone flow for:
@@ -208,26 +195,26 @@ KCIR/NF conformance vectors can be built with:
 
 ```bash
 # Verify hashes + witnesses binding
-cargo run -- verify dist/ctc.manifest.json
+paint verify dist/ctc.manifest.json
 
 # Require detached signature + signed trust metadata
-cargo run -- verify dist/ctc.manifest.json --require-signed
+paint verify dist/ctc.manifest.json --require-signed
 
 # Verify semantics binding too (policyDigest + conflictMode)
-cargo run -- verify dist/ctc.manifest.json \
+paint verify dist/ctc.manifest.json \
   --policy examples/charter-steel/policy.json \
   --conflict-mode semantic
 
 # CI gate: require no gaps/conflicts/BC violations
-cargo run -- verify dist/ctc.manifest.json --require-composable
+paint verify dist/ctc.manifest.json --require-composable
 
 # CI gate with explicit tie-break acknowledgements
-cargo run -- verify dist/ctc.manifest.json \
+paint verify dist/ctc.manifest.json \
   --require-composable \
   --allowlist ci/allowlist.json
 
 # Full profile: enforce Gate witness hash binding + Gate acceptance
-cargo run -- verify dist/ctc.manifest.json --profile full
+paint verify dist/ctc.manifest.json --profile full
 ```
 
 Allowlist format (strict, versioned):
@@ -264,25 +251,25 @@ Rules:
 ## Verify compose meta-cert
 
 ```bash
-cargo run -- verify-compose dist-compose/compose.manifest.json
+paint verify-compose dist-compose/compose.manifest.json
 
 # Require signed compose manifest (and signed pack manifests)
-cargo run -- verify-compose dist-compose/compose.manifest.json \
+paint verify-compose dist-compose/compose.manifest.json \
   --require-signed \
   --require-packs-signed
 
 # Optional semantics check for compose manifest
-cargo run -- verify-compose dist-compose/compose.manifest.json \
+paint verify-compose dist-compose/compose.manifest.json \
   --policy examples/charter-steel/policy.json \
   --conflict-mode semantic
 
 # Enforce full-profile verification for each referenced pack
-cargo run -- verify-compose dist-compose/compose.manifest.json \
+paint verify-compose dist-compose/compose.manifest.json \
   --verify-packs \
   --pack-profile full
 
 # Machine-readable output (includes verify.errorDetails with stable error codes)
-cargo run -- verify-compose dist-compose/compose.manifest.json \
+paint verify-compose dist-compose/compose.manifest.json \
   --format json
 ```
 
@@ -298,11 +285,11 @@ Both `verify` and `verify-compose` enforce the current witness schema version ma
 
 ```bash
 # Sign a per-pack or compose manifest (writes detached *.sig.json + updates trust metadata)
-cargo run -- sign dist/ctc.manifest.json --signer ci@example
-cargo run -- sign dist-compose/compose.manifest.json --signer ci@example
+paint sign dist/ctc.manifest.json --signer ci@example
+paint sign dist-compose/compose.manifest.json --signer ci@example
 
 # Optional explicit detached signature output path
-cargo run -- sign dist/ctc.manifest.json --out dist/ctc.signature.json
+paint sign dist/ctc.manifest.json --out dist/ctc.signature.json
 ```
 
 Signed manifests record:
@@ -317,10 +304,10 @@ Detailed trust/scheme behavior is documented in `SIGNING.md`, and the public ver
 
 ```bash
 # Search defaults: dist/ctc.witnesses.json and dist-compose/compose.witnesses.json
-cargo run -- explain conflict-1234abcd5678ef90
+paint explain conflict-1234abcd5678ef90
 
 # Explicit witness file(s)
-cargo run -- explain conflict-1234abcd5678ef90 \
+paint explain conflict-1234abcd5678ef90 \
   --witnesses dist/ctc.witnesses.json
 ```
 
@@ -335,11 +322,11 @@ cargo run -- explain conflict-1234abcd5678ef90 \
 
 ```bash
 # Convert report JSON into GitHub Actions annotation commands
-cargo run -- annotate-report dist/validation.json \
+paint annotate-report dist/validation.json \
   --file-root examples/charter-steel \
   --max 200
 
-cargo run -- annotate-report dist-compose/compose.report.json --max 200
+paint annotate-report dist-compose/compose.report.json --max 200
 ```
 
 `annotate-report` consumes the schema-backed report artifacts (`validation.json` / `compose.report.json`) and prints GitHub Actions annotation lines plus a final `paintgun/report` summary notice. See [`docs/ci_contract.md`](docs/ci_contract.md) for the supported CI contract.
@@ -349,7 +336,7 @@ cargo run -- annotate-report dist-compose/compose.report.json --max 200
 Assuming you have already built two packs into `packs/core/dist` and `packs/brand/dist`:
 
 ```bash
-cargo run -- compose \
+paint compose \
   packs/core/dist \
   packs/brand/dist \
   --out dist-compose \

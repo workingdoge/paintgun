@@ -1,12 +1,19 @@
 # Releasing Paint
 
-This document defines the first public release path for Paint. It is intentionally narrow: source installs are supported everywhere Rust stable works, and maintainers may additionally publish target-specific binary tarballs built from this repo.
+This document is maintainer-facing.
+
+The consumer-facing install surface is documented in [`docs/install.md`](install.md). The release process here exists to produce and publish the tarballs that power that consumer path.
 
 The consumer-facing install/build/verify/fix contract that this release path is expected to support is documented in [`docs/first_success_ux.md`](first_success_ux.md).
 
 ## Supported install paths
 
-Source install:
+Public consumer install:
+
+- GitHub release tarballs named `paintgun-vX.Y.Z-<target>.tar.gz`
+- the repo-shipped installer helper `scripts/install_paint.sh`, which downloads those tarballs for the supported macOS and Linux targets
+
+Contributor or maintainer source install:
 
 ```bash
 ./scripts/link_premath_checkout.sh
@@ -30,10 +37,10 @@ Use `--target <triple>` to package a different Rust target when the toolchain is
 
 Each binary tarball contains:
 - `paint`
+- `INSTALL.md`
 - `README.md`
 - `SIGNING.md`
 - `CHANGELOG.md`
-- `Cargo.toml`
 
 That is the minimum supported public artifact shape for the first release. Package-manager integrations and hosted update infrastructure are out of scope for this track.
 
@@ -84,12 +91,19 @@ For the first public release, detached manifest signing is supported but not req
    ./scripts/package_release.sh
    ```
 
-5. If publishing multiple targets, rerun the helper with `--target <triple>` per target.
-6. Review whether the release ships unsigned artifacts or signed example manifests, and make that explicit in the release notes.
-7. Publish the tarball(s), `.sha256` sidecar(s), and the corresponding changelog/release notes together.
+5. Smoke-test the public install path against a packaged tarball:
+
+   ```bash
+   ./scripts/test_public_install.sh
+   ```
+
+6. If publishing multiple targets, rerun the helper with `--target <triple>` per target.
+7. Review whether the release ships unsigned artifacts or signed example manifests, and make that explicit in the release notes.
+8. Publish the tarball(s), `.sha256` sidecar(s), and the corresponding changelog/release notes together.
 
 ## Notes
 
 - The CI baseline for this repo is documented in `.github/workflows/ci.yml`.
 - Upstream Design Tokens drift is checked by `.github/workflows/spec-watch.yml`; keep the lockfile current before shipping.
 - The release artifact path in this document is intentionally mechanical and repo-local so maintainers do not need hidden packaging infrastructure to cut the first public release.
+- The public install path should stay tarball-first until a later issue deliberately adds a package-manager distribution surface.

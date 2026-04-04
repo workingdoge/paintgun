@@ -24,12 +24,13 @@ Included in the alpha commitment:
 - the signing defaults documented in [`docs/trust_policy.md`](trust_policy.md)
 - the first-success user contract documented in [`docs/first_success_ux.md`](first_success_ux.md)
 - the user-facing finding taxonomy documented in [`docs/witness_taxonomy.md`](witness_taxonomy.md)
-- the source-install and release-tarball path documented in [`docs/releasing.md`](releasing.md)
+- the public release-tarball install path documented in [`docs/install.md`](install.md)
+- the maintainer release path documented in [`docs/releasing.md`](releasing.md)
 - the DTCG 2025.10 review documented in [`docs/dtcg_2025_10_review.md`](dtcg_2025_10_review.md)
 
 Not included in the alpha commitment:
 
-- package-manager distribution beyond source install and repo-built tarballs
+- package-manager distribution beyond the tarball-first public install path
 - plugin/extensibility infrastructure for third-party backends
 - design-tool authoring UX
 - framework or component-library generation inside Paint core
@@ -79,7 +80,8 @@ The alpha is a `go` only if every required gate below is satisfied.
 | CI contract is frozen for alpha | [`docs/ci_contract.md`](ci_contract.md) and its referenced tests | exit-code and JSON/report behavior match the documented contract |
 | Core verification passes | `cargo test --workspace` | must pass on the candidate release commit |
 | Upstream spec-watch is clean | `python3 scripts/spec_watch.py check --targets spec-watch/targets.json --lock spec-watch/lock.json --artifact-dir spec-watch-artifacts` | must pass without drift unless the lock refresh is part of the release |
-| Install path works | `cargo install --locked --path . --root "$(mktemp -d)"` | must produce a usable `paint` binary |
+| Public install path works | `./scripts/test_public_install.sh` | must install a usable `paint` binary from a packaged tarball without repo bootstrap |
+| Contributor source install still works | `cargo install --locked --path . --root "$(mktemp -d)"` | must still produce a usable `paint` binary for maintainers working from source |
 | Tarball packaging works | `./scripts/package_release.sh --out-dir "$(mktemp -d)"` | must produce a versioned tarball and `.sha256` sidecar |
 | Changelog is ready | `CHANGELOG.md` | must include the alpha release entry and explicitly call out any accepted deviations |
 
@@ -98,7 +100,7 @@ If any required gate fails, the decision is `no-go`.
 
 The following are intentionally post-alpha unless re-scoped by new tracker work:
 
-- package-manager installs beyond Cargo source install
+- package-manager installs beyond the tarball-first public install path
 - richer translation-tool metadata handling for `$extensions`
 - description propagation into generated code comments
 - backend/plugin SDK work

@@ -80,7 +80,8 @@ cargo build --locked --release --target "$target"
 
 mkdir -p "$staging_dir"
 cp -f "$binary_path" "$staging_dir/paint"
-cp -f README.md SIGNING.md CHANGELOG.md Cargo.toml "$staging_dir/"
+cp -f README.md SIGNING.md CHANGELOG.md "$staging_dir/"
+cp -f docs/install.md "$staging_dir/INSTALL.md"
 
 tar -C "$out_dir" -czf "$archive_path" "$artifact_base"
 

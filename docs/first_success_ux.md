@@ -33,7 +33,7 @@ Consumer success must not depend on understanding:
 - local repo bootstrapping details
 - contributor-only CI wrappers
 
-Contributor and maintainer complexity may still exist, but it must stay outside the first-success path. The install path in `docs/releasing.md` and the future quickstart in `tbp-qnb.5` should be judged against that boundary.
+Contributor and maintainer complexity may still exist, but it must stay outside the first-success path. The public install path in [`docs/install.md`](install.md) and the future quickstart in `tbp-qnb.5` should be judged against that boundary.
 
 ## Canonical First-Success Path
 
