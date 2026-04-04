@@ -1,9 +1,11 @@
+use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use paintgun::allowlist::{
-    Allowlist, BcAllowEntry, BcSelector, ConflictAllowEntry, ConflictSelector,
+    generate_allowlist, Allowlist, AllowlistMatcherMode, BcAllowEntry, BcSelector,
+    ConflictAllowEntry, ConflictSelector,
 };
 use paintgun::artifact::write_resolved_json;
 use paintgun::cert::{
@@ -208,5 +210,125 @@ fn stale_allowlist_entries_fail_with_clear_reason() {
             .any(|e| e.contains("stale allowlist entry")),
         "expected stale allowlist error, got:\n{}",
         report.errors.join("\n")
+    );
+}
+
+#[test]
+fn generate_allowlist_can_emit_witness_id_matchers() {
+    let out = temp_dir("allowlist-generate-id");
+    let (_manifest, _witnesses, analysis) = build_charter_pack(&out);
+
+    let allowlist = generate_allowlist(
+        &analysis.witnesses,
+        AllowlistMatcherMode::WitnessId,
+        &BTreeSet::new(),
+        "TODO: review",
+    )
+    .expect("generate allowlist");
+
+    assert_eq!(allowlist.version, 1);
+    assert_eq!(
+        allowlist.conflicts.len(),
+        analysis.witnesses.conflicts.len(),
+        "expected one conflict allowlist entry per conflict witness"
+    );
+    assert_eq!(
+        allowlist.bc_violations.len(),
+        analysis.witnesses.bc_violations.len(),
+        "expected one BC allowlist entry per BC witness"
+    );
+    assert!(allowlist.conflicts.iter().all(|entry| {
+        entry.witness_id.is_some() && entry.selector.is_none() && entry.reason == "TODO: review"
+    }));
+    assert!(allowlist.bc_violations.iter().all(|entry| {
+        entry.witness_id.is_some() && entry.selector.is_none() && entry.reason == "TODO: review"
+    }));
+}
+
+#[test]
+fn generate_allowlist_can_emit_selector_matchers_for_requested_witnesses() {
+    let out = temp_dir("allowlist-generate-selector");
+    let (_manifest, _witnesses, analysis) = build_charter_pack(&out);
+    let selected = BTreeSet::from([
+        analysis.witnesses.conflicts[0].witness_id.clone(),
+        analysis.witnesses.bc_violations[0].witness_id.clone(),
+    ]);
+
+    let allowlist = generate_allowlist(
+        &analysis.witnesses,
+        AllowlistMatcherMode::Selector,
+        &selected,
+        "known exception",
+    )
+    .expect("generate filtered allowlist");
+
+    assert_eq!(allowlist.conflicts.len(), 1);
+    assert_eq!(allowlist.bc_violations.len(), 1);
+    let conflict = &allowlist.conflicts[0];
+    assert!(
+        conflict.witness_id.is_none(),
+        "selector matcher should omit witness id"
+    );
+    let conflict_selector = conflict.selector.as_ref().expect("conflict selector");
+    assert_eq!(
+        conflict_selector.token_path.as_str(),
+        analysis.witnesses.conflicts[0].token_path
+    );
+    assert_eq!(
+        conflict_selector.target,
+        analysis.witnesses.conflicts[0].target
+    );
+
+    let bc = &allowlist.bc_violations[0];
+    assert!(
+        bc.witness_id.is_none(),
+        "selector matcher should omit witness id"
+    );
+    let bc_selector = bc.selector.as_ref().expect("bc selector");
+    assert_eq!(
+        bc_selector.token_path.as_str(),
+        analysis.witnesses.bc_violations[0].token_path
+    );
+    assert_eq!(
+        bc_selector.axis_a,
+        analysis.witnesses.bc_violations[0].axis_a
+    );
+    assert_eq!(
+        bc_selector.value_a,
+        analysis.witnesses.bc_violations[0].value_a
+    );
+    assert_eq!(
+        bc_selector.axis_b,
+        analysis.witnesses.bc_violations[0].axis_b
+    );
+    assert_eq!(
+        bc_selector.value_b,
+        analysis.witnesses.bc_violations[0].value_b
+    );
+}
+
+#[test]
+fn generate_allowlist_rejects_unknown_requested_witness_ids() {
+    let out = temp_dir("allowlist-generate-unknown");
+    let (_manifest, _witnesses, analysis) = build_charter_pack(&out);
+    let selected = BTreeSet::from([
+        analysis.witnesses.conflicts[0].witness_id.clone(),
+        "conflict-not-present".to_string(),
+    ]);
+
+    let errors = generate_allowlist(
+        &analysis.witnesses,
+        AllowlistMatcherMode::WitnessId,
+        &selected,
+        "known exception",
+    )
+    .expect_err("expected generation to fail");
+
+    assert!(
+        errors
+            .iter()
+            .any(|error| error.contains("did not match any current allowlistable")),
+        "expected unknown witness id error, got:\n{}",
+        errors.join("\n")
     );
 }

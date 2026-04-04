@@ -219,6 +219,15 @@ paint verify dist/ctc.manifest.json \
   --require-composable \
   --allowlist ci/allowlist.json
 
+# Generate a reviewable allowlist stub from current witnesses
+paint fix-allowlist dist/ctc.manifest.json --out ci/allowlist.json
+
+# Generate selector-based entries for a subset of current witnesses
+paint fix-allowlist dist/ctc.manifest.json \
+  --matcher selector \
+  --witness-id conflict-1234abcd5678ef90 \
+  --witness-id bc-1234abcd5678ef90
+
 # Full profile: enforce Gate witness hash binding + Gate acceptance
 paint verify dist/ctc.manifest.json --profile full
 ```
@@ -253,6 +262,8 @@ Rules:
 - Each allowlist entry must include exactly one matcher: `witnessId` or `selector`.
 - `reason` is required and must be non-empty.
 - Stale allowlist entries fail verify with a deterministic error.
+- `paint fix-allowlist` emits reviewable stubs, not approvals. The default reason is a TODO placeholder; replace it with the reviewed policy justification before using `verify --allowlist`.
+- `paint fix-allowlist` defaults to `witnessId` matchers for an exact snapshot of current findings. Use `--matcher selector` when you want a more semantic, reviewable policy entry.
 
 ## Verify compose meta-cert
 

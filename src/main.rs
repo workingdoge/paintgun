@@ -3,7 +3,9 @@ use std::path::{Path, PathBuf};
 
 use clap::{Parser, Subcommand, ValueEnum};
 
-use paintgun::allowlist::Allowlist;
+use paintgun::allowlist::{
+    generate_allowlist, Allowlist, AllowlistMatcherMode, DEFAULT_ALLOWLIST_REASON_TEMPLATE,
+};
 use paintgun::annotations::{build_github_annotations, read_report};
 use paintgun::artifact::write_resolved_json;
 use paintgun::backend::{
@@ -90,6 +92,12 @@ enum CliProfile {
     Full,
 }
 
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum CliAllowlistMatcher {
+    WitnessId,
+    Selector,
+}
+
 impl From<CliConflictMode> for ConflictMode {
     fn from(value: CliConflictMode) -> Self {
         match value {
@@ -114,6 +122,15 @@ impl From<CliProfile> for VerifyProfile {
         match value {
             CliProfile::Core => VerifyProfile::Core,
             CliProfile::Full => VerifyProfile::Full,
+        }
+    }
+}
+
+impl From<CliAllowlistMatcher> for AllowlistMatcherMode {
+    fn from(value: CliAllowlistMatcher) -> Self {
+        match value {
+            CliAllowlistMatcher::WitnessId => AllowlistMatcherMode::WitnessId,
+            CliAllowlistMatcher::Selector => AllowlistMatcherMode::Selector,
         }
     }
 }
@@ -270,6 +287,32 @@ enum Command {
         /// Optional signer id recorded in trust metadata/signature.
         #[arg(long)]
         signer: Option<String>,
+    },
+
+    /// Generate a reviewable allowlist stub from current conflict / BC witnesses.
+    FixAllowlist {
+        /// Path to ctc.manifest.json
+        manifest: PathBuf,
+
+        /// Optional explicit witnesses path (defaults to sibling `ctc.witnesses.json`).
+        #[arg(long)]
+        witnesses: Option<PathBuf>,
+
+        /// Matcher style for generated entries.
+        #[arg(long, value_enum, default_value_t = CliAllowlistMatcher::WitnessId)]
+        matcher: CliAllowlistMatcher,
+
+        /// Restrict generation to the given witness id(s). Repeat to select multiple.
+        #[arg(long = "witness-id")]
+        witness_ids: Vec<String>,
+
+        /// Reason text inserted into each generated entry. Review and replace before use.
+        #[arg(long, default_value = DEFAULT_ALLOWLIST_REASON_TEMPLATE)]
+        reason_template: String,
+
+        /// Optional output path. Prints JSON to stdout when omitted.
+        #[arg(long)]
+        out: Option<PathBuf>,
     },
 
     /// Explain a witness by id and print the shortest fix recipe.
@@ -877,6 +920,33 @@ fn validate_semantics(
     }
 
     errors
+}
+
+fn load_ctc_manifest_and_witnesses(
+    manifest_path: &Path,
+    explicit_witnesses: Option<&Path>,
+) -> CliResult<(CtcManifest, paintgun::cert::CtcWitnesses)> {
+    let manifest: CtcManifest = read_json_arg(manifest_path, "ctc manifest JSON")?;
+    let base = manifest_path.parent().unwrap_or_else(|| Path::new("."));
+    let witnesses_path = explicit_witnesses
+        .map(Path::to_path_buf)
+        .unwrap_or_else(|| {
+            manifest
+                .required_artifacts
+                .iter()
+                .find(|artifact| artifact.kind == RequiredArtifactKind::CtcWitnesses)
+                .map(|artifact| base.join(&artifact.entry.file))
+                .unwrap_or_else(|| base.join("ctc.witnesses.json"))
+        });
+    let witnesses: paintgun::cert::CtcWitnesses =
+        read_json_arg(&witnesses_path, "ctc witnesses JSON")?;
+    witnesses.validate_schema_version().map_err(|e| {
+        CliError::new(format!(
+            "invalid ctc witnesses JSON {}: {e}",
+            witnesses_path.display()
+        ))
+    })?;
+    Ok((manifest, witnesses))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -1573,6 +1643,64 @@ fn run(cli: Cli) -> CliResult<()> {
                     eprintln!("✗ failed to sign manifest: {e}");
                     std::process::exit(1);
                 }
+            }
+            return Ok(());
+        }
+
+        Command::FixAllowlist {
+            manifest,
+            witnesses,
+            matcher,
+            witness_ids,
+            reason_template,
+            out,
+        } => {
+            let (_manifest, ctc_witnesses) =
+                match load_ctc_manifest_and_witnesses(&manifest, witnesses.as_deref()) {
+                    Ok(value) => value,
+                    Err(err) => {
+                        eprintln!("✗ {err}");
+                        std::process::exit(1);
+                    }
+                };
+            let witness_ids = witness_ids
+                .into_iter()
+                .collect::<std::collections::BTreeSet<_>>();
+            let allowlist = match generate_allowlist(
+                &ctc_witnesses,
+                matcher.into(),
+                &witness_ids,
+                &reason_template,
+            ) {
+                Ok(value) => value,
+                Err(errors) => {
+                    eprintln!("✗ failed to generate allowlist:");
+                    for error in errors {
+                        eprintln!("  - {error}");
+                    }
+                    std::process::exit(1);
+                }
+            };
+
+            if let Some(path) = out {
+                if let Some(parent) = path.parent() {
+                    if !parent.as_os_str().is_empty() {
+                        create_dir(parent, "allowlist output directory")?;
+                    }
+                }
+                write_json(&path, "allowlist JSON", &allowlist)?;
+                println!(
+                    "✓ Wrote allowlist stub: {} (conflicts={}, bcViolations={}). Review and replace placeholder reasons before use.",
+                    path.display(),
+                    allowlist.conflicts.len(),
+                    allowlist.bc_violations.len()
+                );
+            } else {
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&allowlist)
+                        .expect("serialize generated allowlist")
+                );
             }
             return Ok(());
         }
