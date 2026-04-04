@@ -17,6 +17,9 @@ This IR sits:
 - alongside the documentation projection IR
 - below concrete consumers such as pure custom elements, Storybook, and future Rust/htmx adapters
 
+The broader contract for live consumer integrations above this IR is documented in
+[`docs/live_consumer_contract.md`](live_consumer_contract.md).
+
 ## Why A Separate Web IR Exists
 
 The canonical design-system schema owns component semantics.

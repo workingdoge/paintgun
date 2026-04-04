@@ -168,6 +168,9 @@ Paint backend outputs:
 
 It is intentionally a prototype package, not a new Paint core feature.
 
+The contract for what future live consumers may depend on is documented in
+[`docs/live_consumer_contract.md`](docs/live_consumer_contract.md).
+
 ## Fixture tooling
 
 KCIR/NF conformance vectors can be built with:

@@ -8,6 +8,9 @@ This example proves the boundary shaped in `tbp-z74`:
 - A derived `system.web.json` becomes the shared web runtime IR.
 - Both a pure custom element and a Storybook CSF module consume the same generated adapter.
 
+The repo-level contract for what those consumers may and may not depend on lives in
+[`docs/live_consumer_contract.md`](../../docs/live_consumer_contract.md).
+
 The prototype is intentionally narrow:
 
 - one component: `paint-button`
