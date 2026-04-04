@@ -72,6 +72,7 @@ The artifact shape, packaging policy, and maintainer checklist are documented in
 The canonical new-user success path is documented in [`docs/first_success_ux.md`](docs/first_success_ux.md).
 The target-backend and system-package architecture is documented in [`docs/target_backends.md`](docs/target_backends.md).
 The alpha-stable backend artifact contract is documented in [`docs/backend_contract.md`](docs/backend_contract.md).
+The incremental build/cache foundation is documented in [`docs/incremental_builds.md`](docs/incremental_builds.md).
 The user-facing finding families and remediation model are documented in [`docs/witness_taxonomy.md`](docs/witness_taxonomy.md).
 The DTCG 2025.10 design/conformance review is documented in [`docs/dtcg_2025_10_review.md`](docs/dtcg_2025_10_review.md).
 The alpha release boundary and go/no-go checklist are documented in [`docs/alpha_release.md`](docs/alpha_release.md).
@@ -110,6 +111,12 @@ Outputs:
 - `dist/diagnostics.pack.json` — editor-facing diagnostics projection generated for pack outputs (schema: `schemas/diagnostics.schema.json`)
 - `dist/manifest.json` — SHA-256 hashes of referenced token files (legacy, optional)
 - `dist/inputs/` — staged resolver + referenced token documents copied into a self-contained verification bundle
+- `dist/.paint/cache/` — hidden stage cache metadata for repeated `build` and `compose` runs against
+  the same output root
+
+Repeated identical `build` and `compose` invocations can now reuse existing outputs when the input
+fingerprint and expected artifact set match. The cache boundary and invalidation rules are
+documented in [`docs/incremental_builds.md`](docs/incremental_builds.md).
 
 ## Validation failures
 

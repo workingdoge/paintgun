@@ -9,8 +9,12 @@ use paintgun::allowlist::{
 use paintgun::annotations::{build_github_annotations, read_report};
 use paintgun::artifact::write_resolved_json;
 use paintgun::backend::{
-    resolve_target_backend, supported_target_names, BackendArtifactKind, BackendEmission,
-    BackendRequest, BackendSource, LegacyTargetSlot, TargetBackend,
+    resolve_target_backend, supported_target_names, BackendArtifact, BackendArtifactKind,
+    BackendEmission, BackendRequest, BackendSource, LegacyTargetSlot, TargetBackend,
+};
+use paintgun::cache::{
+    check_stage_cache, current_executable_fingerprint, fingerprint_file, write_stage_cache,
+    ExecutableFingerprint, FileFingerprint, StageCacheStatus,
 };
 use paintgun::cert::{
     analyze_composability_with_mode_and_contexts, build_assignments, build_authored_export,
@@ -59,6 +63,47 @@ impl std::fmt::Display for CliError {
 impl std::error::Error for CliError {}
 
 type CliResult<T> = Result<T, CliError>;
+
+#[derive(serde::Serialize)]
+struct BuildStageFingerprint {
+    executable: ExecutableFingerprint,
+    backend_id: String,
+    conflict_mode: String,
+    format: String,
+    context_mode: String,
+    planner_trace: bool,
+    profile: String,
+    kcir_wire_format_id: String,
+    resolver: FileFingerprint,
+    external_sources: Vec<FileFingerprint>,
+    contracts: Option<FileFingerprint>,
+    policy: Option<FileFingerprint>,
+}
+
+#[derive(serde::Serialize)]
+struct ComposePackFingerprint {
+    dir: String,
+    manifest: FileFingerprint,
+    witnesses: FileFingerprint,
+    resolved: FileFingerprint,
+    authored: Option<FileFingerprint>,
+}
+
+#[derive(serde::Serialize)]
+struct ComposeStageFingerprint {
+    executable: ExecutableFingerprint,
+    backend_id: String,
+    conflict_mode: String,
+    format: String,
+    context_mode: String,
+    planner_trace: bool,
+    verify_packs: bool,
+    require_packs_composable: bool,
+    require_composable: bool,
+    contracts: Option<FileFingerprint>,
+    policy: Option<FileFingerprint>,
+    packs: Vec<ComposePackFingerprint>,
+}
 
 #[derive(Parser, Debug)]
 #[command(name = "paint", version)]
@@ -456,6 +501,181 @@ fn collect_external_source_refs(doc: &ResolverDoc) -> Vec<String> {
         }
     }
     out.into_iter().collect()
+}
+
+fn portable_input_relative_paths(
+    doc: &ResolverDoc,
+    resolver_path: &Path,
+) -> Result<Vec<PathBuf>, String> {
+    let resolver_name = resolver_path
+        .file_name()
+        .ok_or_else(|| format!("resolver path {} has no file name", resolver_path.display()))?;
+    let mut out = vec![PathBuf::from("inputs").join(resolver_name)];
+    for raw in collect_external_source_refs(doc) {
+        let rel = paintgun::path_safety::validate_relative_path(&raw)
+            .map_err(|e| format!("invalid source ref {raw}: {e}"))?;
+        out.push(PathBuf::from("inputs").join(rel));
+    }
+    out.sort();
+    out.dedup();
+    Ok(out)
+}
+
+fn artifact_relative_paths(artifacts: &[BackendArtifact]) -> Vec<PathBuf> {
+    let mut out: Vec<PathBuf> = artifacts
+        .iter()
+        .map(|artifact| artifact.relative_path.clone())
+        .collect();
+    out.sort();
+    out.dedup();
+    out
+}
+
+fn build_expected_outputs(
+    backend: &dyn TargetBackend,
+    doc: &ResolverDoc,
+    resolver_path: &Path,
+    format: CliFormat,
+    profile: CliProfile,
+) -> Result<Vec<PathBuf>, String> {
+    let mut out = vec![
+        PathBuf::from("resolved.json"),
+        PathBuf::from("manifest.json"),
+        PathBuf::from("validation.txt"),
+        PathBuf::from("authored.json"),
+        PathBuf::from("ctc.witnesses.json"),
+        PathBuf::from("diagnostics.pack.json"),
+        PathBuf::from("ctc.manifest.json"),
+    ];
+    if matches!(format, CliFormat::Json) {
+        out.push(PathBuf::from("validation.json"));
+    }
+    if matches!(profile, CliProfile::Full) {
+        out.push(PathBuf::from("admissibility.witnesses.json"));
+    }
+    out.extend(artifact_relative_paths(&backend.planned_artifacts()));
+    out.extend(portable_input_relative_paths(doc, resolver_path)?);
+    out.sort();
+    out.dedup();
+    Ok(out)
+}
+
+fn compose_expected_outputs(backend: &dyn TargetBackend, format: CliFormat) -> Vec<PathBuf> {
+    let mut out = vec![
+        PathBuf::from("resolved.json"),
+        PathBuf::from("compose.witnesses.json"),
+        PathBuf::from("compose.manifest.json"),
+        PathBuf::from("compose.report.txt"),
+        PathBuf::from("diagnostics.compose.json"),
+    ];
+    if matches!(format, CliFormat::Json) {
+        out.push(PathBuf::from("compose.report.json"));
+    }
+    out.extend(artifact_relative_paths(&backend.planned_artifacts()));
+    out.sort();
+    out.dedup();
+    out
+}
+
+fn build_stage_fingerprint(
+    backend: &dyn TargetBackend,
+    resolver_path: &Path,
+    doc: &ResolverDoc,
+    contracts: Option<&Path>,
+    policy: Option<&Path>,
+    conflict_mode: CliConflictMode,
+    format: CliFormat,
+    contexts: CliContexts,
+    planner_trace: bool,
+    profile: CliProfile,
+    kcir_wire_format_id: &str,
+) -> CliResult<BuildStageFingerprint> {
+    let resolver = fingerprint_file(resolver_path).map_err(CliError::new)?;
+    let resolver_dir = resolver_path.parent().unwrap_or_else(|| Path::new("."));
+    let mut external_sources = Vec::new();
+    for raw in collect_external_source_refs(doc) {
+        let rel = paintgun::path_safety::validate_relative_path(&raw)
+            .map_err(|e| CliError::new(format!("invalid source ref {raw}: {e}")))?;
+        external_sources.push(fingerprint_file(&resolver_dir.join(rel)).map_err(CliError::new)?);
+    }
+    external_sources.sort_by(|lhs, rhs| lhs.file.cmp(&rhs.file));
+
+    Ok(BuildStageFingerprint {
+        executable: current_executable_fingerprint().map_err(CliError::new)?,
+        backend_id: backend.spec().id.to_string(),
+        conflict_mode: format!("{conflict_mode:?}"),
+        format: format!("{format:?}"),
+        context_mode: format!("{contexts:?}"),
+        planner_trace,
+        profile: format!("{profile:?}"),
+        kcir_wire_format_id: kcir_wire_format_id.to_string(),
+        resolver,
+        external_sources,
+        contracts: contracts
+            .map(fingerprint_file)
+            .transpose()
+            .map_err(CliError::new)?,
+        policy: policy
+            .map(fingerprint_file)
+            .transpose()
+            .map_err(CliError::new)?,
+    })
+}
+
+fn compose_stage_fingerprint(
+    backend: &dyn TargetBackend,
+    pack_dirs: &[PathBuf],
+    contracts: Option<&Path>,
+    policy: Option<&Path>,
+    conflict_mode: CliConflictMode,
+    format: CliFormat,
+    contexts: CliContexts,
+    planner_trace: bool,
+    verify_packs: bool,
+    require_packs_composable: bool,
+    require_composable: bool,
+) -> CliResult<ComposeStageFingerprint> {
+    let mut packs = Vec::new();
+    for dir in pack_dirs {
+        let manifest = fingerprint_file(&dir.join("ctc.manifest.json")).map_err(CliError::new)?;
+        let witnesses = fingerprint_file(&dir.join("ctc.witnesses.json")).map_err(CliError::new)?;
+        let resolved = fingerprint_file(&dir.join("resolved.json")).map_err(CliError::new)?;
+        let authored_path = dir.join("authored.json");
+        let authored = if authored_path.exists() {
+            Some(fingerprint_file(&authored_path).map_err(CliError::new)?)
+        } else {
+            None
+        };
+        packs.push(ComposePackFingerprint {
+            dir: dir.display().to_string(),
+            manifest,
+            witnesses,
+            resolved,
+            authored,
+        });
+    }
+    packs.sort_by(|lhs, rhs| lhs.dir.cmp(&rhs.dir));
+
+    Ok(ComposeStageFingerprint {
+        executable: current_executable_fingerprint().map_err(CliError::new)?,
+        backend_id: backend.spec().id.to_string(),
+        conflict_mode: format!("{conflict_mode:?}"),
+        format: format!("{format:?}"),
+        context_mode: format!("{contexts:?}"),
+        planner_trace,
+        verify_packs,
+        require_packs_composable,
+        require_composable,
+        contracts: contracts
+            .map(fingerprint_file)
+            .transpose()
+            .map_err(CliError::new)?,
+        policy: policy
+            .map(fingerprint_file)
+            .transpose()
+            .map_err(CliError::new)?,
+        packs,
+    })
 }
 
 fn copy_file_into_bundle(src: &Path, dest: &Path) -> Result<(), String> {
@@ -967,6 +1187,10 @@ fn run_build(
     let backend = resolve_backend(&target)?;
     let doc: ResolverDoc = read_json_arg(&resolver, "resolver JSON")?;
     let contracts_loaded = contracts.as_ref().map(|p| load_contracts(p)).transpose()?;
+    let policy_loaded: Policy = match &policy {
+        None => Policy::default(),
+        Some(p) => read_json_arg(p, "policy JSON")?,
+    };
     if matches!(contexts, CliContexts::FromContracts) && contracts_loaded.is_none() {
         return Err(CliError::new(
             "--contexts from-contracts requires --contracts",
@@ -981,6 +1205,38 @@ fn run_build(
     let contract_tokens = contracts_loaded
         .as_ref()
         .map(|cs| contract_token_set(cs.as_slice()));
+    let stage_fingerprint = build_stage_fingerprint(
+        backend,
+        &resolver,
+        &doc,
+        contracts.as_deref(),
+        policy.as_deref(),
+        conflict_mode,
+        format,
+        contexts,
+        planner_trace,
+        profile,
+        &kcir_wire_format_id,
+    )?;
+    let expected_outputs =
+        build_expected_outputs(backend, &doc, &resolver, format, profile).map_err(CliError::new)?;
+    if let StageCacheStatus::Hit =
+        check_stage_cache(&out, "build", &stage_fingerprint, &expected_outputs)
+            .map_err(CliError::new)?
+    {
+        eprintln!("note: reused cached build outputs from {}", out.display());
+        println!("✓ Built pack: {}", out.display());
+        return Ok(());
+    }
+    let kcir_profile =
+        kcir_profile_binding_for_scheme_and_wire(HASH_SCHEME_ID, &kcir_wire_format_id).map_err(
+            |e| {
+                CliError::new(format!(
+                    "invalid --kcir-wire-format-id {}: {}",
+                    kcir_wire_format_id, e
+                ))
+            },
+        )?;
     let axes = axes_from_doc(&doc);
     let relevant_axes = match (contexts, contract_tokens.as_ref()) {
         (CliContexts::FromContracts, Some(tokens)) => Some(
@@ -1016,20 +1272,6 @@ fn run_build(
     let store = build_token_store_for_inputs(&doc, &resolver, &store_inputs)
         .map_err(|e| CliError::new(format!("failed to build token store: {e}")))?;
 
-    let policy: Policy = match &policy {
-        None => Policy::default(),
-        Some(p) => read_json_arg(p, "policy JSON")?,
-    };
-    let kcir_profile =
-        kcir_profile_binding_for_scheme_and_wire(HASH_SCHEME_ID, &kcir_wire_format_id).map_err(
-            |e| {
-                CliError::new(format!(
-                    "invalid --kcir-wire-format-id {}: {}",
-                    kcir_wire_format_id, e
-                ))
-            },
-        )?;
-
     create_dir(&out, "output directory")?;
     let staged_resolver = stage_portable_inputs(&doc, &resolver, &out)
         .map_err(|e| CliError::new(format!("failed to stage portable input bundle: {e}")))?;
@@ -1049,7 +1291,7 @@ fn run_build(
         .emit(&BackendRequest {
             source: BackendSource::Build { doc: &doc },
             store: &store,
-            policy: &policy,
+            policy: &policy_loaded,
             contracts: contracts_loaded.as_deref(),
             out_dir: &out,
         })
@@ -1083,7 +1325,7 @@ fn run_build(
                 store: &store,
                 resolver_path: &resolver,
                 conflict_mode: conflict_mode.into(),
-                policy: &policy,
+                policy: &policy_loaded,
                 context_mode: contexts.into(),
                 contract_tokens: contract_token_ids.as_ref(),
             })
@@ -1101,7 +1343,7 @@ fn run_build(
             &store,
             &resolver,
             conflict_mode.into(),
-            &policy,
+            &policy_loaded,
             contexts.into(),
             contract_tokens.as_ref(),
         )
@@ -1179,7 +1421,7 @@ fn run_build(
         &doc,
         &staged_resolver,
         &store,
-        Some(&policy),
+        Some(&policy_loaded),
         conflict_mode.into(),
         &resolved_path,
         tokens_css_path.as_deref(),
@@ -1218,6 +1460,8 @@ fn run_build(
         "ctc.manifest.json",
         &ctc_manifest,
     )?;
+    write_stage_cache(&out, "build", &stage_fingerprint, &expected_outputs)
+        .map_err(|e| CliError::new(format!("failed to write build stage cache: {e}")))?;
 
     println!("✓ Built pack: {}", out.display());
     Ok(())
@@ -1239,7 +1483,45 @@ fn run_compose(
     require_composable: bool,
 ) -> CliResult<()> {
     let backend = resolve_backend(&target)?;
-    let policy: Policy = match &policy {
+    let stage_fingerprint = compose_stage_fingerprint(
+        backend,
+        &packs,
+        contracts.as_deref(),
+        policy.as_deref(),
+        conflict_mode,
+        format,
+        contexts,
+        planner_trace,
+        verify_packs,
+        require_packs_composable,
+        require_composable,
+    )?;
+    let expected_outputs = compose_expected_outputs(backend, format);
+    if let StageCacheStatus::Hit =
+        check_stage_cache(&out, "compose", &stage_fingerprint, &expected_outputs)
+            .map_err(CliError::new)?
+    {
+        eprintln!("note: reused cached compose outputs from {}", out.display());
+        if matches!(format, CliFormat::Json) {
+            let cached = fs::read_to_string(out.join("compose.report.json")).map_err(|e| {
+                CliError::new(format!(
+                    "failed to read cached compose.report.json {}: {e}",
+                    out.join("compose.report.json").display()
+                ))
+            })?;
+            println!("{cached}");
+        } else {
+            let cached = fs::read_to_string(out.join("compose.report.txt")).map_err(|e| {
+                CliError::new(format!(
+                    "failed to read cached compose.report.txt {}: {e}",
+                    out.join("compose.report.txt").display()
+                ))
+            })?;
+            println!("{cached}");
+        }
+        return Ok(());
+    }
+    let policy_loaded: Policy = match &policy {
         None => Policy::default(),
         Some(p) => read_json_arg(p, "policy JSON")?,
     };
@@ -1309,7 +1591,7 @@ fn run_compose(
                 axes: &composed.axes,
             },
             store: &composed,
-            policy: &policy,
+            policy: &policy_loaded,
             contracts: contracts_loaded.as_deref(),
             out_dir: &out,
         })
@@ -1321,7 +1603,7 @@ fn run_compose(
         &loaded,
         &composed.axes,
         conflict_mode.into(),
-        &policy,
+        &policy_loaded,
         contexts.into(),
         contract_tokens.as_ref(),
     );
@@ -1335,7 +1617,7 @@ fn run_compose(
         &loaded,
         &out,
         &composed.axes,
-        &policy,
+        &policy_loaded,
         conflict_mode.into(),
         backend_artifacts,
         native_api_versions,
@@ -1391,6 +1673,9 @@ fn run_compose(
     if require_composable && !witnesses.conflicts.is_empty() {
         std::process::exit(1);
     }
+
+    write_stage_cache(&out, "compose", &stage_fingerprint, &expected_outputs)
+        .map_err(|e| CliError::new(format!("failed to write compose stage cache: {e}")))?;
 
     Ok(())
 }

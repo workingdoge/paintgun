@@ -11,6 +11,7 @@ pub mod analysis;
 pub mod annotations;
 pub mod artifact;
 pub mod backend;
+pub mod cache;
 pub mod cert;
 pub mod compose;
 pub mod contexts;

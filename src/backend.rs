@@ -117,6 +117,7 @@ impl std::error::Error for BackendError {}
 pub trait TargetBackend {
     fn spec(&self) -> BackendSpec;
     fn required_inputs(&self, axes: &BTreeMap<String, Vec<String>>) -> Vec<Input>;
+    fn planned_artifacts(&self) -> Vec<BackendArtifact>;
     fn emit(&self, request: &BackendRequest<'_>) -> Result<BackendEmission, BackendError>;
 }
 
@@ -188,6 +189,31 @@ impl TargetBackend for CssBackend {
         crate::contexts::layered_inputs(axes, None)
     }
 
+    fn planned_artifacts(&self) -> Vec<BackendArtifact> {
+        vec![
+            BackendArtifact {
+                kind: BackendArtifactKind::PrimaryTokenOutput,
+                relative_path: PathBuf::from("tokens.css"),
+                api_version: None,
+            },
+            BackendArtifact {
+                kind: BackendArtifactKind::TokenStylesheet,
+                relative_path: PathBuf::from("tokens.vars.css"),
+                api_version: None,
+            },
+            BackendArtifact {
+                kind: BackendArtifactKind::SystemStylesheet,
+                relative_path: PathBuf::from("components.css"),
+                api_version: None,
+            },
+            BackendArtifact {
+                kind: BackendArtifactKind::TypeDeclarations,
+                relative_path: PathBuf::from("tokens.d.ts"),
+                api_version: None,
+            },
+        ]
+    }
+
     fn emit(&self, request: &BackendRequest<'_>) -> Result<BackendEmission, BackendError> {
         let contracts = request
             .contracts
@@ -214,28 +240,7 @@ impl TargetBackend for CssBackend {
 
         Ok(BackendEmission {
             backend_id: self.spec().id,
-            artifacts: vec![
-                BackendArtifact {
-                    kind: BackendArtifactKind::PrimaryTokenOutput,
-                    relative_path: PathBuf::from("tokens.css"),
-                    api_version: None,
-                },
-                BackendArtifact {
-                    kind: BackendArtifactKind::TokenStylesheet,
-                    relative_path: PathBuf::from("tokens.vars.css"),
-                    api_version: None,
-                },
-                BackendArtifact {
-                    kind: BackendArtifactKind::SystemStylesheet,
-                    relative_path: PathBuf::from("components.css"),
-                    api_version: None,
-                },
-                BackendArtifact {
-                    kind: BackendArtifactKind::TypeDeclarations,
-                    relative_path: PathBuf::from("tokens.d.ts"),
-                    api_version: None,
-                },
-            ],
+            artifacts: self.planned_artifacts(),
         })
     }
 }
@@ -262,6 +267,33 @@ impl TargetBackend for SwiftBackend {
             .collect()
     }
 
+    fn planned_artifacts(&self) -> Vec<BackendArtifact> {
+        vec![
+            BackendArtifact {
+                kind: BackendArtifactKind::PrimaryTokenOutput,
+                relative_path: PathBuf::from("tokens.swift"),
+                api_version: self.spec().api_version,
+            },
+            BackendArtifact {
+                kind: BackendArtifactKind::PackageManifest,
+                relative_path: PathBuf::from("swift/Package.swift"),
+                api_version: None,
+            },
+            BackendArtifact {
+                kind: BackendArtifactKind::PackageSource,
+                relative_path: PathBuf::from("swift/Sources/PaintgunTokens/PaintgunTokens.swift"),
+                api_version: self.spec().api_version,
+            },
+            BackendArtifact {
+                kind: BackendArtifactKind::PackageTest,
+                relative_path: PathBuf::from(
+                    "swift/Tests/PaintgunTokensTests/PaintgunTokensTests.swift",
+                ),
+                api_version: None,
+            },
+        ]
+    }
+
     fn emit(&self, request: &BackendRequest<'_>) -> Result<BackendEmission, BackendError> {
         let swift = emit_store_swift(request.store, request.policy);
         let source_path = request.out_dir.join("tokens.swift");
@@ -272,32 +304,7 @@ impl TargetBackend for SwiftBackend {
 
         Ok(BackendEmission {
             backend_id: self.spec().id,
-            artifacts: vec![
-                BackendArtifact {
-                    kind: BackendArtifactKind::PrimaryTokenOutput,
-                    relative_path: PathBuf::from("tokens.swift"),
-                    api_version: self.spec().api_version,
-                },
-                BackendArtifact {
-                    kind: BackendArtifactKind::PackageManifest,
-                    relative_path: PathBuf::from("swift/Package.swift"),
-                    api_version: None,
-                },
-                BackendArtifact {
-                    kind: BackendArtifactKind::PackageSource,
-                    relative_path: PathBuf::from(
-                        "swift/Sources/PaintgunTokens/PaintgunTokens.swift",
-                    ),
-                    api_version: self.spec().api_version,
-                },
-                BackendArtifact {
-                    kind: BackendArtifactKind::PackageTest,
-                    relative_path: PathBuf::from(
-                        "swift/Tests/PaintgunTokensTests/PaintgunTokensTests.swift",
-                    ),
-                    api_version: None,
-                },
-            ],
+            artifacts: self.planned_artifacts(),
         })
     }
 }
@@ -324,6 +331,38 @@ impl TargetBackend for AndroidComposeBackend {
             .collect()
     }
 
+    fn planned_artifacts(&self) -> Vec<BackendArtifact> {
+        vec![
+            BackendArtifact {
+                kind: BackendArtifactKind::PrimaryTokenOutput,
+                relative_path: PathBuf::from("tokens.kt"),
+                api_version: self.spec().api_version,
+            },
+            BackendArtifact {
+                kind: BackendArtifactKind::PackageSettings,
+                relative_path: PathBuf::from("android/settings.gradle.kts"),
+                api_version: None,
+            },
+            BackendArtifact {
+                kind: BackendArtifactKind::PackageBuildScript,
+                relative_path: PathBuf::from("android/build.gradle.kts"),
+                api_version: None,
+            },
+            BackendArtifact {
+                kind: BackendArtifactKind::PackageSource,
+                relative_path: PathBuf::from("android/src/main/kotlin/paintgun/PaintgunTokens.kt"),
+                api_version: self.spec().api_version,
+            },
+            BackendArtifact {
+                kind: BackendArtifactKind::PackageTest,
+                relative_path: PathBuf::from(
+                    "android/src/test/kotlin/paintgun/PaintgunTokensSmokeTest.kt",
+                ),
+                api_version: None,
+            },
+        ]
+    }
+
     fn emit(&self, request: &BackendRequest<'_>) -> Result<BackendEmission, BackendError> {
         let kotlin = emit_store_kotlin(request.store, request.policy);
         let source_path = request.out_dir.join("tokens.kt");
@@ -334,37 +373,7 @@ impl TargetBackend for AndroidComposeBackend {
 
         Ok(BackendEmission {
             backend_id: self.spec().id,
-            artifacts: vec![
-                BackendArtifact {
-                    kind: BackendArtifactKind::PrimaryTokenOutput,
-                    relative_path: PathBuf::from("tokens.kt"),
-                    api_version: self.spec().api_version,
-                },
-                BackendArtifact {
-                    kind: BackendArtifactKind::PackageSettings,
-                    relative_path: PathBuf::from("android/settings.gradle.kts"),
-                    api_version: None,
-                },
-                BackendArtifact {
-                    kind: BackendArtifactKind::PackageBuildScript,
-                    relative_path: PathBuf::from("android/build.gradle.kts"),
-                    api_version: None,
-                },
-                BackendArtifact {
-                    kind: BackendArtifactKind::PackageSource,
-                    relative_path: PathBuf::from(
-                        "android/src/main/kotlin/paintgun/PaintgunTokens.kt",
-                    ),
-                    api_version: self.spec().api_version,
-                },
-                BackendArtifact {
-                    kind: BackendArtifactKind::PackageTest,
-                    relative_path: PathBuf::from(
-                        "android/src/test/kotlin/paintgun/PaintgunTokensSmokeTest.kt",
-                    ),
-                    api_version: None,
-                },
-            ],
+            artifacts: self.planned_artifacts(),
         })
     }
 }
@@ -388,6 +397,36 @@ impl TargetBackend for WebTokensTsBackend {
         Vec::new()
     }
 
+    fn planned_artifacts(&self) -> Vec<BackendArtifact> {
+        vec![
+            BackendArtifact {
+                kind: BackendArtifactKind::PrimaryTokenOutput,
+                relative_path: PathBuf::from("tokens.ts"),
+                api_version: self.spec().api_version,
+            },
+            BackendArtifact {
+                kind: BackendArtifactKind::PackageManifest,
+                relative_path: PathBuf::from("web/package.json"),
+                api_version: None,
+            },
+            BackendArtifact {
+                kind: BackendArtifactKind::PackageSettings,
+                relative_path: PathBuf::from("web/tsconfig.json"),
+                api_version: None,
+            },
+            BackendArtifact {
+                kind: BackendArtifactKind::PackageSource,
+                relative_path: PathBuf::from("web/src/index.ts"),
+                api_version: self.spec().api_version,
+            },
+            BackendArtifact {
+                kind: BackendArtifactKind::PackageTest,
+                relative_path: PathBuf::from("web/src/index.test.ts"),
+                api_version: None,
+            },
+        ]
+    }
+
     fn emit(&self, request: &BackendRequest<'_>) -> Result<BackendEmission, BackendError> {
         let web_tokens = emit_store_web_tokens_ts(request.store, request.policy);
         let source_path = request.out_dir.join("tokens.ts");
@@ -398,33 +437,7 @@ impl TargetBackend for WebTokensTsBackend {
 
         Ok(BackendEmission {
             backend_id: self.spec().id,
-            artifacts: vec![
-                BackendArtifact {
-                    kind: BackendArtifactKind::PrimaryTokenOutput,
-                    relative_path: PathBuf::from("tokens.ts"),
-                    api_version: self.spec().api_version,
-                },
-                BackendArtifact {
-                    kind: BackendArtifactKind::PackageManifest,
-                    relative_path: PathBuf::from("web/package.json"),
-                    api_version: None,
-                },
-                BackendArtifact {
-                    kind: BackendArtifactKind::PackageSettings,
-                    relative_path: PathBuf::from("web/tsconfig.json"),
-                    api_version: None,
-                },
-                BackendArtifact {
-                    kind: BackendArtifactKind::PackageSource,
-                    relative_path: PathBuf::from("web/src/index.ts"),
-                    api_version: self.spec().api_version,
-                },
-                BackendArtifact {
-                    kind: BackendArtifactKind::PackageTest,
-                    relative_path: PathBuf::from("web/src/index.test.ts"),
-                    api_version: None,
-                },
-            ],
+            artifacts: self.planned_artifacts(),
         })
     }
 }
