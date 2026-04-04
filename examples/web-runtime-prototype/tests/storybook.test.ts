@@ -5,6 +5,9 @@ import meta, {
   Outline,
   renderPaintButton,
 } from "../src/stories/paint-button.stories.ts";
+import overviewMeta, {
+  RuntimeOverview,
+} from "../src/stories/runtime-overview.stories.ts";
 
 beforeEach(() => {
   document.body.innerHTML = "";
@@ -12,7 +15,7 @@ beforeEach(() => {
 
 describe("storybook consumer", () => {
   test("derives its controls and supporting assets from the shared web runtime", () => {
-    expect(meta.title).toBe("Prototype/Paint Button");
+    expect(meta.title).toBe("Components/Paint Button");
     expect(meta.argTypes.tone.options).toEqual(["neutral", "accent"]);
     expect(meta.argTypes.emphasis.options).toEqual(["solid", "outline"]);
     expect(meta.parameters.paintRuntime.requiredStylesheets).toEqual([
@@ -50,5 +53,20 @@ describe("storybook consumer", () => {
       label: "Review architecture",
     });
     expect(explicit.textContent).toBe("Review architecture");
+  });
+
+  test("renders a docs-style overview from shared artifacts and reports", () => {
+    expect(overviewMeta.title).toBe("Overview/Runtime Workspace");
+
+    const element = RuntimeOverview.render();
+    const text = element.textContent ?? "";
+
+    expect(text).toContain("Storybook consumer workspace");
+    expect(text).toContain("Generated sources");
+    expect(text).toContain("Artifact bindings");
+    expect(text).toContain("Build health");
+    expect(text).toContain("Preview tokens");
+    expect(text).toContain("generated/paint/css/validation.json");
+    expect(text).toContain("generated/paint/web/validation.json");
   });
 });

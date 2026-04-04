@@ -1,0 +1,59 @@
+{
+  "backendArtifacts": [
+    {
+      "backendId": "web-tokens-ts",
+      "file": "web/package.json",
+      "kind": "packageManifest",
+      "sha256": "sha256:44cab59b9f2b219915411b48b102de12cc260ce9dcb920e6a5290ebc49a5b56f",
+      "size": 150
+    },
+    {
+      "backendId": "web-tokens-ts",
+      "file": "web/tsconfig.json",
+      "kind": "packageSettings",
+      "sha256": "sha256:7918d3a29f86b57b2b1e98d5ab70b4ab985de4a58c4bcd22be99fc2d7932ca52",
+      "size": 208
+    },
+    {
+      "apiVersion": "paintgun-web-tokens-ts/v1",
+      "backendId": "web-tokens-ts",
+      "file": "web/src/index.ts",
+      "kind": "packageSource",
+      "sha256": "sha256:7c721e4971ff9aae4f527248ef8a18a93ceee4192b51719c64aacb4917ce0644",
+      "size": 29371
+    },
+    {
+      "backendId": "web-tokens-ts",
+      "file": "web/src/index.test.ts",
+      "kind": "packageTest",
+      "sha256": "sha256:d53139beb8bff47783f91dda93c24159f4eb1b8c3c67ec15b6aa41070fa821a4",
+      "size": 183
+    },
+    {
+      "apiVersion": "paintgun-web-tokens-ts/v1",
+      "backendId": "web-tokens-ts",
+      "file": "tokens.ts",
+      "kind": "primaryTokenOutput",
+      "sha256": "sha256:7c721e4971ff9aae4f527248ef8a18a93ceee4192b51719c64aacb4917ce0644",
+      "size": 29371
+    }
+  ],
+  "conflictMode": "semantic",
+  "counts": {
+    "byKind": {},
+    "total": 0
+  },
+  "findings": [],
+  "policyDigest": "sha256:1c8ce2968e372271db47b353acc8cd77e2ba329b1746bc523dcbd3b932ecbc19",
+  "reportKind": "pack",
+  "reportVersion": 1,
+  "summary": {
+    "bc_violations": 0,
+    "contexts": 4,
+    "kan_conflicts": 0,
+    "kan_gaps": 0,
+    "kan_inherited": 0,
+    "orthogonality_overlaps": 0,
+    "tokens": 0
+  }
+}

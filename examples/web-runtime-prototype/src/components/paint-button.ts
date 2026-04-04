@@ -3,6 +3,7 @@ import { getWebComponentByTagName } from "../generated/system-web.ts";
 const component = getWebComponentByTagName("paint-button");
 const partName = component.parts[0]?.name ?? "control";
 const pressEventName = component.events[0]?.name ?? "paint-press";
+const HTMLElementBase = (globalThis.HTMLElement ?? class {}) as typeof HTMLElement;
 
 const toneInput = component.inputs.find((input) => input.name === "tone");
 const emphasisInput = component.inputs.find((input) => input.name === "emphasis");
@@ -73,7 +74,7 @@ function buttonStyles() {
   `;
 }
 
-export class PaintButtonElement extends HTMLElement {
+export class PaintButtonElement extends HTMLElementBase {
   static get observedAttributes() {
     return component.inputs.map((input) => input.attribute);
   }
@@ -162,6 +163,10 @@ export class PaintButtonElement extends HTMLElement {
 }
 
 export function definePaintButton() {
+  if (typeof customElements === "undefined") {
+    return;
+  }
+
   if (!customElements.get(component.tagName)) {
     customElements.define(component.tagName, PaintButtonElement);
   }

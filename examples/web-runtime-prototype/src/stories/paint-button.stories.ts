@@ -26,7 +26,7 @@ export function renderPaintButton(args: Record<string, string | boolean>) {
 }
 
 const meta = {
-  title: "Prototype/Paint Button",
+  title: "Components/Paint Button",
   tags: ["autodocs"],
   parameters: {
     layout: "centered",

@@ -29,6 +29,8 @@ async function rebuildTarget(outDir: string, target: string, withContracts: bool
     target,
     "--policy",
     policy,
+    "--format",
+    "json",
   ];
 
   if (withContracts) {

@@ -2,14 +2,15 @@
   AA-VS/Paintgun Validation Report
 ═══════════════════════════════════════
 
-Orthogonality:
-  (no overlaps)
+Action summary:
+  Errors requiring action:
+    - none
+  Warnings to review:
+    - none
+  Informational traces:
+    - none
 
-Beck–Chevalley:
-  ✓ 0/0 token×context pairs commute
-
-Kan completion:
-  ✓ 0/0 explicit values
-  ⚠ 0/0 inherited (unique ancestor, no explicit value)
-  ✗ 0/0 tiebreaks (conflicting ancestors)
-  ✗ 0/0 gaps (no ancestor)
+Technical analysis summary:
+  Beck-Chevalley: 0 of 0 token/context pairs commute across mode x theme
+  Kan completion: explicit=0 inherited=0 ambiguous=0 missing=0 over 0 token/context pairs
+  Orthogonality: 0 overlap witness(es)

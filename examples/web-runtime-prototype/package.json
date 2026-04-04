@@ -8,12 +8,18 @@
     "generate:adapter": "bun run ./scripts/generate-web-adapter.ts",
     "generate": "bun run generate:paint && bun run generate:web-ir && bun run generate:adapter",
     "build:demo": "bun run ./scripts/build-demo.ts",
+    "storybook": "storybook dev -p 6006 --ci",
+    "build:storybook": "storybook build",
     "serve:demo": "bun run build:demo && bun run ./scripts/serve-demo.ts",
     "test": "bun test ./tests",
-    "check": "bun run generate && bun run build:demo && bun run test"
+    "check": "bun run generate && bun run build:demo && bun run build:storybook && bun run test"
   },
   "devDependencies": {
+    "@storybook/addon-essentials": "8.6.14",
+    "@storybook/web-components-vite": "8.6.14",
     "esbuild": "^0.25.12",
-    "happy-dom": "^20.0.10"
+    "happy-dom": "^20.0.10",
+    "storybook": "8.6.14",
+    "vite": "5.4.19"
   }
 }
