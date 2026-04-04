@@ -172,8 +172,8 @@
             "backendId": "web-css-vars",
             "kind": "tokenStylesheet",
             "file": "generated/paint/css/tokens.vars.css",
-            "sha256": "sha256:12bd70f8cc588b108b8e2622f6e9992e0fe7867897d57d71b34bd9d82a19588f",
-            "size": 1822
+            "sha256": "sha256:b191c3bdac386a3713bf2c325065193e9561dd4a9b4711de0f1ff5900fc89b29",
+            "size": 1726
           },
           {
             "artifactId": "paint-token-module",

@@ -42,8 +42,8 @@
       "backendId": "web-css-vars",
       "kind": "primaryTokenOutput",
       "file": "tokens.css",
-      "sha256": "sha256:b4bb612ad7a7c571ab01fde258659b9e7e8ba09bd571c5345e832486fa48ad16",
-      "size": 2271
+      "sha256": "sha256:587346dca4fbf32258eb415211aff244a2fcfb4ea15421582947cd1abebde7d7",
+      "size": 2175
     },
     {
       "backendId": "web-css-vars",
@@ -56,8 +56,8 @@
       "backendId": "web-css-vars",
       "kind": "tokenStylesheet",
       "file": "tokens.vars.css",
-      "sha256": "sha256:12bd70f8cc588b108b8e2622f6e9992e0fe7867897d57d71b34bd9d82a19588f",
-      "size": 1822
+      "sha256": "sha256:b191c3bdac386a3713bf2c325065193e9561dd4a9b4711de0f1ff5900fc89b29",
+      "size": 1726
     },
     {
       "backendId": "web-css-vars",
@@ -109,8 +109,8 @@
     },
     "tokensCss": {
       "file": "tokens.css",
-      "sha256": "sha256:b4bb612ad7a7c571ab01fde258659b9e7e8ba09bd571c5345e832486fa48ad16",
-      "size": 2271
+      "sha256": "sha256:587346dca4fbf32258eb415211aff244a2fcfb4ea15421582947cd1abebde7d7",
+      "size": 2175
     },
     "tokensDts": {
       "file": "tokens.d.ts",

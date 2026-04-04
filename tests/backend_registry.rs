@@ -187,6 +187,14 @@ fn css_backend_emits_typed_artifacts_for_build() {
         "raw token stylesheet should contain token layers"
     );
     assert!(
+        token_vars_css.contains("oklch("),
+        "raw token stylesheet should emit direct oklch() syntax for Oklch colors"
+    );
+    assert!(
+        !token_vars_css.contains("color(oklch "),
+        "raw token stylesheet should not emit invalid color(oklch ...) syntax"
+    );
+    assert!(
         component_css.contains("@layer components"),
         "system stylesheet should contain components layer"
     );

@@ -113,6 +113,10 @@ impl CssEmitter {
         match v.color_space.as_css_ident() {
             "hsl" => format!("hsl({}{})", comps, alpha),
             "hwb" => format!("hwb({}{})", comps, alpha),
+            "lab" => format!("lab({}{})", comps, alpha),
+            "lch" => format!("lch({}{})", comps, alpha),
+            "oklab" => format!("oklab({}{})", comps, alpha),
+            "oklch" => format!("oklch({}{})", comps, alpha),
             other => format!("color({} {}{})", other, comps, alpha),
         }
     }
@@ -1077,4 +1081,85 @@ pub fn emit_tokens_d_ts(contracts: &[Contract]) -> String {
     out.push_str("}\n");
 
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{emit_value, CssEmitter};
+    use paintgun_dtcg::{ColorComponent, ColorSpace, DtcgColor, DtcgType, DtcgValue, NumLit};
+    use paintgun_policy::CssColorPolicy;
+
+    fn sample_color(color_space: ColorSpace) -> DtcgColor {
+        DtcgColor {
+            color_space,
+            components: [
+                ColorComponent::Num(NumLit("0.97".to_string())),
+                ColorComponent::Num(NumLit("0.005".to_string())),
+                ColorComponent::Num(NumLit("250".to_string())),
+            ],
+            alpha: None,
+            hex: Some("#f5f6f8".to_string()),
+        }
+    }
+
+    #[test]
+    fn css_emitter_uses_direct_functions_for_lab_like_spaces() {
+        let emitter = CssEmitter {
+            color_policy: CssColorPolicy::PreserveSpace,
+        };
+
+        for (space, expected) in [
+            (ColorSpace::Lab, "lab(0.97 0.005 250)"),
+            (ColorSpace::Lch, "lch(0.97 0.005 250)"),
+            (ColorSpace::Oklab, "oklab(0.97 0.005 250)"),
+            (ColorSpace::Oklch, "oklch(0.97 0.005 250)"),
+        ] {
+            let color = sample_color(space);
+            let rendered = emit_value(
+                &emitter,
+                DtcgType::Color,
+                &DtcgValue::Color(color),
+                "color.test",
+            );
+            assert_eq!(rendered, expected);
+        }
+    }
+
+    #[test]
+    fn css_emitter_keeps_color_function_for_predefined_color_spaces() {
+        let emitter = CssEmitter {
+            color_policy: CssColorPolicy::PreserveSpace,
+        };
+
+        for (space, expected) in [
+            (ColorSpace::Srgb, "color(srgb 0.97 0.005 250)"),
+            (ColorSpace::SrgbLinear, "color(srgb-linear 0.97 0.005 250)"),
+            (ColorSpace::DisplayP3, "color(display-p3 0.97 0.005 250)"),
+            (ColorSpace::XyzD65, "color(xyz-d65 0.97 0.005 250)"),
+        ] {
+            let color = sample_color(space);
+            let rendered = emit_value(
+                &emitter,
+                DtcgType::Color,
+                &DtcgValue::Color(color),
+                "color.test",
+            );
+            assert_eq!(rendered, expected);
+        }
+    }
+
+    #[test]
+    fn css_emitter_prefers_hex_when_policy_requests_it() {
+        let emitter = CssEmitter {
+            color_policy: CssColorPolicy::PreferHexIfPresent,
+        };
+        let color = sample_color(ColorSpace::Oklch);
+        let rendered = emit_value(
+            &emitter,
+            DtcgType::Color,
+            &DtcgValue::Color(color),
+            "color.test",
+        );
+        assert_eq!(rendered, "#f5f6f8");
+    }
 }

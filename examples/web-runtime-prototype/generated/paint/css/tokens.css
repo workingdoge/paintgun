@@ -2,14 +2,14 @@
 
 @layer tokens.theme-mode {
   :root[data-theme="dark"][data-mode="docs"] {
-    --paintgun-color-palette-black: color(oklch 0.15 0 0);
-    --paintgun-color-palette-steel-50: color(oklch 0.97 0.005 250);
-    --paintgun-color-palette-steel-900: color(oklch 0.2 0.02 260);
-    --paintgun-color-palette-white: color(oklch 0.99 0 0);
-    --paintgun-color-surface-bg: color(oklch 0.2 0.02 260);
-    --paintgun-color-surface-border: color(oklch 0.35 0.02 260);
-    --paintgun-color-text-muted: color(oklch 0.65 0.01 250);
-    --paintgun-color-text-primary: color(oklch 0.95 0 0);
+    --paintgun-color-palette-black: oklch(0.15 0 0);
+    --paintgun-color-palette-steel-50: oklch(0.97 0.005 250);
+    --paintgun-color-palette-steel-900: oklch(0.2 0.02 260);
+    --paintgun-color-palette-white: oklch(0.99 0 0);
+    --paintgun-color-surface-bg: oklch(0.2 0.02 260);
+    --paintgun-color-surface-border: oklch(0.35 0.02 260);
+    --paintgun-color-text-muted: oklch(0.65 0.01 250);
+    --paintgun-color-text-primary: oklch(0.95 0 0);
     --paintgun-dimension-radius-lg: 16px;
     --paintgun-dimension-radius-md: 8px;
     --paintgun-dimension-radius-sm: 4px;
@@ -26,24 +26,24 @@
 
 @layer tokens.theme-mode {
   :root[data-theme="dark"][data-mode="wellbeing"] {
-    --paintgun-color-surface-bg: color(oklch 0.96 0.02 80);
-    --paintgun-color-surface-border: color(oklch 0.85 0.02 80);
-    --paintgun-color-text-muted: color(oklch 0.5 0.03 60);
+    --paintgun-color-surface-bg: oklch(0.96 0.02 80);
+    --paintgun-color-surface-border: oklch(0.85 0.02 80);
+    --paintgun-color-text-muted: oklch(0.5 0.03 60);
   }
 }
 
 @layer tokens.theme-mode {
   :root[data-theme="light"][data-mode="docs"] {
-    --paintgun-color-surface-bg: color(oklch 0.97 0.005 250);
-    --paintgun-color-text-muted: color(oklch 0.55 0.01 250);
-    --paintgun-color-text-primary: color(oklch 0.15 0 0);
+    --paintgun-color-surface-bg: oklch(0.97 0.005 250);
+    --paintgun-color-text-muted: oklch(0.55 0.01 250);
+    --paintgun-color-text-primary: oklch(0.15 0 0);
   }
 }
 
 @layer tokens.theme-mode {
   :root[data-theme="light"][data-mode="wellbeing"] {
-    --paintgun-color-surface-bg: color(oklch 0.96 0.02 80);
-    --paintgun-color-text-muted: color(oklch 0.5 0.03 60);
+    --paintgun-color-surface-bg: oklch(0.96 0.02 80);
+    --paintgun-color-text-muted: oklch(0.5 0.03 60);
   }
 }
 
