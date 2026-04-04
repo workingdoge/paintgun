@@ -217,3 +217,4 @@ The current reference example lives in:
 
 - [`examples/web-runtime-prototype/generated/system.catalog.json`](../examples/web-runtime-prototype/generated/system.catalog.json)
 - [`examples/web-runtime-prototype/src/generated/system-catalog.ts`](../examples/web-runtime-prototype/src/generated/system-catalog.ts)
+- [`examples/design-tool-bridge-prototype/README.md`](../examples/design-tool-bridge-prototype/README.md)

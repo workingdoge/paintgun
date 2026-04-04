@@ -253,15 +253,19 @@ The design-tool bridge seam is shaped in
 
 ## Reference Implementation Boundary
 
-The current reference prototype is [`examples/web-runtime-prototype/README.md`](../examples/web-runtime-prototype/README.md).
+The current reference prototypes are:
 
-Its intended split is:
+- [`examples/web-runtime-prototype/README.md`](../examples/web-runtime-prototype/README.md)
+- [`examples/design-tool-bridge-prototype/README.md`](../examples/design-tool-bridge-prototype/README.md)
+
+Their intended split is:
 
 - authored canonical schema
 - authored web projection config
 - generated web runtime IR
+- generated catalog IR
 - generated typed adapter
-- authored consumer-local model/view code for the demo host and Storybook consumer
+- authored consumer-local model/view code for the demo host, Storybook consumer, and design-tool bridge
 
 That is the right direction. The contract here makes explicit which of those layers are reusable and
 which are local to the consumer surface.

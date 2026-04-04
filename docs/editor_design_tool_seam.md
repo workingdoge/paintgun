@@ -257,19 +257,24 @@ The key extension is:
 
 Neither should force Paint core to grow UI-framework semantics.
 
-## Follow-On Work
+## Implemented Progression
 
-The clean next implementation lanes are:
+The seam has now been exercised through:
 
-1. add a diagnostics projection and a read-only VS Code prototype
-2. define a design-tool-neutral catalog IR above the canonical schema
-3. prototype a read-only design-tool bridge over that catalog IR
+1. a diagnostics projection and a read-only VS Code prototype
+2. a design-tool-neutral catalog IR above the canonical schema
+3. a read-only design-tool bridge over that catalog IR
 
-That keeps the progression honest:
+That progression keeps the layering honest:
 
 - stable contracts first
 - one adapter prototype per family
 - no promotion of one product surface into canonical truth
+
+Reference examples:
+
+- [`examples/vscode-diagnostics-prototype/README.md`](../examples/vscode-diagnostics-prototype/README.md)
+- [`examples/design-tool-bridge-prototype/README.md`](../examples/design-tool-bridge-prototype/README.md)
 
 ## Acceptance Boundary
 

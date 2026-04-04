@@ -1,0 +1,16 @@
+{
+  "name": "@paint/examples-design-tool-bridge-prototype",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate:source": "cd ../web-runtime-prototype && bun run generate",
+    "build": "bun run ./scripts/build-bridge.ts",
+    "serve": "bun run generate:source && bun run build && bun run ./scripts/serve-bridge.ts",
+    "test": "bun test ./tests",
+    "check": "bun run generate:source && bun run build && bun run test"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.12",
+    "happy-dom": "^20.0.10"
+  }
+}

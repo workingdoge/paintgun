@@ -189,6 +189,12 @@ The next editor/design-tool adapter seams are documented in
 `examples/vscode-diagnostics-prototype/README.md` shows the first read-only editor consumer path
 above generated `diagnostics.pack.json` outputs.
 
+## Design-Tool Bridge Prototype
+
+`examples/design-tool-bridge-prototype/README.md` shows the first read-only design-tool consumer
+path above generated `system.catalog.json`, diagnostics projections, and the generated web token
+package output.
+
 ## Fixture tooling
 
 KCIR/NF conformance vectors can be built with:

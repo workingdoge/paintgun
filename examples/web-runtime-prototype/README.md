@@ -100,3 +100,6 @@ Authored in the design-system layer:
 
 This is the point of the prototype: the custom element and the Storybook consumer stay authored,
 but they do not become the source of truth.
+
+The sibling read-only design-tool consumer lives in
+[`examples/design-tool-bridge-prototype/README.md`](../design-tool-bridge-prototype/README.md).
