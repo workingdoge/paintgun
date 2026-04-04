@@ -75,6 +75,8 @@ Current built-ins:
 - `web-css-vars`
   - primary output: `tokens.css`
   - additional outputs may include `tokens.vars.css`, `components.css`, and `tokens.d.ts`
+  - browser support for these CSS artifacts is defined separately in
+    [`docs/web_css_compatibility.md`](web_css_compatibility.md)
 - `swift-tokens`
   - primary output: `tokens.swift`
 - `android-compose-tokens`

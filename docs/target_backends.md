@@ -150,6 +150,10 @@ It should split into:
 
 This matters because CSS stylesheet emission and component-library generation have different stability and ownership boundaries.
 
+`web-css-vars` should be treated as a modern-web backend, not a legacy CSS
+target. The supported browser floor and fallback expectations are documented in
+[`docs/web_css_compatibility.md`](web_css_compatibility.md).
+
 ## Apple Recommendation
 
 The existing Swift output fits the backend model well.

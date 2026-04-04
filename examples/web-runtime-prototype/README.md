@@ -11,6 +11,11 @@ This example proves the boundary shaped in `tbp-z74`:
 The repo-level contract for what those consumers may and may not depend on lives in
 [`docs/live_consumer_contract.md`](../../docs/live_consumer_contract.md).
 
+The generated CSS artifacts used by this prototype come from `web-css-vars`, so
+the browser baseline and fallback expectations in
+[`docs/web_css_compatibility.md`](../../docs/web_css_compatibility.md) apply to
+the demo host and Storybook workspace too.
+
 The prototype is intentionally narrow:
 
 - one component: `paint-button`
