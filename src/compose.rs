@@ -482,6 +482,245 @@ struct ComposeReportFinding {
     pack: Option<String>,
 }
 
+const COMPOSE_TEXT_DETAIL_LIMIT: usize = 25;
+const COMPOSE_ROLLUP_LIMIT: usize = 5;
+const LARGE_COMPOSE_PACK_WARN_AT: usize = 16;
+const LARGE_COMPOSE_CONTEXT_WARN_AT: usize = 64;
+const LARGE_COMPOSE_CONFLICT_WARN_AT: usize = 50;
+const LARGE_COMPOSE_FINDING_WARN_AT: usize = 1000;
+
+#[derive(Clone, Copy, Debug)]
+struct PlannerBudgetCounts {
+    analysis_included: usize,
+    universe: usize,
+}
+
+#[derive(Clone, Debug, Serialize)]
+struct ComposeReportRollupEntry {
+    key: String,
+    count: usize,
+}
+
+#[derive(Clone, Debug, Serialize)]
+struct ComposeReportRollups {
+    #[serde(rename = "tokenPaths")]
+    token_paths: Vec<ComposeReportRollupEntry>,
+    #[serde(rename = "winnerPacks")]
+    winner_packs: Vec<ComposeReportRollupEntry>,
+    #[serde(rename = "packSets")]
+    pack_sets: Vec<ComposeReportRollupEntry>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+struct ComposePlannerGuardrail {
+    status: String,
+    summary: String,
+    #[serde(rename = "packCount")]
+    pack_count: usize,
+    #[serde(rename = "contextsChecked")]
+    contexts_checked: usize,
+    #[serde(rename = "analysisIncluded", skip_serializing_if = "Option::is_none")]
+    analysis_included: Option<usize>,
+    #[serde(rename = "analysisUniverse", skip_serializing_if = "Option::is_none")]
+    analysis_universe: Option<usize>,
+    #[serde(rename = "warnAtPackCount")]
+    warn_at_pack_count: usize,
+    #[serde(rename = "warnAtContextsChecked")]
+    warn_at_contexts_checked: usize,
+}
+
+#[derive(Clone, Debug, Serialize)]
+struct ComposeWitnessGuardrail {
+    status: String,
+    summary: String,
+    #[serde(rename = "conflictCount")]
+    conflict_count: usize,
+    #[serde(rename = "findingCount")]
+    finding_count: usize,
+    #[serde(rename = "detailLimit")]
+    detail_limit: usize,
+    #[serde(rename = "warnAtConflicts")]
+    warn_at_conflicts: usize,
+    #[serde(rename = "warnAtFindings")]
+    warn_at_findings: usize,
+}
+
+#[derive(Clone, Debug, Serialize)]
+struct ComposeReportGuardrails {
+    planner: ComposePlannerGuardrail,
+    witnesses: ComposeWitnessGuardrail,
+}
+
+fn compose_finding_count(witnesses: &ComposeWitnesses) -> usize {
+    witnesses
+        .conflicts
+        .iter()
+        .map(|witness| {
+            witness
+                .candidates
+                .iter()
+                .map(|candidate| candidate.sources.len())
+                .sum::<usize>()
+        })
+        .sum()
+}
+
+fn top_rollups(counts: BTreeMap<String, usize>) -> Vec<ComposeReportRollupEntry> {
+    let mut entries: Vec<_> = counts
+        .into_iter()
+        .map(|(key, count)| ComposeReportRollupEntry { key, count })
+        .collect();
+    entries.sort_by(|left, right| {
+        right
+            .count
+            .cmp(&left.count)
+            .then_with(|| left.key.cmp(&right.key))
+    });
+    entries.truncate(COMPOSE_ROLLUP_LIMIT);
+    entries
+}
+
+fn compose_report_rollups(witnesses: &ComposeWitnesses) -> ComposeReportRollups {
+    let mut token_paths: BTreeMap<String, usize> = BTreeMap::new();
+    let mut winner_packs: BTreeMap<String, usize> = BTreeMap::new();
+    let mut pack_sets: BTreeMap<String, usize> = BTreeMap::new();
+
+    for witness in &witnesses.conflicts {
+        *token_paths
+            .entry(witness.token_path.to_string())
+            .or_insert(0) += 1;
+        *winner_packs.entry(witness.winner_pack.clone()).or_insert(0) += 1;
+
+        let mut packs: BTreeSet<String> = BTreeSet::new();
+        packs.insert(witness.winner_pack.clone());
+        for candidate in &witness.candidates {
+            packs.insert(candidate.pack.clone());
+        }
+        let key = packs.into_iter().collect::<Vec<_>>().join(" <> ");
+        *pack_sets.entry(key).or_insert(0) += 1;
+    }
+
+    ComposeReportRollups {
+        token_paths: top_rollups(token_paths),
+        winner_packs: top_rollups(winner_packs),
+        pack_sets: top_rollups(pack_sets),
+    }
+}
+
+fn planner_budget_counts_from_report(report: &serde_json::Value) -> Option<PlannerBudgetCounts> {
+    let trace = report.get("plannerTrace")?;
+    let counts = trace.get("counts")?;
+    Some(PlannerBudgetCounts {
+        analysis_included: counts.get("analysisIncluded")?.as_u64()? as usize,
+        universe: counts.get("universe")?.as_u64()? as usize,
+    })
+}
+
+fn compose_report_guardrails(
+    manifest: &ComposeManifest,
+    witnesses: &ComposeWitnesses,
+    planner_counts: Option<PlannerBudgetCounts>,
+) -> ComposeReportGuardrails {
+    let contexts_checked = manifest.summary.contexts;
+    let pack_count = manifest.summary.packs;
+    let finding_count = compose_finding_count(witnesses);
+    let conflict_count = witnesses.conflicts.len();
+
+    let planner_warn = pack_count >= LARGE_COMPOSE_PACK_WARN_AT
+        || contexts_checked >= LARGE_COMPOSE_CONTEXT_WARN_AT
+        || planner_counts
+            .map(|counts| counts.analysis_included >= LARGE_COMPOSE_CONTEXT_WARN_AT)
+            .unwrap_or(false);
+    let planner_summary = if planner_warn {
+        match planner_counts {
+            Some(counts) => format!(
+                "Large compose graph: {} packs, {} checked contexts, and {} planned contexts. Prefer `--contexts from-contracts` for bounded UI-facing review, but keep broader compose modes for org-wide conflict review.",
+                pack_count, contexts_checked, counts.analysis_included
+            ),
+            None => format!(
+                "Large compose graph: {} packs and {} checked contexts exceed the default review budget. Prefer `--contexts from-contracts` for bounded UI-facing review, but keep broader compose modes for org-wide conflict review.",
+                pack_count, contexts_checked
+            ),
+        }
+    } else {
+        format!(
+            "Compose graph stays within the default review budget ({} packs, {} checked contexts).",
+            pack_count, contexts_checked
+        )
+    };
+
+    let witness_warn = conflict_count >= LARGE_COMPOSE_CONFLICT_WARN_AT
+        || finding_count >= LARGE_COMPOSE_FINDING_WARN_AT;
+    let witness_summary = if witness_warn {
+        format!(
+            "{} cross-pack conflicts expand to {} report findings. Text details are capped at {} conflicts; use `compose.witnesses.json` for the full conflict set and `compose.report.json` rollups for overview.",
+            conflict_count, finding_count, COMPOSE_TEXT_DETAIL_LIMIT
+        )
+    } else {
+        format!(
+            "{} cross-pack conflicts expand to {} report findings. The full detail set remains small enough for direct inspection.",
+            conflict_count, finding_count
+        )
+    };
+
+    ComposeReportGuardrails {
+        planner: ComposePlannerGuardrail {
+            status: if planner_warn {
+                "warn".to_string()
+            } else {
+                "ok".to_string()
+            },
+            summary: planner_summary,
+            pack_count,
+            contexts_checked,
+            analysis_included: planner_counts.map(|counts| counts.analysis_included),
+            analysis_universe: planner_counts.map(|counts| counts.universe),
+            warn_at_pack_count: LARGE_COMPOSE_PACK_WARN_AT,
+            warn_at_contexts_checked: LARGE_COMPOSE_CONTEXT_WARN_AT,
+        },
+        witnesses: ComposeWitnessGuardrail {
+            status: if witness_warn {
+                "warn".to_string()
+            } else {
+                "ok".to_string()
+            },
+            summary: witness_summary,
+            conflict_count,
+            finding_count,
+            detail_limit: COMPOSE_TEXT_DETAIL_LIMIT,
+            warn_at_conflicts: LARGE_COMPOSE_CONFLICT_WARN_AT,
+            warn_at_findings: LARGE_COMPOSE_FINDING_WARN_AT,
+        },
+    }
+}
+
+fn insert_compose_scale_metadata(
+    report: &mut serde_json::Value,
+    manifest: &ComposeManifest,
+    witnesses: &ComposeWitnesses,
+) {
+    let planner_counts = planner_budget_counts_from_report(report);
+    let guardrails = compose_report_guardrails(manifest, witnesses, planner_counts);
+    let rollups = compose_report_rollups(witnesses);
+    let object = report.as_object_mut().expect("compose report object");
+    object.insert(
+        "guardrails".to_string(),
+        serde_json::to_value(guardrails).expect("compose guardrails should serialize"),
+    );
+    object.insert(
+        "rollups".to_string(),
+        serde_json::to_value(rollups).expect("compose rollups should serialize"),
+    );
+}
+
+pub fn refresh_compose_report_scale_metadata(
+    report: &mut serde_json::Value,
+    manifest: &ComposeManifest,
+    witnesses: &ComposeWitnesses,
+) {
+    insert_compose_scale_metadata(report, manifest, witnesses);
+}
+
 fn render_compose_family_intro(out: &mut String, presentation: FindingPresentation, count: usize) {
     out.push_str(&format!(
         "{} [{} | {} | {} finding(s)]\n",
@@ -512,6 +751,18 @@ fn render_compose_report_text(manifest: &ComposeManifest, witnesses: &ComposeWit
         manifest.summary.overlapping_token_paths
     ));
 
+    let guardrails = compose_report_guardrails(manifest, witnesses, None);
+    let rollups = compose_report_rollups(witnesses);
+    out.push_str("Guardrails:\n");
+    out.push_str(&format!(
+        "  Planner budget: {} — {}\n",
+        guardrails.planner.status, guardrails.planner.summary
+    ));
+    out.push_str(&format!(
+        "  Witness budget: {} — {}\n\n",
+        guardrails.witnesses.status, guardrails.witnesses.summary
+    ));
+
     if witnesses.conflicts.is_empty() {
         out.push_str("✓ No cross-pack conflicts (pack order does not affect values).\n");
         return out;
@@ -521,7 +772,25 @@ fn render_compose_report_text(manifest: &ComposeManifest, witnesses: &ComposeWit
         presentation_for_kind("composeConflict").expect("compose conflict presentation");
     render_compose_family_intro(&mut out, presentation, witnesses.conflicts.len());
 
-    for (i, conflict) in witnesses.conflicts.iter().take(50).enumerate() {
+    out.push_str("Rollups:\n");
+    for (label, entries) in [
+        ("Token paths", &rollups.token_paths),
+        ("Winner packs", &rollups.winner_packs),
+        ("Pack sets", &rollups.pack_sets),
+    ] {
+        out.push_str(&format!("  {}:\n", label));
+        for entry in entries {
+            out.push_str(&format!("    - {} ({})\n", entry.key, entry.count));
+        }
+    }
+    out.push('\n');
+
+    for (i, conflict) in witnesses
+        .conflicts
+        .iter()
+        .take(COMPOSE_TEXT_DETAIL_LIMIT)
+        .enumerate()
+    {
         out.push_str(&format!(
             "{}. {} @ {}\n",
             i + 1,
@@ -568,10 +837,10 @@ fn render_compose_report_text(manifest: &ComposeManifest, witnesses: &ComposeWit
             conflict.token_path, conflict.context
         ));
     }
-    if witnesses.conflicts.len() > 50 {
+    if witnesses.conflicts.len() > COMPOSE_TEXT_DETAIL_LIMIT {
         out.push_str(&format!(
             "(… {} more; see compose.witnesses.json)\n",
-            witnesses.conflicts.len() - 50
+            witnesses.conflicts.len() - COMPOSE_TEXT_DETAIL_LIMIT
         ));
     }
 
@@ -650,6 +919,7 @@ fn build_compose_report_json_value(
                 .expect("backend artifacts should serialize"),
         );
     }
+    insert_compose_scale_metadata(&mut out, manifest, witnesses);
     out
 }
 

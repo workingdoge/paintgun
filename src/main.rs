@@ -1284,6 +1284,11 @@ fn run_compose(
                 CliError::new("internal error: compose report JSON must be an object")
             })?;
             obj.insert("plannerTrace".to_string(), trace);
+            paintgun::compose::refresh_compose_report_scale_metadata(
+                &mut report_json,
+                &manifest,
+                &witnesses,
+            );
         }
         let report_json_bytes = json_bytes(&report_json, "compose.report.json")?;
         write_bytes(

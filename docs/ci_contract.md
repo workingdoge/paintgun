@@ -30,6 +30,9 @@ Contract points:
 - `reportVersion` is the schema version marker. Current value: `1`.
 - `reportKind` is `pack` or `compose`.
 - `plannerTrace` is optional and only appears when explicitly requested.
+- `compose.report.json` also carries stable large-graph review helpers:
+  - `guardrails` summarizes planner and witness budgets plus the text-detail cap.
+  - `rollups` summarizes the hottest token paths, winner packs, and pack sets.
 - Breaking schema changes must either preserve backward compatibility or bump `reportVersion`.
 
 These artifacts are the recommended inputs for downstream annotation or archival steps.

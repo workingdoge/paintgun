@@ -451,8 +451,10 @@ Outputs:
   - Each compose pack entry includes pinned `packIdentity`.
   - Includes `backendArtifacts` entries for emitted backend files, with backend id, artifact kind, hash/size, and optional API version.
   - Preserves optional `nativeApiVersions` as a compatibility projection for Swift/Kotlin outputs.
-- `dist-compose/compose.report.txt` — human readable summary
+- `dist-compose/compose.report.txt` — human readable summary, including large-graph planner/witness guardrails, rollups, and capped detail when witness sets get large
 - `dist-compose/compose.report.json` — machine-readable diagnostics when `--format json` (schema: `schemas/report.schema.json`)
+  - Includes `guardrails` and `rollups` for large-compose review.
+  - Includes `plannerTrace` when `--planner-trace` is requested.
 
 ## Key refactor vs TS prototype
 

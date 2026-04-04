@@ -53,6 +53,12 @@
     },
     "plannerTrace": {
       "$ref": "#/definitions/plannerTrace"
+    },
+    "guardrails": {
+      "$ref": "#/definitions/guardrails"
+    },
+    "rollups": {
+      "$ref": "#/definitions/rollups"
     }
   },
   "definitions": {
@@ -190,6 +196,87 @@
         "context": { "type": "string" },
         "rule": { "type": "string" },
         "source": { "type": "string" }
+      }
+    },
+    "guardrails": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["planner", "witnesses"],
+      "properties": {
+        "planner": { "$ref": "#/definitions/plannerGuardrail" },
+        "witnesses": { "$ref": "#/definitions/witnessGuardrail" }
+      }
+    },
+    "plannerGuardrail": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "summary",
+        "packCount",
+        "contextsChecked",
+        "warnAtPackCount",
+        "warnAtContextsChecked"
+      ],
+      "properties": {
+        "status": { "type": "string", "enum": ["ok", "warn"] },
+        "summary": { "type": "string" },
+        "packCount": { "type": "integer", "minimum": 0 },
+        "contextsChecked": { "type": "integer", "minimum": 0 },
+        "analysisIncluded": { "type": "integer", "minimum": 0 },
+        "analysisUniverse": { "type": "integer", "minimum": 0 },
+        "warnAtPackCount": { "type": "integer", "minimum": 0 },
+        "warnAtContextsChecked": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "witnessGuardrail": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "summary",
+        "conflictCount",
+        "findingCount",
+        "detailLimit",
+        "warnAtConflicts",
+        "warnAtFindings"
+      ],
+      "properties": {
+        "status": { "type": "string", "enum": ["ok", "warn"] },
+        "summary": { "type": "string" },
+        "conflictCount": { "type": "integer", "minimum": 0 },
+        "findingCount": { "type": "integer", "minimum": 0 },
+        "detailLimit": { "type": "integer", "minimum": 0 },
+        "warnAtConflicts": { "type": "integer", "minimum": 0 },
+        "warnAtFindings": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "rollups": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tokenPaths", "winnerPacks", "packSets"],
+      "properties": {
+        "tokenPaths": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/rollupEntry" }
+        },
+        "winnerPacks": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/rollupEntry" }
+        },
+        "packSets": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/rollupEntry" }
+        }
+      }
+    },
+    "rollupEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "count"],
+      "properties": {
+        "key": { "type": "string" },
+        "count": { "type": "integer", "minimum": 0 }
       }
     }
   }

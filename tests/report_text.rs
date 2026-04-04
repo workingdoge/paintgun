@@ -75,16 +75,24 @@ fn dummy_manifest(name: &str) -> CtcManifest {
 }
 
 fn make_pack(name: &str, num: &str) -> Pack {
+    make_pack_with_count(name, num.parse::<usize>().expect("numeric fixture"), 1)
+}
+
+fn make_pack_with_count(name: &str, start: usize, count: usize) -> Pack {
     let mut resolved_by_ctx = HashMap::new();
-    resolved_by_ctx.insert(
-        "(base)".to_string(),
-        vec![ResolvedToken {
-            path: "color.surface.bg".to_string(),
+    let tokens = (0..count)
+        .map(|offset| ResolvedToken {
+            path: if count == 1 {
+                "color.surface.bg".to_string()
+            } else {
+                format!("color.surface.bg.{offset:02}")
+            },
             ty: DtcgType::Number,
-            value: DtcgValue::Num(NumLit(num.to_string())),
+            value: DtcgValue::Num(NumLit((start + offset).to_string())),
             source: "fixture".to_string(),
-        }],
-    );
+        })
+        .collect();
+    resolved_by_ctx.insert("(base)".to_string(), tokens);
     Pack {
         name: name.to_string(),
         dir: PathBuf::from(format!("/tmp/{name}")),
@@ -179,4 +187,62 @@ fn compose_report_is_family_first_and_action_oriented() {
         "missing compose action guidance"
     );
     assert!(text.contains("current winner:"), "missing winner context");
+    assert!(text.contains("Guardrails:"), "missing guardrail section");
+    assert!(text.contains("Rollups:"), "missing rollup section");
+}
+
+#[test]
+fn large_compose_report_rolls_up_and_truncates_details() {
+    let pack_a = make_pack_with_count("pack-a@1.0.0", 1, 60);
+    let pack_b = make_pack_with_count("pack-b@2.0.0", 100, 60);
+    let witnesses = analyze_cross_pack_conflicts(&[pack_a, pack_b], &BTreeMap::new());
+
+    let manifest = ComposeManifest {
+        compose_version: "0.1".to_string(),
+        tool: ToolInfo {
+            name: "paintgun".to_string(),
+            version: "0.1.0".to_string(),
+        },
+        trust: TrustMetadata::unsigned(),
+        axes: BTreeMap::new(),
+        pack_order: vec!["pack-a@1.0.0".to_string(), "pack-b@2.0.0".to_string()],
+        packs: Vec::new(),
+        semantics: CtcSemantics {
+            eq_value_id: "dtcg-2025.10-typed-structural".to_string(),
+            policy_digest: Some("sha256:dummy".to_string()),
+            conflict_mode: ConflictMode::Semantic,
+            normalizer_version: None,
+        },
+        backend_artifacts: Vec::new(),
+        native_api_versions: None,
+        summary: ComposeSummary {
+            packs: 24,
+            contexts: 80,
+            token_paths_union: 60,
+            overlapping_token_paths: 60,
+            conflicts: witnesses.conflicts.len(),
+        },
+        witnesses_sha256: "sha256:w".to_string(),
+    };
+
+    let text = render_compose_report(&manifest, &witnesses);
+    assert!(
+        text.contains("Planner budget: warn"),
+        "expected planner guardrail warning"
+    );
+    assert!(
+        text.contains("Prefer `--contexts from-contracts`"),
+        "expected planner guidance"
+    );
+    assert!(
+        text.contains("Witness budget: warn"),
+        "expected witness guardrail warning"
+    );
+    assert!(text.contains("Token paths:"), "missing token-path rollup");
+    assert!(text.contains("Winner packs:"), "missing winner-pack rollup");
+    assert!(text.contains("Pack sets:"), "missing pack-set rollup");
+    assert!(
+        text.contains("(… 35 more; see compose.witnesses.json)"),
+        "expected truncated detail hint"
+    );
 }
