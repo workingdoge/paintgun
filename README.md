@@ -170,6 +170,8 @@ It is intentionally a prototype package, not a new Paint core feature.
 
 The contract for what future live consumers may depend on is documented in
 [`docs/live_consumer_contract.md`](docs/live_consumer_contract.md).
+The next editor/design-tool adapter seams are documented in
+[`docs/editor_design_tool_seam.md`](docs/editor_design_tool_seam.md).
 
 ## Fixture tooling
 

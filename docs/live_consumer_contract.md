@@ -233,6 +233,8 @@ Editor integrations may depend on:
 - artifact/path metadata where relevant
 
 They should not parse terminal text as their primary source of truth.
+The editor-specific diagnostics seam is shaped in
+[`docs/editor_design_tool_seam.md`](editor_design_tool_seam.md).
 
 ### Design-Tool Bridges
 
@@ -243,6 +245,8 @@ Design-tool bridges may depend on:
 - finding families and compatibility metadata where useful
 
 They should not require Paint core to become an interactive design tool.
+The design-tool bridge seam is shaped in
+[`docs/editor_design_tool_seam.md`](editor_design_tool_seam.md).
 
 ## Reference Implementation Boundary
 
