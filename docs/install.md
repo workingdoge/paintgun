@@ -72,3 +72,5 @@ Those are contributor or maintainer concerns, not consumer prerequisites.
 ## Contributor source builds
 
 If you are working from a repo checkout and want to build from source, use the contributor path in [`docs/releasing.md`](releasing.md). That path still expects a repo-local `./premath` projection.
+
+After installation, the shortest end-to-end walkthrough is [`docs/quickstart.md`](quickstart.md).

@@ -67,6 +67,7 @@ Canonical backend ids are `web-css-vars`, `swift-tokens`, `android-compose-token
 
 Maintainers can also build a target-specific release tarball with `./scripts/package_release.sh`.
 The supported public install path is documented in [`docs/install.md`](docs/install.md).
+The 10-minute first-success walkthrough is documented in [`docs/quickstart.md`](docs/quickstart.md).
 The artifact shape, packaging policy, and maintainer checklist are documented in [`docs/releasing.md`](docs/releasing.md).
 The canonical new-user success path is documented in [`docs/first_success_ux.md`](docs/first_success_ux.md).
 The target-backend and system-package architecture is documented in [`docs/target_backends.md`](docs/target_backends.md).

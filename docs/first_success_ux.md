@@ -33,7 +33,7 @@ Consumer success must not depend on understanding:
 - local repo bootstrapping details
 - contributor-only CI wrappers
 
-Contributor and maintainer complexity may still exist, but it must stay outside the first-success path. The public install path in [`docs/install.md`](install.md) and the future quickstart in `tbp-qnb.5` should be judged against that boundary.
+Contributor and maintainer complexity may still exist, but it must stay outside the first-success path. The public install path in [`docs/install.md`](install.md) and the walkthrough in [`docs/quickstart.md`](quickstart.md) should be judged against that boundary.
 
 ## Canonical First-Success Path
 
@@ -41,9 +41,8 @@ The canonical path is a single-pack flow over one real example resolver.
 
 Current reference assets:
 
-- `examples/charter-steel/charter-steel.resolver.json`
-- `examples/charter-steel/component-contracts.json`
-- `examples/charter-steel/policy.json`
+- `examples/quickstart/failing.resolver.json`
+- `examples/quickstart/fixed.resolver.json`
 
 The intended user flow is:
 

@@ -1,0 +1,72 @@
+{
+  "name": "paint-quickstart",
+  "version": "2025.10",
+  "description": "Minimal first-success quickstart fixture after the missing dark-theme token is fixed.",
+  "sets": {
+    "base": {
+      "sources": [
+        {
+          "color": {
+            "$type": "color",
+            "surface": {
+              "bg": {
+                "$value": {
+                  "colorSpace": "oklch",
+                  "components": [0.99, 0, 0],
+                  "hex": "#ffffff"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "modifiers": {
+    "theme": {
+      "contexts": {
+        "light": [
+          {
+            "color": {
+              "$type": "color",
+              "action": {
+                "primary": {
+                  "$value": {
+                    "colorSpace": "oklch",
+                    "components": [0.72, 0.16, 250],
+                    "hex": "#4f6ef7"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "dark": [
+          {
+            "color": {
+              "$type": "color",
+              "action": {
+                "primary": {
+                  "$value": {
+                    "colorSpace": "oklch",
+                    "components": [0.58, 0.13, 250],
+                    "hex": "#6f86ff"
+                  },
+                  "$description": "This explicit dark-theme value closes the quickstart gap witness."
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "resolutionOrder": [
+    {
+      "$ref": "#/sets/base"
+    },
+    {
+      "$ref": "#/modifiers/theme"
+    }
+  ]
+}
