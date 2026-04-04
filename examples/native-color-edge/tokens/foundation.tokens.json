@@ -1,0 +1,35 @@
+{
+  "color": {
+    "$type": "color",
+    "overlay": {
+      "scrim": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0.1, 0.2, 0.3],
+          "alpha": 0.5
+        }
+      }
+    },
+    "brand": {
+      "glow": {
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [0.2, 0.4, 0.6],
+          "alpha": 0.25,
+          "hex": "#336699"
+        }
+      }
+    }
+  },
+  "dimension": {
+    "$type": "dimension",
+    "radius": {
+      "sm": {
+        "$value": {
+          "value": 6,
+          "unit": "px"
+        }
+      }
+    }
+  }
+}

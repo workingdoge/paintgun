@@ -188,11 +188,23 @@ jobs:
           cargo run -- build \
             examples/charter-steel/charter-steel.resolver.json \
             --out dist-native-swift \
-            --target swift
+            --target swift-tokens
 
       - name: Run generated Swift package tests (pack)
         run: |
           cd dist-native-swift/swift
+          swift test
+
+      - name: Build alpha-color Swift artifacts
+        run: |
+          cargo run -- build \
+            examples/native-color-edge/native-color-edge.resolver.json \
+            --out dist-native-swift-alpha \
+            --target swift-tokens
+
+      - name: Run generated Swift package tests (alpha fixture)
+        run: |
+          cd dist-native-swift-alpha/swift
           swift test
 
       - name: Build native Swift compose artifacts
@@ -201,7 +213,7 @@ jobs:
             dist-native-swift \
             dist-native-swift \
             --out dist-native-compose-swift \
-            --target swift \
+            --target swift-tokens \
             --format text
 
       - name: Run generated Swift package tests (compose)
@@ -209,7 +221,7 @@ jobs:
           cd dist-native-compose-swift/swift
           swift test
 
-  native-kotlin-integration:
+  native-android-integration:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -230,30 +242,42 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build native Kotlin artifacts
+      - name: Build native Android artifacts
         run: |
           cargo run -- build \
             examples/charter-steel/charter-steel.resolver.json \
-            --out dist-native-kotlin \
-            --target kotlin
+            --out dist-native-android \
+            --target android-compose-tokens
 
-      - name: Run generated Kotlin module tests (pack)
+      - name: Run generated Android module tests (pack)
         run: |
-          cd dist-native-kotlin/kotlin
+          cd dist-native-android/android
           gradle --no-daemon test
 
-      - name: Build native Kotlin compose artifacts
+      - name: Build alpha-color Android artifacts
+        run: |
+          cargo run -- build \
+            examples/native-color-edge/native-color-edge.resolver.json \
+            --out dist-native-android-alpha \
+            --target android-compose-tokens
+
+      - name: Run generated Android module tests (alpha fixture)
+        run: |
+          cd dist-native-android-alpha/android
+          gradle --no-daemon test
+
+      - name: Build native Android compose artifacts
         run: |
           cargo run -- compose \
-            dist-native-kotlin \
-            dist-native-kotlin \
-            --out dist-native-compose-kotlin \
-            --target kotlin \
+            dist-native-android \
+            dist-native-android \
+            --out dist-native-compose-android \
+            --target android-compose-tokens \
             --format text
 
-      - name: Run generated Kotlin module tests (compose)
+      - name: Run generated Android module tests (compose)
         run: |
-          cd dist-native-compose-kotlin/kotlin
+          cd dist-native-compose-android/android
           gradle --no-daemon test
 
   all-tests:

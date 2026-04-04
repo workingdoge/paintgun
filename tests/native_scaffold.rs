@@ -19,12 +19,16 @@ fn temp_dir(prefix: &str) -> PathBuf {
     dir
 }
 
-fn example_store() -> (PathBuf, paintgun::resolver::TokenStore) {
+fn example_store_from(relative: &str) -> (PathBuf, paintgun::resolver::TokenStore) {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let resolver_path = root.join("examples/charter-steel/charter-steel.resolver.json");
+    let resolver_path = root.join(relative);
     let doc: ResolverDoc = read_json_file(&resolver_path).expect("resolver doc");
     let store = build_token_store(&doc, &resolver_path).expect("token store");
     (resolver_path, store)
+}
+
+fn example_store() -> (PathBuf, paintgun::resolver::TokenStore) {
+    example_store_from("examples/charter-steel/charter-steel.resolver.json")
 }
 
 fn assert_exists(path: &Path) {
@@ -111,5 +115,49 @@ fn android_compose_module_scaffold_is_emitted() {
     assert!(
         source_content.contains(ANDROID_COMPOSE_EMITTER_API_VERSION),
         "android source should carry expected API version"
+    );
+}
+
+#[test]
+fn swift_scaffold_preserves_alpha_color_paths() {
+    let (_resolver_path, store) =
+        example_store_from("examples/native-color-edge/native-color-edge.resolver.json");
+    let policy = Policy::default();
+    let swift_source = emit_store_swift(&store, &policy);
+    let out = temp_dir("swift-alpha");
+
+    emit_swift_package_scaffold(&out, &swift_source).expect("emit swift scaffold");
+
+    let module_swift = out.join("swift/Sources/PaintgunTokens/PaintgunTokens.swift");
+    let module_content = fs::read_to_string(module_swift).expect("read module swift");
+    assert!(
+        module_content.contains("paintgunColor(red: 0.1, green: 0.2, blue: 0.3, opacity: 0.5)"),
+        "swift scaffold should preserve numeric-component alpha colors"
+    );
+    assert!(
+        module_content.contains("paintgunColor(red: 0.2, green: 0.4, blue: 0.6, opacity: 0.25)"),
+        "swift scaffold should preserve hex-backed alpha colors"
+    );
+}
+
+#[test]
+fn android_scaffold_emits_argb_for_alpha_color_paths() {
+    let (_resolver_path, store) =
+        example_store_from("examples/native-color-edge/native-color-edge.resolver.json");
+    let policy = Policy::default();
+    let kotlin_source = emit_store_kotlin(&store, &policy);
+    let out = temp_dir("android-alpha");
+
+    emit_kotlin_module_scaffold(&out, &kotlin_source).expect("emit android scaffold");
+
+    let source = out.join("android/src/main/kotlin/paintgun/PaintgunTokens.kt");
+    let source_content = fs::read_to_string(source).expect("read kotlin source");
+    assert!(
+        source_content.contains("PaintgunColor(0x801A334Du)"),
+        "android scaffold should encode numeric-component alpha colors as ARGB UInts"
+    );
+    assert!(
+        source_content.contains("PaintgunColor(0x40336699u)"),
+        "android scaffold should encode hex-backed alpha colors as ARGB UInts"
     );
 }

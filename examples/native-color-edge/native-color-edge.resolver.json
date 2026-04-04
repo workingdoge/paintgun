@@ -1,0 +1,20 @@
+{
+  "name": "Native Color Edge",
+  "version": "2025.10",
+  "description": "Fixture for native emitter alpha and ARGB compile coverage",
+  "sets": {
+    "foundation": {
+      "description": "Alpha-bearing color tokens for native emitter coverage",
+      "sources": [
+        {
+          "$ref": "tokens/foundation.tokens.json"
+        }
+      ]
+    }
+  },
+  "resolutionOrder": [
+    {
+      "$ref": "#/sets/foundation"
+    }
+  ]
+}

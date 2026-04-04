@@ -464,4 +464,5 @@ Outputs:
 - Kan/BC analysis compares values by **structural equality**, not `===` on CSS.
 - Emission happens **last** via `CssEmitter` (or other targets).
 - Provenance pack identity is canonicalized across naming variants (`@version`, `+/# sha`, `__sha256_`).
-- CI runs native integration checks for emitted Swift/Android packages (`swift test`, Gradle test).
+- CI runs native integration checks for emitted Swift/Android packages (`swift test`, Gradle test),
+  including the standard `charter-steel` fixture and a native alpha-color edge-case fixture.
