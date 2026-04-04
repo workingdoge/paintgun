@@ -1,0 +1,21 @@
+{
+  "$description": "Contracts for the large compose-scale benchmark corpus.",
+  "compose-card": {
+    "component": "compose-card",
+    "description": "Synthetic benchmark surface used to constrain from-contracts planning.",
+    "slots": {
+      "surface-bg": {
+        "token": "color.surface.bg",
+        "property": "background"
+      },
+      "action-primary": {
+        "token": "color.action.primary",
+        "property": "color"
+      },
+      "radius-md": {
+        "token": "dimension.radius.md",
+        "property": "border-radius"
+      }
+    }
+  }
+}

@@ -422,6 +422,23 @@ CI enforces the following pass/fail gates from this fixture:
 
 These thresholds are defined in `scripts/context_metrics.py` and emitted in `perf-metrics/context-metrics.json` under `thresholds` and `derived`.
 
+Large compose/planner benchmark fixture:
+
+```bash
+python3 scripts/compose_scale_metrics.py
+```
+
+This generates a 24-pack corpus from `examples/compose-scale/*`, builds those packs in `partial`
+mode, then composes the graph in `full-only`, `partial`, and `from-contracts` modes. It writes:
+
+- `dist-compose-scale/` — generated resolver corpus plus built pack/compose outputs
+- `perf-metrics/compose-scale-metrics.json`
+- `perf-metrics/compose-scale-metrics.md`
+
+The committed fixture description lives in `examples/compose-scale/README.md`.
+Interpretation note: on large graphs, `from-contracts` should be read as a bounded planning view,
+not as a replacement for full org-wide compose conflict review.
+
 Outputs:
 
 - `dist-compose/resolved.json` — composed resolved IR

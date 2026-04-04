@@ -1,0 +1,24 @@
+{
+  "fixtureVersion": "paint.compose-scale.alpha1",
+  "description": "Synthetic 24-pack compose/planner benchmark corpus for large graph measurement.",
+  "orgs": [
+    "atlas",
+    "meridian",
+    "northstar",
+    "pulse",
+    "quartz",
+    "summit"
+  ],
+  "surfaces": [
+    "core",
+    "brand",
+    "product",
+    "campaign"
+  ],
+  "axes": {
+    "theme": ["light", "dark"],
+    "density": ["compact", "comfortable"],
+    "mode": ["docs", "marketing"],
+    "platform": ["web", "ios", "android"]
+  }
+}

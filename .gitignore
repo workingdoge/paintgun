@@ -5,6 +5,8 @@
 /dist*/
 /release-artifacts/
 /spec-watch-artifacts/
+/perf-metrics/compose-scale-metrics.json
+/perf-metrics/compose-scale-metrics.md
 /premath
 
 # Dolt database files (added by bd init)
