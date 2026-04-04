@@ -206,6 +206,9 @@ Recommended order:
 2. Completed: existing web CSS, Swift, and Android/Kotlin flows now run through that registry.
 3. Completed: CSS component-system emission is split from token backend emission.
 4. Completed: a typed `web-tokens-ts` backend now emits JS/TS token package artifacts distinct from the CSS compatibility target.
+   - [`examples/web-tokens-consumer/README.md`](../examples/web-tokens-consumer/README.md)
+     now shows the supported consumer path: depend on the generated `web/` package scaffold and
+     build a consumer-local helper layer above its typed exports.
 5. Completed: the canonical Android backend id is `android-compose-tokens`, with `kotlin` retained as a compatibility alias.
 6. Completed: manifest metadata now records backend artifact descriptors instead of relying on target-specific fields alone.
 

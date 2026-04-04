@@ -75,6 +75,8 @@ The alpha-stable backend artifact contract is documented in [`docs/backend_contr
 The user-facing finding families and remediation model are documented in [`docs/witness_taxonomy.md`](docs/witness_taxonomy.md).
 The DTCG 2025.10 design/conformance review is documented in [`docs/dtcg_2025_10_review.md`](docs/dtcg_2025_10_review.md).
 The alpha release boundary and go/no-go checklist are documented in [`docs/alpha_release.md`](docs/alpha_release.md).
+The minimal TypeScript consumer path for `web-tokens-ts` is documented in
+[`examples/web-tokens-consumer/README.md`](examples/web-tokens-consumer/README.md).
 
 `build` supports two KCIR manifest wire formats via `--kcir-wire-format-id`:
 - `kcir.wire.legacy-fixed32.v1` (default)
@@ -94,6 +96,8 @@ Outputs:
 - `dist/swift/` — Swift Package scaffold (`Package.swift`, module source, tests) when `--target swift-tokens`
 - `dist/android/` — Android Gradle module scaffold (`settings.gradle.kts`, `build.gradle.kts`, source, tests) when `--target android-compose-tokens` or the `kotlin` compatibility alias
 - `dist/web/` — web token package scaffold (`package.json`, `tsconfig.json`, source, test) when `--target web-tokens-ts`
+  - See [`examples/web-tokens-consumer/README.md`](examples/web-tokens-consumer/README.md) for
+    a minimal Bun/TypeScript consumer that imports that generated package by name.
 - `dist/resolved.json` — platform-neutral resolved IR (structured values)
 - `dist/ctc.witnesses.json` — composability witnesses (Kan/BC/orthogonality) including `conflictMode`, `policyDigest`, and `normalizerVersion` metadata
   - Includes `witnessSchema` version marker (currently `1`).

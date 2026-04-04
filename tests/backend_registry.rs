@@ -331,4 +331,11 @@ fn web_tokens_backend_emits_typed_package_artifacts() {
         primary_content.contains("export type PaintTokenValue"),
         "web token source should export typed token aliases"
     );
+
+    let package_test_content =
+        fs::read_to_string(out.join(&package_test.relative_path)).expect("read package test");
+    assert!(
+        package_test_content.contains("contexts[0]?.context"),
+        "web package test should use the first emitted context instead of assuming a base context"
+    );
 }

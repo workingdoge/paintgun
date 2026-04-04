@@ -993,10 +993,14 @@ fn web_tokens_tsconfig() -> String {
 
 fn web_tokens_test_file() -> String {
     let mut out = String::new();
-    out.push_str("import { valuesByContext } from \"./index\";\n\n");
-    out.push_str("const base = valuesByContext[\"(base)\"];\n");
-    out.push_str("if (!base || Object.keys(base).length === 0) {\n");
-    out.push_str("  throw new Error(\"expected base token context\");\n");
+    out.push_str("import { contexts, valuesByContext } from \"./index\";\n\n");
+    out.push_str("const firstContext = contexts[0]?.context;\n");
+    out.push_str("if (!firstContext) {\n");
+    out.push_str("  throw new Error(\"expected at least one emitted token context\");\n");
+    out.push_str("}\n");
+    out.push_str("const tokens = valuesByContext[firstContext];\n");
+    out.push_str("if (!tokens || Object.keys(tokens).length === 0) {\n");
+    out.push_str("  throw new Error(\"expected emitted tokens for first context\");\n");
     out.push_str("}\n");
     out
 }

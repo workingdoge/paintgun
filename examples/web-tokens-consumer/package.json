@@ -1,0 +1,18 @@
+{
+  "name": "@paint/examples-web-tokens-consumer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate:paint": "bun run ./scripts/refresh-paint-package.ts",
+    "typecheck": "bun x tsc --noEmit",
+    "demo": "bun run ./src/demo.ts",
+    "check": "bun run generate:paint && bun run typecheck && bun run ./scripts/check-example.ts"
+  },
+  "dependencies": {
+    "paintgun-web-tokens": "file:./generated/paint/web"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.0",
+    "typescript": "^5.9.0"
+  }
+}
