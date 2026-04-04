@@ -5,8 +5,10 @@
   "scripts": {
     "generate:paint": "bun run ./scripts/refresh-paint-artifacts.ts",
     "generate:web-ir": "bun run ./scripts/build-system-web.ts",
+    "generate:catalog-ir": "bun run ./scripts/build-system-catalog.ts",
     "generate:adapter": "bun run ./scripts/generate-web-adapter.ts",
-    "generate": "bun run generate:paint && bun run generate:web-ir && bun run generate:adapter",
+    "generate:catalog-adapter": "bun run ./scripts/generate-catalog-adapter.ts",
+    "generate": "bun run generate:paint && bun run generate:web-ir && bun run generate:catalog-ir && bun run generate:adapter && bun run generate:catalog-adapter",
     "build:demo": "bun run ./scripts/build-demo.ts",
     "storybook": "storybook dev -p 6006 --ci",
     "build:storybook": "storybook build",

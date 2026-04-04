@@ -181,6 +181,8 @@ projection is a design-tool-neutral catalog IR, for example:
 
 - `system.catalog.json`
 
+The projection contract is documented in [`docs/catalog_ir.md`](catalog_ir.md).
+
 Suggested record families:
 
 - system metadata and release

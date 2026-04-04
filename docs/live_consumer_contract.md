@@ -89,6 +89,7 @@ Examples:
 - `system.web.json` for web-facing runtime semantics
 - a future documentation projection IR for docs/catalog/search surfaces
 - `diagnostics.pack.json` and `diagnostics.compose.json` for read-only editor consumers
+- `system.catalog.json` for design-tool-neutral catalog/provenance consumers
 
 Consumers should prefer these generated IRs over reading the authored canonical schema directly at
 runtime.
@@ -242,7 +243,8 @@ The editor-specific diagnostics seam is shaped in
 Design-tool bridges may depend on:
 
 - generated token packages
-- design-system schema projections promoted specifically for design-tool use
+- design-system schema projections promoted specifically for design-tool use, such as
+  `system.catalog.json`
 - finding families and compatibility metadata where useful
 
 They should not require Paint core to become an interactive design tool.

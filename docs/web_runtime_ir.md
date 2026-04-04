@@ -19,6 +19,7 @@ This IR sits:
 
 The broader contract for live consumer integrations above this IR is documented in
 [`docs/live_consumer_contract.md`](live_consumer_contract.md).
+The sibling design-tool/catalog projection is documented in [`docs/catalog_ir.md`](catalog_ir.md).
 
 ## Why A Separate Web IR Exists
 

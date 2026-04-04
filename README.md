@@ -166,7 +166,9 @@ Paint backend outputs:
 - authored `system.schema.json`
 - authored `system.web.config.json`
 - derived `generated/system.web.json`
+- derived `generated/system.catalog.json`
 - generated `src/generated/system-web.ts`
+- generated `src/generated/system-catalog.ts`
 - one pure custom-element consumer
 - one real Storybook workspace and docs consumer
 - one static browser host at `demo/index.html`
@@ -177,6 +179,8 @@ The contract for what future live consumers may depend on is documented in
 [`docs/live_consumer_contract.md`](docs/live_consumer_contract.md).
 The editor-facing diagnostics projection is documented in
 [`docs/diagnostics_projection.md`](docs/diagnostics_projection.md).
+The design-tool-neutral catalog IR is documented in
+[`docs/catalog_ir.md`](docs/catalog_ir.md).
 The next editor/design-tool adapter seams are documented in
 [`docs/editor_design_tool_seam.md`](docs/editor_design_tool_seam.md).
 
