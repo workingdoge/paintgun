@@ -18,6 +18,7 @@ pub use premath_dsl as dsl;
 pub mod dtcg;
 pub mod emit;
 pub mod explain;
+pub(crate) mod finding_presentation;
 pub mod gate;
 pub mod ids;
 pub use premath_kcir::kcir_v2;

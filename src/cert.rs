@@ -7,6 +7,7 @@ use serde_json::json;
 
 use crate::analysis::PartialAssignment;
 use crate::dtcg::TypedValue;
+use crate::finding_presentation::{presentation_for_kind, severity_heading, FindingPresentation};
 use crate::ids::{TokenPathId, WitnessId};
 use crate::kcir_v2::{default_kcir_profile_binding, KcirProfileBinding, KCIR_VERSION};
 use crate::pack_identity::{parse_pack_identity_label, parse_vendor_pack_identity_from_file_path};
@@ -648,11 +649,15 @@ pub fn build_validation_report_json(analysis: &CtcAnalysis) -> serde_json::Value
 
     for w in &analysis.witnesses.gaps {
         if w.authored_sources.is_empty() {
+            let presentation = presentation_for_kind("gap").expect("gap presentation");
             findings.push(ReportFinding {
                 witness_id: w.witness_id.clone().into(),
                 kind: "gap".to_string(),
                 severity: "error".to_string(),
-                message: format!("Kan gap for {} at {}", w.token_path, w.target),
+                message: format!(
+                    "{}: no explicit winning value for {} at {}. {}",
+                    presentation.family_label, w.token_path, w.target, presentation.next_action
+                ),
                 token_path: Some(w.token_path.clone().into()),
                 context: Some(w.target.clone()),
                 file_path: None,
@@ -662,13 +667,18 @@ pub fn build_validation_report_json(analysis: &CtcAnalysis) -> serde_json::Value
             continue;
         }
         for s in &w.authored_sources {
+            let presentation = presentation_for_kind("gap").expect("gap presentation");
             findings.push(ReportFinding {
                 witness_id: w.witness_id.clone().into(),
                 kind: "gap".to_string(),
                 severity: "error".to_string(),
                 message: format!(
-                    "Kan gap for {} at {} (source {})",
-                    w.token_path, w.target, s.source_context
+                    "{}: no explicit winning value for {} at {} (source {}). {}",
+                    presentation.family_label,
+                    w.token_path,
+                    w.target,
+                    s.source_context,
+                    presentation.next_action
                 ),
                 token_path: Some(w.token_path.clone().into()),
                 context: Some(w.target.clone()),
@@ -680,14 +690,19 @@ pub fn build_validation_report_json(analysis: &CtcAnalysis) -> serde_json::Value
     }
 
     for w in &analysis.witnesses.conflicts {
+        let presentation = presentation_for_kind("conflict").expect("conflict presentation");
         for c in &w.candidates {
             findings.push(ReportFinding {
                 witness_id: w.witness_id.clone().into(),
                 kind: "conflict".to_string(),
                 severity: "error".to_string(),
                 message: format!(
-                    "Kan conflict for {} at {} (candidate from {})",
-                    w.token_path, w.target, c.source_context
+                    "{}: competing definitions for {} at {} (candidate from {}). {}",
+                    presentation.family_label,
+                    w.token_path,
+                    w.target,
+                    c.source_context,
+                    presentation.next_action
                 ),
                 token_path: Some(w.token_path.clone().into()),
                 context: Some(w.target.clone()),
@@ -699,12 +714,16 @@ pub fn build_validation_report_json(analysis: &CtcAnalysis) -> serde_json::Value
     }
 
     for w in &analysis.witnesses.inherited {
+        let presentation = presentation_for_kind("inherited").expect("inherited presentation");
         for s in &w.sources {
             findings.push(ReportFinding {
                 witness_id: w.witness_id.clone().into(),
                 kind: "inherited".to_string(),
                 severity: "info".to_string(),
-                message: format!("Inherited value for {} at {}", w.token_path, w.target),
+                message: format!(
+                    "{}: {} at {} inherits its value here. {}",
+                    presentation.family_label, w.token_path, w.target, presentation.next_action
+                ),
                 token_path: Some(w.token_path.clone().into()),
                 context: Some(w.target.clone()),
                 file_path: Some(s.file_path.clone()),
@@ -715,13 +734,17 @@ pub fn build_validation_report_json(analysis: &CtcAnalysis) -> serde_json::Value
     }
 
     for w in &analysis.witnesses.bc_violations {
+        let presentation = presentation_for_kind("bcViolation").expect("bc presentation");
         let ctx = format!("{}:{},{}:{}", w.axis_a, w.value_a, w.axis_b, w.value_b);
         if let Some(src) = &w.left_source {
             findings.push(ReportFinding {
                 witness_id: w.witness_id.clone().into(),
                 kind: "bcViolation".to_string(),
                 severity: "error".to_string(),
-                message: format!("Beck-Chevalley violation for {} at {}", w.token_path, ctx),
+                message: format!(
+                    "{}: evaluation order changes {} at {}. {}",
+                    presentation.family_label, w.token_path, ctx, presentation.next_action
+                ),
                 token_path: Some(w.token_path.clone().into()),
                 context: Some(ctx.clone()),
                 file_path: src.file_path.clone(),
@@ -734,7 +757,10 @@ pub fn build_validation_report_json(analysis: &CtcAnalysis) -> serde_json::Value
                 witness_id: w.witness_id.clone().into(),
                 kind: "bcViolation".to_string(),
                 severity: "error".to_string(),
-                message: format!("Beck-Chevalley violation for {} at {}", w.token_path, ctx),
+                message: format!(
+                    "{}: evaluation order changes {} at {}. {}",
+                    presentation.family_label, w.token_path, ctx, presentation.next_action
+                ),
                 token_path: Some(w.token_path.clone().into()),
                 context: Some(ctx.clone()),
                 file_path: src.file_path.clone(),
@@ -747,7 +773,10 @@ pub fn build_validation_report_json(analysis: &CtcAnalysis) -> serde_json::Value
                 witness_id: w.witness_id.clone().into(),
                 kind: "bcViolation".to_string(),
                 severity: "error".to_string(),
-                message: format!("Beck-Chevalley violation for {} at {}", w.token_path, ctx),
+                message: format!(
+                    "{}: evaluation order changes {} at {}. {}",
+                    presentation.family_label, w.token_path, ctx, presentation.next_action
+                ),
                 token_path: Some(w.token_path.clone().into()),
                 context: Some(ctx),
                 file_path: None,
@@ -758,15 +787,19 @@ pub fn build_validation_report_json(analysis: &CtcAnalysis) -> serde_json::Value
     }
 
     for w in &analysis.witnesses.orthogonality {
+        let presentation =
+            presentation_for_kind("orthogonality").expect("orthogonality presentation");
         findings.push(ReportFinding {
             witness_id: w.witness_id.clone().into(),
             kind: "orthogonality".to_string(),
             severity: "warn".to_string(),
             message: format!(
-                "Orthogonality overlap between {} and {} ({} paths)",
+                "{}: {} and {} overlap on {} token paths. {}",
+                presentation.family_label,
                 w.axis_a,
                 w.axis_b,
-                w.overlap_token_paths.len()
+                w.overlap_token_paths.len(),
+                presentation.next_action
             ),
             token_path: None,
             context: None,
@@ -1202,6 +1235,37 @@ pub fn build_ctc_manifest(
 // Human-readable report
 //──────────────────────────────────────────────────────────────────────────────
 
+fn render_report_location(
+    file_path: Option<&str>,
+    json_pointer: Option<&str>,
+    pack: Option<&str>,
+) -> String {
+    let mut parts = Vec::new();
+    if let Some(file_path) = file_path {
+        parts.push(file_path.to_string());
+    }
+    if let Some(json_pointer) = json_pointer {
+        parts.push(json_pointer.to_string());
+    }
+    if let Some(pack) = pack {
+        parts.push(format!("pack={pack}"));
+    }
+    if parts.is_empty() {
+        "(no source location)".to_string()
+    } else {
+        parts.join("  ")
+    }
+}
+
+fn render_family_intro(out: &mut String, presentation: FindingPresentation, count: usize) {
+    out.push_str(&format!(
+        "{} [{} | {} | {} finding(s)]\n",
+        presentation.family_label, presentation.severity, presentation.fixability, count
+    ));
+    out.push_str(&format!("  What it means: {}\n", presentation.meaning));
+    out.push_str(&format!("  Next action: {}\n", presentation.next_action));
+}
+
 /// Render a human-readable validation report similar to the prototype's `validation.txt`.
 ///
 /// This is purely a convenience layer over the certified witnesses.
@@ -1212,27 +1276,199 @@ pub fn render_validation_report(store: &TokenStore, analysis: &CtcAnalysis) -> S
     out.push_str("  AA-VS/Paintgun Validation Report\n");
     out.push_str("═══════════════════════════════════════\n\n");
 
-    // Orthogonality
-    out.push_str("Orthogonality:\n");
-    if analysis.witnesses.orthogonality.is_empty() {
-        out.push_str("  (no overlaps)\n\n");
-    } else {
-        for o in &analysis.witnesses.orthogonality {
-            out.push_str(&format!(
-                "  {} × {}: {} shared token paths\n",
-                o.axis_a,
-                o.axis_b,
-                o.overlap_token_paths.len()
-            ));
-            for p in &o.overlap_token_paths {
-                out.push_str(&format!("    {}\n", p));
+    let family_counts = [
+        ("gap", analysis.witnesses.gaps.len()),
+        ("conflict", analysis.witnesses.conflicts.len()),
+        ("bcViolation", analysis.witnesses.bc_violations.len()),
+        ("orthogonality", analysis.witnesses.orthogonality.len()),
+        ("inherited", analysis.witnesses.inherited.len()),
+    ];
+
+    out.push_str("Action summary:\n");
+    for severity in ["error", "warn", "info"] {
+        let mut wrote_heading = false;
+        for (kind, count) in family_counts {
+            if count == 0 {
+                continue;
             }
+            let presentation = presentation_for_kind(kind).expect("known presentation");
+            if presentation.severity != severity {
+                continue;
+            }
+            if !wrote_heading {
+                out.push_str(&format!("  {}:\n", severity_heading(severity)));
+                wrote_heading = true;
+            }
+            out.push_str(&format!("    - {}: {}\n", presentation.family_label, count));
+        }
+        if !wrote_heading {
+            out.push_str(&format!("  {}:\n", severity_heading(severity)));
+            out.push_str("    - none\n");
+        }
+    }
+    out.push('\n');
+
+    if !analysis.witnesses.gaps.is_empty() {
+        let presentation = presentation_for_kind("gap").expect("gap presentation");
+        render_family_intro(&mut out, presentation, analysis.witnesses.gaps.len());
+        for (idx, w) in analysis.witnesses.gaps.iter().take(8).enumerate() {
+            out.push_str(&format!("  {}. {} @ {}\n", idx + 1, w.token_path, w.target));
+            if let Some(src) = w.authored_sources.first() {
+                out.push_str(&format!(
+                    "     nearest source: {}\n",
+                    render_report_location(
+                        Some(&src.file_path),
+                        Some(&src.json_pointer),
+                        Some(&src.pack_id)
+                    )
+                ));
+            }
+            out.push_str(&format!(
+                "     action: author `{}` explicitly at `{}` in the intended winning layer\n",
+                w.token_path, w.target
+            ));
+        }
+        if analysis.witnesses.gaps.len() > 8 {
+            out.push_str(&format!(
+                "  ... {} more missing-definition findings\n",
+                analysis.witnesses.gaps.len() - 8
+            ));
         }
         out.push('\n');
     }
 
-    // Beck–Chevalley
-    out.push_str("Beck–Chevalley:\n");
+    if !analysis.witnesses.conflicts.is_empty() {
+        let presentation = presentation_for_kind("conflict").expect("conflict presentation");
+        render_family_intro(&mut out, presentation, analysis.witnesses.conflicts.len());
+        for (idx, w) in analysis.witnesses.conflicts.iter().take(8).enumerate() {
+            out.push_str(&format!("  {}. {} @ {}\n", idx + 1, w.token_path, w.target));
+            if let Some(candidate) = w.candidates.first() {
+                out.push_str(&format!(
+                    "     example source: {}\n",
+                    render_report_location(
+                        Some(&candidate.file_path),
+                        Some(&candidate.json_pointer),
+                        Some(&candidate.pack_id)
+                    )
+                ));
+            }
+            out.push_str(&format!(
+                "     action: add an explicit override for `{}` at `{}` to make the winner unambiguous\n",
+                w.token_path, w.target
+            ));
+        }
+        if analysis.witnesses.conflicts.len() > 8 {
+            out.push_str(&format!(
+                "  ... {} more ambiguous-definition findings\n",
+                analysis.witnesses.conflicts.len() - 8
+            ));
+        }
+        out.push('\n');
+    }
+
+    if !analysis.witnesses.bc_violations.is_empty() {
+        let presentation = presentation_for_kind("bcViolation").expect("bc violation presentation");
+        render_family_intro(
+            &mut out,
+            presentation,
+            analysis.witnesses.bc_violations.len(),
+        );
+        for (idx, v) in analysis.witnesses.bc_violations.iter().take(6).enumerate() {
+            out.push_str(&format!(
+                "  {}. {} @ {}:{}, {}:{}\n",
+                idx + 1,
+                v.token_path,
+                v.axis_a,
+                v.value_a,
+                v.axis_b,
+                v.value_b
+            ));
+            if let Some(src) = &v.left_source {
+                out.push_str(&format!(
+                    "     example source: {}\n",
+                    render_report_location(
+                        src.file_path.as_deref(),
+                        src.json_pointer.as_deref(),
+                        src.pack_id.as_deref()
+                    )
+                ));
+            }
+            out.push_str(&format!("     action: {}\n", v.fix));
+        }
+        if analysis.witnesses.bc_violations.len() > 6 {
+            out.push_str(&format!(
+                "  ... {} more order-dependent-resolution findings\n",
+                analysis.witnesses.bc_violations.len() - 6
+            ));
+        }
+        out.push('\n');
+    }
+
+    if !analysis.witnesses.orthogonality.is_empty() {
+        let presentation =
+            presentation_for_kind("orthogonality").expect("orthogonality presentation");
+        render_family_intro(
+            &mut out,
+            presentation,
+            analysis.witnesses.orthogonality.len(),
+        );
+        for (idx, o) in analysis.witnesses.orthogonality.iter().take(4).enumerate() {
+            out.push_str(&format!(
+                "  {}. {} x {} ({} shared token paths)\n",
+                idx + 1,
+                o.axis_a,
+                o.axis_b,
+                o.overlap_token_paths.len()
+            ));
+            for path in o.overlap_token_paths.iter().take(4) {
+                out.push_str(&format!("     path: {path}\n"));
+            }
+            if o.overlap_token_paths.len() > 4 {
+                out.push_str(&format!(
+                    "     ... {} more overlapping paths\n",
+                    o.overlap_token_paths.len() - 4
+                ));
+            }
+        }
+        if analysis.witnesses.orthogonality.len() > 4 {
+            out.push_str(&format!(
+                "  ... {} more ownership-overlap findings\n",
+                analysis.witnesses.orthogonality.len() - 4
+            ));
+        }
+        out.push('\n');
+    }
+
+    if !analysis.witnesses.inherited.is_empty() {
+        let presentation = presentation_for_kind("inherited").expect("inherited presentation");
+        render_family_intro(&mut out, presentation, analysis.witnesses.inherited.len());
+        for (idx, w) in analysis.witnesses.inherited.iter().take(6).enumerate() {
+            out.push_str(&format!("  {}. {} @ {}\n", idx + 1, w.token_path, w.target));
+            if let Some(src) = w.sources.first() {
+                out.push_str(&format!(
+                    "     inherited from source: {}\n",
+                    render_report_location(
+                        Some(&src.file_path),
+                        Some(&src.json_pointer),
+                        Some(&src.pack_id)
+                    )
+                ));
+            }
+            out.push_str(&format!(
+                "     action: keep the inheritance if intended, or author `{}` explicitly at `{}`\n",
+                w.token_path, w.target
+            ));
+        }
+        if analysis.witnesses.inherited.len() > 6 {
+            out.push_str(&format!(
+                "  ... {} more inherited-value traces\n",
+                analysis.witnesses.inherited.len() - 6
+            ));
+        }
+        out.push('\n');
+    }
+
+    out.push_str("Technical analysis summary:\n");
     let axis_names: Vec<String> = store.axes.keys().cloned().collect();
     let mut axis_pairs: Vec<(String, String)> = Vec::new();
     for i in 0..axis_names.len() {
@@ -1242,7 +1478,6 @@ pub fn render_validation_report(store: &TokenStore, analysis: &CtcAnalysis) -> S
     }
 
     let total_tokens = analysis.summary.tokens as u64;
-
     if axis_pairs.len() == 1 {
         let (a, b) = &axis_pairs[0];
         let total = total_tokens
@@ -1251,35 +1486,11 @@ pub fn render_validation_report(store: &TokenStore, analysis: &CtcAnalysis) -> S
         let fails = analysis.witnesses.bc_violations.len() as u64;
         let commutes = total.saturating_sub(fails);
         out.push_str(&format!(
-            "  ✓ {}/{} token×context pairs commute\n",
-            commutes, total
+            "  Beck-Chevalley: {} of {} token/context pairs commute across {} x {}\n",
+            commutes, total, a, b
         ));
-        if fails == 0 {
-            out.push_str("\n");
-        } else {
-            out.push_str(&format!("  ✗ {} order-dependent resolutions:\n", fails));
-            for v in &analysis.witnesses.bc_violations {
-                out.push_str(&format!(
-                    "    {} @ ({}:{}, {}:{}):\n",
-                    v.token_path, v.axis_a, v.value_a, v.axis_b, v.value_b
-                ));
-                out.push_str(&format!(
-                    "      via {}→{}: {}\n",
-                    v.axis_a, v.axis_b, v.left_value_json
-                ));
-                out.push_str(&format!(
-                    "      via {}→{}: {}\n",
-                    v.axis_b, v.axis_a, v.right_value_json
-                ));
-                if let Some(chosen) = &v.resolver_value_json {
-                    out.push_str(&format!("      resolver chose: {}\n", chosen));
-                }
-                out.push_str(&format!("      → {}\n", v.fix));
-            }
-            out.push('\n');
-        }
-    } else {
-        // Multi-axis: summarize per axis pair.
+    } else if !axis_pairs.is_empty() {
+        out.push_str("  Beck-Chevalley per axis pair:\n");
         for (a, b) in axis_pairs {
             let total = total_tokens
                 * (store.axes.get(&a).map(|v| v.len()).unwrap_or(0) as u64)
@@ -1292,35 +1503,26 @@ pub fn render_validation_report(store: &TokenStore, analysis: &CtcAnalysis) -> S
                 .count() as u64;
             let commutes = total.saturating_sub(fails);
             out.push_str(&format!(
-                "  {} × {}: ✓ {}/{} commute\n",
+                "    - {} x {}: {}/{} commute\n",
                 a, b, commutes, total
             ));
         }
-        out.push('\n');
+    } else {
+        out.push_str("  Beck-Chevalley: no axis pairs to compare\n");
     }
 
-    // Kan completion
-    out.push_str("Kan completion:\n");
     let total_pairs = (analysis.summary.tokens as u64) * (analysis.summary.contexts as u64);
     let gaps = analysis.summary.kan_gaps as u64;
     let tiebreaks = analysis.summary.kan_conflicts as u64;
     let inherited = analysis.summary.kan_inherited as u64;
     let explicit = total_pairs.saturating_sub(gaps + tiebreaks + inherited);
     out.push_str(&format!(
-        "  ✓ {}/{} explicit values\n",
-        explicit, total_pairs
+        "  Kan completion: explicit={} inherited={} ambiguous={} missing={} over {} token/context pairs\n",
+        explicit, inherited, tiebreaks, gaps, total_pairs
     ));
     out.push_str(&format!(
-        "  ⚠ {}/{} inherited (unique ancestor, no explicit value)\n",
-        inherited, total_pairs
-    ));
-    out.push_str(&format!(
-        "  ✗ {}/{} tiebreaks (conflicting ancestors)\n",
-        tiebreaks, total_pairs
-    ));
-    out.push_str(&format!(
-        "  ✗ {}/{} gaps (no ancestor)\n",
-        gaps, total_pairs
+        "  Orthogonality: {} overlap witness(es)\n",
+        analysis.witnesses.orthogonality.len()
     ));
 
     out

@@ -106,10 +106,11 @@ For the first-failure case, the user must be able to answer:
 
 `paint explain` is the bridge from verifier output to action.
 
-For first-success UX, `explain` must eventually make these fields legible:
+For first-success UX, `explain` must make these fields legible:
 
 - user-facing finding family
 - technical witness kind
+- severity and fixability
 - affected token path or component contract path
 - authored source location or file/pointer blame when available
 - high-level cause summary

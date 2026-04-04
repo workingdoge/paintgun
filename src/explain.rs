@@ -2,6 +2,7 @@ use std::collections::BTreeSet;
 
 use crate::cert::CtcWitnesses;
 use crate::compose::ComposeWitnesses;
+use crate::finding_presentation::{presentation_for_kind, FindingPresentation};
 use crate::ids::WitnessId;
 use crate::provenance::TokenProvenance;
 
@@ -49,6 +50,36 @@ fn render_locations(locations: Vec<ExplainLocation>) -> String {
     out
 }
 
+fn explain_header(
+    witness_id: &str,
+    witness_file: &str,
+    presentation: FindingPresentation,
+    summary: &str,
+) -> String {
+    let mut out = String::new();
+    out.push_str(&format!(
+        "Finding: {}\nTechnical kind: {}\nSeverity: {}\nFixability: {}\nWitness: {}\nSource: {}\n\n",
+        presentation.family_label,
+        presentation.technical_kind,
+        presentation.severity,
+        presentation.fixability,
+        witness_id,
+        witness_file
+    ));
+    out.push_str("What it means:\n");
+    out.push_str(&format!("  {}\n\n", presentation.meaning));
+    out.push_str(&format!("Summary: {summary}\n\n"));
+    out
+}
+
+fn explain_footer(out: &mut String, cause: &str, next_action: &str) {
+    out.push('\n');
+    out.push_str("Why this happened:\n");
+    out.push_str(&format!("  {cause}\n\n"));
+    out.push_str("Next action:\n");
+    out.push_str(&format!("  {next_action}\n"));
+}
+
 pub fn explain_ctc_witness(
     witnesses: &CtcWitnesses,
     witness_id: &WitnessId,
@@ -56,6 +87,7 @@ pub fn explain_ctc_witness(
 ) -> Option<String> {
     for w in &witnesses.gaps {
         if w.witness_id == witness_id.as_str() {
+            let presentation = presentation_for_kind("gap").expect("gap presentation");
             let mut locs = Vec::new();
             for s in &w.authored_sources {
                 locs.push(ExplainLocation {
@@ -64,28 +96,34 @@ pub fn explain_ctc_witness(
                     json_pointer: s.json_pointer.clone(),
                 });
             }
-            let mut out = String::new();
-            out.push_str(&format!(
-                "Witness: {}\nType: gap\nSource: {}\n\n",
-                w.witness_id, witness_file
-            ));
-            out.push_str(&format!(
-                "Summary: Kan gap for `{}` at `{}`.\n\n",
-                w.token_path, w.target
-            ));
+            let mut out = explain_header(
+                &w.witness_id,
+                witness_file,
+                presentation,
+                &format!(
+                    "No explicit winning value exists for `{}` at `{}`.",
+                    w.token_path, w.target
+                ),
+            );
             out.push_str(&render_locations(locs));
-            out.push('\n');
-            out.push_str("Fix recipe:\n");
-            out.push_str(&format!(
-                "  Add an explicit value for `{}` at `{}` in the intended winning layer.\n",
-                w.token_path, w.target
-            ));
+            explain_footer(
+                &mut out,
+                &format!(
+                    "Paint walked the available authored layers for `{}` at `{}` and found no explicit winner there.",
+                    w.token_path, w.target
+                ),
+                &format!(
+                    "Add an explicit value for `{}` at `{}` in the intended winning layer.",
+                    w.token_path, w.target
+                ),
+            );
             return Some(out);
         }
     }
 
     for w in &witnesses.conflicts {
         if w.witness_id == witness_id.as_str() {
+            let presentation = presentation_for_kind("conflict").expect("conflict presentation");
             let mut locs = Vec::new();
             for c in &w.candidates {
                 locs.push(ExplainLocation {
@@ -94,28 +132,34 @@ pub fn explain_ctc_witness(
                     json_pointer: c.json_pointer.clone(),
                 });
             }
-            let mut out = String::new();
-            out.push_str(&format!(
-                "Witness: {}\nType: conflict\nSource: {}\n\n",
-                w.witness_id, witness_file
-            ));
-            out.push_str(&format!(
-                "Summary: Kan conflict for `{}` at `{}`.\n\n",
-                w.token_path, w.target
-            ));
+            let mut out = explain_header(
+                &w.witness_id,
+                witness_file,
+                presentation,
+                &format!(
+                    "Multiple authored definitions compete for `{}` at `{}`.",
+                    w.token_path, w.target
+                ),
+            );
             out.push_str(&render_locations(locs));
-            out.push('\n');
-            out.push_str("Fix recipe:\n");
-            out.push_str(&format!(
-                "  Add an explicit override for `{}` at `{}` to remove tie-break ambiguity.\n",
-                w.token_path, w.target
-            ));
+            explain_footer(
+                &mut out,
+                &format!(
+                    "More than one explicit candidate can win for `{}` at `{}`, so the result is not a clean authored choice.",
+                    w.token_path, w.target
+                ),
+                &format!(
+                    "Add an explicit override for `{}` at `{}` to make the intended winner unambiguous.",
+                    w.token_path, w.target
+                ),
+            );
             return Some(out);
         }
     }
 
     for w in &witnesses.inherited {
         if w.witness_id == witness_id.as_str() {
+            let presentation = presentation_for_kind("inherited").expect("inherited presentation");
             let mut locs = Vec::new();
             for s in &w.sources {
                 locs.push(ExplainLocation {
@@ -124,30 +168,38 @@ pub fn explain_ctc_witness(
                     json_pointer: s.json_pointer.clone(),
                 });
             }
-            let mut out = String::new();
-            out.push_str(&format!(
-                "Witness: {}\nType: inherited\nSource: {}\n\n",
-                w.witness_id, witness_file
-            ));
-            out.push_str(&format!(
-                "Summary: `{}` at `{}` is inherited from `{}`.\n\n",
-                w.token_path,
-                w.target,
-                w.inherited_from.join(", ")
-            ));
+            let mut out = explain_header(
+                &w.witness_id,
+                witness_file,
+                presentation,
+                &format!(
+                    "`{}` at `{}` inherits its value from `{}`.",
+                    w.token_path,
+                    w.target,
+                    w.inherited_from.join(", ")
+                ),
+            );
             out.push_str(&render_locations(locs));
-            out.push('\n');
-            out.push_str("Fix recipe:\n");
-            out.push_str(&format!(
-                "  Keep inheritance if intended, or author `{}` explicitly at `{}`.\n",
-                w.token_path, w.target
-            ));
+            explain_footer(
+                &mut out,
+                &format!(
+                    "No explicit authored value wins at `{}`, so Paint traces the resolved value back to `{}`.",
+                    w.target,
+                    w.inherited_from.join(", ")
+                ),
+                &format!(
+                    "Keep the inheritance if it is intended, or author `{}` explicitly at `{}`.",
+                    w.token_path, w.target
+                ),
+            );
             return Some(out);
         }
     }
 
     for w in &witnesses.bc_violations {
         if w.witness_id == witness_id.as_str() {
+            let presentation =
+                presentation_for_kind("bcViolation").expect("bc violation presentation");
             let mut locs = Vec::new();
             if let Some(p) = &w.left_source {
                 if let Some(l) = loc_from_provenance(p) {
@@ -159,40 +211,50 @@ pub fn explain_ctc_witness(
                     locs.push(l);
                 }
             }
-            let mut out = String::new();
-            out.push_str(&format!(
-                "Witness: {}\nType: bcViolation\nSource: {}\n\n",
-                w.witness_id, witness_file
-            ));
-            out.push_str(&format!(
-                "Summary: Beck-Chevalley violation for `{}` at `{}:{}, {}:{}`.\n\n",
-                w.token_path, w.axis_a, w.value_a, w.axis_b, w.value_b
-            ));
+            let mut out = explain_header(
+                &w.witness_id,
+                witness_file,
+                presentation,
+                &format!(
+                    "Evaluation order changes the resolved value for `{}` at `{}:{}, {}:{}`.",
+                    w.token_path, w.axis_a, w.value_a, w.axis_b, w.value_b
+                ),
+            );
             out.push_str(&render_locations(locs));
-            out.push('\n');
-            out.push_str("Fix recipe:\n");
-            out.push_str(&format!("  {}\n", w.fix));
+            explain_footer(
+                &mut out,
+                &format!(
+                    "Resolving `{}` through {} -> {} does not match resolving it through {} -> {}.",
+                    w.token_path, w.axis_a, w.axis_b, w.axis_b, w.axis_a
+                ),
+                &w.fix,
+            );
             return Some(out);
         }
     }
 
     for w in &witnesses.orthogonality {
         if w.witness_id == witness_id.as_str() {
-            let mut out = String::new();
-            out.push_str(&format!(
-                "Witness: {}\nType: orthogonality\nSource: {}\n\n",
-                w.witness_id, witness_file
-            ));
-            out.push_str(&format!(
-                "Summary: Axes `{}` and `{}` overlap on {} token paths.\n\n",
-                w.axis_a,
-                w.axis_b,
-                w.overlap_token_paths.len()
-            ));
+            let presentation =
+                presentation_for_kind("orthogonality").expect("orthogonality presentation");
+            let mut out = explain_header(
+                &w.witness_id,
+                witness_file,
+                presentation,
+                &format!(
+                    "Axes `{}` and `{}` overlap on {} token paths.",
+                    w.axis_a,
+                    w.axis_b,
+                    w.overlap_token_paths.len()
+                ),
+            );
             out.push_str("Primary location: (none)\n\n");
-            out.push_str("Fix recipe:\n");
-            out.push_str(
-                "  Partition token ownership so each overlapping path is authored by one axis.\n",
+            explain_footer(
+                &mut out,
+                &format!(
+                    "Both axes appear to claim responsibility for the same token paths, which creates governance ambiguity even if the build still resolves.",
+                ),
+                "Partition token ownership so each overlapping path is authored by one axis.",
             );
             return Some(out);
         }
@@ -210,6 +272,8 @@ pub fn explain_compose_witness(
         if w.witness_id != *witness_id {
             continue;
         }
+        let presentation =
+            presentation_for_kind("composeConflict").expect("compose conflict presentation");
         let mut locs = Vec::new();
         for c in &w.candidates {
             for s in &c.sources {
@@ -218,22 +282,27 @@ pub fn explain_compose_witness(
                 }
             }
         }
-        let mut out = String::new();
-        out.push_str(&format!(
-            "Witness: {}\nType: composeConflict\nSource: {}\n\n",
-            w.witness_id, witness_file
-        ));
-        out.push_str(&format!(
-            "Summary: Cross-pack conflict for `{}` at `{}` (winner: `{}`).\n\n",
-            w.token_path, w.context, w.winner_pack
-        ));
+        let mut out = explain_header(
+            w.witness_id.as_str(),
+            witness_file,
+            presentation,
+            &format!(
+                "Multiple packs compete for `{}` at `{}` (current winner: `{}`).",
+                w.token_path, w.context, w.winner_pack
+            ),
+        );
         out.push_str(&render_locations(locs));
-        out.push('\n');
-        out.push_str("Fix recipe:\n");
-        out.push_str(&format!(
-            "  Author `{}` explicitly at `{}` in the intended winner pack, or remove competing definitions in lower-priority packs.\n",
-            w.token_path, w.context
-        ));
+        explain_footer(
+            &mut out,
+            &format!(
+                "Pack order is currently deciding the winner for `{}` at `{}`, which means the composed result is not a clean cross-pack contract.",
+                w.token_path, w.context
+            ),
+            &format!(
+                "Author `{}` explicitly at `{}` in the intended winner pack, or remove competing definitions in lower-priority packs.",
+                w.token_path, w.context
+            ),
+        );
         return Some(out);
     }
     None

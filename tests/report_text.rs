@@ -2,13 +2,13 @@ use std::collections::{BTreeMap, HashMap};
 use std::path::PathBuf;
 
 use paintgun::cert::{
-    analyze_composability, ConflictMode, CtcInputs, CtcManifest, CtcOutputs, CtcSemantics,
-    CtcSummary, ManifestEntry, PackIdentity, ToolInfo, TrustMetadata,
+    analyze_composability, render_validation_report, ConflictMode, CtcInputs, CtcManifest,
+    CtcOutputs, CtcSemantics, CtcSummary, ManifestEntry, PackIdentity, ToolInfo, TrustMetadata,
 };
-use paintgun::compose::{analyze_cross_pack_conflicts, Pack};
+use paintgun::compose::{
+    analyze_cross_pack_conflicts, render_compose_report, ComposeManifest, ComposeSummary, Pack,
+};
 use paintgun::dtcg::{DtcgType, DtcgValue, NumLit};
-use paintgun::explain::{explain_compose_witness, explain_ctc_witness};
-use paintgun::ids::WitnessId;
 use paintgun::resolver::{
     build_token_store, read_json_file, ResolvedToken, ResolverDoc, TokenStore,
 };
@@ -99,83 +99,84 @@ fn make_pack(name: &str, num: &str) -> Pack {
 }
 
 #[test]
-fn explain_conflict_includes_file_and_pointer() {
+fn validation_report_is_family_first_and_action_oriented() {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let resolver_path = root.join("examples/charter-steel/charter-steel.resolver.json");
+
     let doc: ResolverDoc = read_json_file(&resolver_path).expect("resolver doc");
     let store = build_token_store(&doc, &resolver_path).expect("token store");
     let analysis = analyze_composability(&doc, &store, &resolver_path).expect("analysis");
-    let witness = analysis
-        .witnesses
-        .conflicts
-        .first()
-        .expect("expected conflict witness");
 
-    let text = explain_ctc_witness(
-        &analysis.witnesses,
-        &WitnessId::from(witness.witness_id.as_str()),
-        "dist/ctc.witnesses.json",
-    )
-    .expect("expected explanation");
-    assert!(text.contains("Next action:"), "missing next action");
+    let text = render_validation_report(&store, &analysis);
+    assert!(text.contains("Action summary:"), "missing action summary");
     assert!(
-        text.contains("Primary location:"),
-        "missing location section"
-    );
-    assert!(text.contains("/"), "expected JSON pointer in explanation");
-    assert!(
-        text.contains("Finding: Ambiguous definition"),
-        "missing user-facing family"
+        text.contains("Errors requiring action:"),
+        "missing error heading"
     );
     assert!(
-        text.contains("Technical kind: conflict"),
-        "wrong witness type explanation"
+        text.contains("Ambiguous definition [error | direct"),
+        "missing family-first conflict section"
+    );
+    assert!(
+        text.contains("What it means:"),
+        "missing explanatory lead-in"
+    );
+    assert!(
+        text.contains("Next action:"),
+        "missing remediation guidance"
+    );
+    assert!(
+        text.contains("Technical analysis summary:"),
+        "missing technical summary"
     );
 }
 
 #[test]
-fn explain_compose_conflict_includes_file_and_pointer() {
+fn compose_report_is_family_first_and_action_oriented() {
     let pack_a = make_pack("pack-a@1.0.0", "1");
     let pack_b = make_pack("pack-b@2.0.0", "2");
     let witnesses = analyze_cross_pack_conflicts(&[pack_a, pack_b], &BTreeMap::new());
-    let witness = witnesses
-        .conflicts
-        .first()
-        .expect("expected compose conflict");
-    let text = explain_compose_witness(
-        &witnesses,
-        &WitnessId::from(witness.witness_id.as_str()),
-        "dist-compose/compose.witnesses.json",
-    )
-    .expect("expected compose explanation");
-    assert!(
-        text.contains("Finding: Ambiguous definition (cross-pack)"),
-        "missing compose family"
-    );
-    assert!(
-        text.contains("Technical kind: composeConflict"),
-        "wrong compose type"
-    );
-    assert!(text.contains("Next action:"), "missing compose next action");
-    assert!(
-        text.contains("Primary location:"),
-        "missing compose location"
-    );
-    assert!(text.contains("/$value"), "expected JSON pointer");
-}
 
-#[test]
-fn explain_returns_none_for_unknown_witness() {
-    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let resolver_path = root.join("examples/charter-steel/charter-steel.resolver.json");
-    let doc: ResolverDoc = read_json_file(&resolver_path).expect("resolver doc");
-    let store = build_token_store(&doc, &resolver_path).expect("token store");
-    let analysis = analyze_composability(&doc, &store, &resolver_path).expect("analysis");
+    let manifest = ComposeManifest {
+        compose_version: "0.1".to_string(),
+        tool: ToolInfo {
+            name: "paintgun".to_string(),
+            version: "0.1.0".to_string(),
+        },
+        trust: TrustMetadata::unsigned(),
+        axes: BTreeMap::new(),
+        pack_order: vec!["pack-a@1.0.0".to_string(), "pack-b@2.0.0".to_string()],
+        packs: Vec::new(),
+        semantics: CtcSemantics {
+            eq_value_id: "dtcg-2025.10-typed-structural".to_string(),
+            policy_digest: Some("sha256:dummy".to_string()),
+            conflict_mode: ConflictMode::Semantic,
+            normalizer_version: None,
+        },
+        backend_artifacts: Vec::new(),
+        native_api_versions: None,
+        summary: ComposeSummary {
+            packs: 2,
+            contexts: 1,
+            token_paths_union: 1,
+            overlapping_token_paths: 1,
+            conflicts: witnesses.conflicts.len(),
+        },
+        witnesses_sha256: "sha256:w".to_string(),
+    };
 
-    let got = explain_ctc_witness(
-        &analysis.witnesses,
-        &WitnessId::from("does-not-exist"),
-        "dist/ctc.witnesses.json",
+    let text = render_compose_report(&manifest, &witnesses);
+    assert!(
+        text.contains("Ambiguous definition (cross-pack) [error | direct"),
+        "missing family-first compose section"
     );
-    assert!(got.is_none(), "unknown witness should return None");
+    assert!(
+        text.contains("What it means:"),
+        "missing compose explanation"
+    );
+    assert!(
+        text.contains("Next action:"),
+        "missing compose action guidance"
+    );
+    assert!(text.contains("current winner:"), "missing winner context");
 }

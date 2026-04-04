@@ -194,15 +194,26 @@ Default fixability levels:
 
 ### Explain
 
-`paint explain` should eventually present:
+`paint explain` should present:
 
 1. user-facing family
 2. technical witness kind
 3. severity
-4. source location
-5. remediation guidance
+4. fixability
+5. source location
+6. remediation guidance
 
-The current `Type:` field in `explain` is the technical witness kind. `tbp-qnb.4` should add family-first presentation without removing that precision.
+`tbp-qnb.4` implements that family-first presentation without removing the technical kind.
+
+### Human-readable reports
+
+`validation.txt` and the compose text report should present:
+
+1. action summary by user-facing family
+2. family-specific what-it-means language
+3. source-local examples when available
+4. concrete next-action guidance
+5. technical summary sections after the user-facing framing
 
 ### JSON reports
 

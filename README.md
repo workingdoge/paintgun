@@ -326,8 +326,10 @@ cargo run -- explain conflict-1234abcd5678ef90 \
 
 `explain` prints:
 - user-facing finding family plus technical witness type
+- severity and fixability
 - primary source file path and JSON Pointer
-- shortest fix recipe
+- high-level cause summary
+- next action guidance
 
 ## GitHub Annotations
 

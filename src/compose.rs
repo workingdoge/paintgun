@@ -35,6 +35,7 @@ use crate::cert::{
     NORMALIZER_VERSION,
 };
 use crate::dtcg::{DtcgType, TypedValue};
+use crate::finding_presentation::{presentation_for_kind, FindingPresentation};
 use crate::ids::{TokenPathId, WitnessId};
 use crate::pack_identity::parse_pack_identity_label;
 use crate::policy::Policy;
@@ -481,6 +482,15 @@ struct ComposeReportFinding {
     pack: Option<String>,
 }
 
+fn render_compose_family_intro(out: &mut String, presentation: FindingPresentation, count: usize) {
+    out.push_str(&format!(
+        "{} [{} | {} | {} finding(s)]\n",
+        presentation.family_label, presentation.severity, presentation.fixability, count
+    ));
+    out.push_str(&format!("  What it means: {}\n", presentation.meaning));
+    out.push_str(&format!("  Next action: {}\n\n", presentation.next_action));
+}
+
 fn render_compose_report_text(manifest: &ComposeManifest, witnesses: &ComposeWitnesses) -> String {
     let mut out = String::new();
     out.push_str("═══════════════════════════════════════\n");
@@ -507,10 +517,9 @@ fn render_compose_report_text(manifest: &ComposeManifest, witnesses: &ComposeWit
         return out;
     }
 
-    out.push_str(&format!(
-        "✗ Cross-pack conflicts: {}\n\n",
-        witnesses.conflicts.len()
-    ));
+    let presentation =
+        presentation_for_kind("composeConflict").expect("compose conflict presentation");
+    render_compose_family_intro(&mut out, presentation, witnesses.conflicts.len());
 
     for (i, conflict) in witnesses.conflicts.iter().take(50).enumerate() {
         out.push_str(&format!(
@@ -519,6 +528,7 @@ fn render_compose_report_text(manifest: &ComposeManifest, witnesses: &ComposeWit
             conflict.token_path,
             conflict.context
         ));
+        out.push_str(&format!("    current winner: {}\n", conflict.winner_pack));
         for candidate in &conflict.candidates {
             out.push_str(&format!(
                 "    - {} ({}): {}\n",
@@ -554,8 +564,8 @@ fn render_compose_report_text(manifest: &ComposeManifest, witnesses: &ComposeWit
             }
         }
         out.push_str(&format!(
-            "    winner (by pack order): {}\n\n",
-            conflict.winner_pack
+            "    action: author `{}` explicitly at `{}` in the intended winner pack, or remove competing definitions in lower-priority packs\n\n",
+            conflict.token_path, conflict.context
         ));
     }
     if witnesses.conflicts.len() > 50 {
@@ -573,6 +583,8 @@ fn build_compose_report_json_value(
     witnesses: &ComposeWitnesses,
 ) -> serde_json::Value {
     let mut findings: Vec<ComposeReportFinding> = Vec::new();
+    let presentation =
+        presentation_for_kind("composeConflict").expect("compose conflict presentation");
     for witness in &witnesses.conflicts {
         for candidate in &witness.candidates {
             for src in &candidate.sources {
@@ -581,8 +593,13 @@ fn build_compose_report_json_value(
                     kind: "composeConflict".to_string(),
                     severity: "error".to_string(),
                     message: format!(
-                        "Cross-pack conflict for {} at {} (winner: {}, candidate: {})",
-                        witness.token_path, witness.context, witness.winner_pack, candidate.pack
+                        "{}: competing pack definitions for {} at {} (winner: {}, candidate: {}). {}",
+                        presentation.family_label,
+                        witness.token_path,
+                        witness.context,
+                        witness.winner_pack,
+                        candidate.pack,
+                        presentation.next_action
                     ),
                     token_path: Some(witness.token_path.to_string()),
                     context: Some(witness.context.clone()),
