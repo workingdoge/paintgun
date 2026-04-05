@@ -154,6 +154,11 @@ cargo test --workspace
 
 If `./premath` is missing, Cargo commands in this repo will fail because the extracted `premath-*` crates are external dependencies now.
 
+GitHub Actions is slightly different for now: hosted CI can fall back to the
+checked-in `ci/premath-snapshot/` when the dedicated extracted Premath code-home
+repo is not available at a published remote yet. That fallback is CI-only; it
+is not the canonical contributor workflow.
+
 Useful contributor references:
 
 - [`docs/premath_standalone_prep.md`](docs/premath_standalone_prep.md)
@@ -472,7 +477,7 @@ This runs `build` across all context modes using `examples/perf-lattice/*` and w
 - `perf-metrics/context-metrics.md`
 
 CI enforces the following pass/fail gates from this fixture:
-- ordering invariant: `partial > full-only > from-contracts` on `resolvedContexts`
+- ordering invariant: `partial > full-only > from-contracts` on `analysisContexts`
 - reduction gate: `(full-only - from-contracts) / full-only >= 0.20`
 - expansion gate: `partial / full-only >= 1.10`
 

@@ -8,42 +8,42 @@
     "minPartialExpansionRatio": 1.1
   },
   "derived": {
-    "fromContractsReductionRatio": 0.696275,
-    "partialExpansionRatio": 2.934097
+    "fromContractsReductionRatio": 0.563786,
+    "partialExpansionRatio": 4.213992
   },
   "results": [
     {
       "mode": "full-only",
-      "elapsedMs": 1558.93,
+      "elapsedMs": 1606.11,
       "analysisContexts": 243,
-      "resolvedContexts": 349,
-      "tokens": 1,
+      "emittedResolverContexts": 243,
+      "tokens": 0,
       "kanGaps": 0,
       "kanConflicts": 0,
-      "kanInherited": 243,
+      "kanInherited": 0,
       "bcViolations": 0,
       "orthogonalityOverlaps": 0,
       "outDir": "dist-perf-full_only"
     },
     {
       "mode": "partial",
-      "elapsedMs": 1684.64,
+      "elapsedMs": 1096.21,
       "analysisContexts": 1024,
-      "resolvedContexts": 1024,
-      "tokens": 1,
+      "emittedResolverContexts": 243,
+      "tokens": 0,
       "kanGaps": 0,
       "kanConflicts": 0,
-      "kanInherited": 1020,
+      "kanInherited": 0,
       "bcViolations": 0,
       "orthogonalityOverlaps": 0,
       "outDir": "dist-perf-partial"
     },
     {
       "mode": "from-contracts",
-      "elapsedMs": 1358.94,
-      "analysisContexts": 4,
-      "resolvedContexts": 106,
-      "tokens": 1,
+      "elapsedMs": 1122.67,
+      "analysisContexts": 106,
+      "emittedResolverContexts": 243,
+      "tokens": 0,
       "kanGaps": 0,
       "kanConflicts": 0,
       "kanInherited": 0,

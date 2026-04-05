@@ -1,0 +1,29 @@
+[workspace]
+members = [
+    "crates/premath-admissibility",
+    "crates/premath-composability",
+    "crates/premath-compose",
+    "crates/premath-dsl",
+    "crates/premath-gate",
+    "crates/premath-kcir-kernel",
+    "crates/premath-kcir",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+rust-version = "1.89"
+
+[workspace.metadata.premath]
+state = "first-wave-landed"
+first_wave = [
+    "premath-admissibility",
+    "premath-composability",
+    "premath-compose",
+    "premath-dsl",
+    "premath-gate",
+    "premath-kcir-kernel",
+    "premath-kcir",
+]

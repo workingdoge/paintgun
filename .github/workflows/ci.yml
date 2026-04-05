@@ -9,8 +9,6 @@ env:
   TZ: UTC
   LANG: C.UTF-8
   LC_ALL: C.UTF-8
-  PREMATH_REPOSITORY: ${{ format('{0}/premath', github.repository_owner) }}
-  PREMATH_REF: main
 
 jobs:
   premath-workspace:
@@ -21,9 +19,6 @@ jobs:
 
       - name: Setup Rust + Premath
         uses: ./.github/actions/setup-paint-rust
-        with:
-          premath-repository: ${{ env.PREMATH_REPOSITORY }}
-          premath-ref: ${{ env.PREMATH_REF }}
 
       - name: Run Premath standalone entrypoint
         run: ./scripts/premath_workspace_ci.sh
@@ -36,9 +31,6 @@ jobs:
 
       - name: Setup Rust + Premath
         uses: ./.github/actions/setup-paint-rust
-        with:
-          premath-repository: ${{ env.PREMATH_REPOSITORY }}
-          premath-ref: ${{ env.PREMATH_REF }}
 
       - name: Run conformance fixtures
         run: cargo test --test conformance
@@ -51,9 +43,6 @@ jobs:
 
       - name: Setup Rust + Premath
         uses: ./.github/actions/setup-paint-rust
-        with:
-          premath-repository: ${{ env.PREMATH_REPOSITORY }}
-          premath-ref: ${{ env.PREMATH_REF }}
 
       - name: Validate per-pack witness schema
         run: cargo test --test witness_schema
@@ -72,9 +61,6 @@ jobs:
 
       - name: Setup Rust + Premath
         uses: ./.github/actions/setup-paint-rust
-        with:
-          premath-repository: ${{ env.PREMATH_REPOSITORY }}
-          premath-ref: ${{ env.PREMATH_REF }}
 
       - name: Validate compose witness schema
         run: cargo test --test compose_witness_schema
@@ -90,9 +76,6 @@ jobs:
 
       - name: Setup Rust + Premath
         uses: ./.github/actions/setup-paint-rust
-        with:
-          premath-repository: ${{ env.PREMATH_REPOSITORY }}
-          premath-ref: ${{ env.PREMATH_REF }}
 
       - name: Validate path-safety fixtures
         run: cargo test --test path_safety
@@ -109,8 +92,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+      - name: Setup Rust + Premath
+        uses: ./.github/actions/setup-paint-rust
 
       - name: Capture context-scaling metrics
         run: python3 scripts/context_metrics.py
@@ -129,9 +112,6 @@ jobs:
 
       - name: Setup Rust + Premath
         uses: ./.github/actions/setup-paint-rust
-        with:
-          premath-repository: ${{ env.PREMATH_REPOSITORY }}
-          premath-ref: ${{ env.PREMATH_REF }}
 
       - name: Build example pack
         run: |
@@ -179,9 +159,6 @@ jobs:
 
       - name: Setup Rust + Premath
         uses: ./.github/actions/setup-paint-rust
-        with:
-          premath-repository: ${{ env.PREMATH_REPOSITORY }}
-          premath-ref: ${{ env.PREMATH_REF }}
 
       - name: Build native Swift artifacts
         run: |
@@ -229,9 +206,6 @@ jobs:
 
       - name: Setup Rust + Premath
         uses: ./.github/actions/setup-paint-rust
-        with:
-          premath-repository: ${{ env.PREMATH_REPOSITORY }}
-          premath-ref: ${{ env.PREMATH_REF }}
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -288,9 +262,6 @@ jobs:
 
       - name: Setup Rust + Premath
         uses: ./.github/actions/setup-paint-rust
-        with:
-          premath-repository: ${{ env.PREMATH_REPOSITORY }}
-          premath-ref: ${{ env.PREMATH_REF }}
 
       - name: Run full test suite
         run: cargo test --all

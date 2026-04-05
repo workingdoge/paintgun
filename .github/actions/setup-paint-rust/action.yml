@@ -3,7 +3,8 @@ description: Materialize the extracted Premath code home and install Rust.
 inputs:
   premath-repository:
     description: Repository slug for the extracted Premath code home.
-    required: true
+    required: false
+    default: ""
   premath-ref:
     description: Git ref for the extracted Premath code home.
     required: false
@@ -12,11 +13,18 @@ runs:
   using: composite
   steps:
     - name: Checkout Premath code home
+      if: ${{ inputs.premath-repository != '' }}
       uses: actions/checkout@v4
       with:
         repository: ${{ inputs.premath-repository }}
         ref: ${{ inputs.premath-ref }}
         path: premath
+
+    - name: Ensure valid Premath projection
+      shell: bash
+      run: |
+        PREMATH_REPLACE_INVALID=1 PREMATH_ALLOW_SNAPSHOT=1 \
+          "$GITHUB_WORKSPACE/scripts/ensure_premath_projection.sh"
 
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable

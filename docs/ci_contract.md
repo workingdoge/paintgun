@@ -6,6 +6,12 @@ This document defines the machine-readable surfaces that external CI is allowed 
 
 All Cargo-based CI commands in this repo assume a repo-local Premath projection at `./premath`. In a local clone, materialize that projection first with `./scripts/link_premath_checkout.sh` or by checking out the extracted Premath repo directly into `./premath`. In issue-scoped `jj` workspaces, the helper mirrors the canonical repo's current `./premath` projection when it can resolve one.
 
+GitHub Actions currently carries a checked-in CI-only fallback snapshot at
+`ci/premath-snapshot/`. That snapshot exists only so hosted runners can
+materialize the extracted kernels before the dedicated Premath code-home repo is
+published and wired into CI. Local contributor setup still treats the sibling
+Premath workspace as canonical.
+
 The supported CI-facing commands and artifacts are:
 
 - `build --format json`, which writes `validation.json`

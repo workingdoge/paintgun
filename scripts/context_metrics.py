@@ -14,6 +14,19 @@ MIN_FROM_CONTRACTS_REDUCTION_RATIO = 0.20
 MIN_PARTIAL_EXPANSION_RATIO = 1.10
 
 
+def ensure_premath_projection() -> None:
+    proc = subprocess.run(
+        ["bash", str(ROOT / "scripts" / "ensure_premath_projection.sh")],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    if proc.returncode != 0:
+        print(proc.stdout)
+        print(proc.stderr)
+        raise SystemExit(proc.returncode)
+
+
 def run_mode(mode: str) -> dict:
     out_dir = ROOT / f"dist-perf-{mode.replace('-', '_')}"
     if out_dir.exists():
@@ -51,7 +64,7 @@ def run_mode(mode: str) -> dict:
         "mode": mode,
         "elapsedMs": elapsed_ms,
         "analysisContexts": int(summary["contexts"]),
-        "resolvedContexts": len(resolved["contexts"]),
+        "emittedResolverContexts": len(resolved["contexts"]),
         "tokens": int(summary["tokens"]),
         "kanGaps": int(summary["kan_gaps"]),
         "kanConflicts": int(summary["kan_conflicts"]),
@@ -63,17 +76,18 @@ def run_mode(mode: str) -> dict:
 
 
 def main() -> None:
+    ensure_premath_projection()
     results = [run_mode(mode) for mode in MODES]
     by_mode = {r["mode"]: r for r in results}
 
-    partial_ctx = by_mode["partial"]["resolvedContexts"]
-    full_ctx = by_mode["full-only"]["resolvedContexts"]
-    from_contracts_ctx = by_mode["from-contracts"]["resolvedContexts"]
+    partial_ctx = by_mode["partial"]["analysisContexts"]
+    full_ctx = by_mode["full-only"]["analysisContexts"]
+    from_contracts_ctx = by_mode["from-contracts"]["analysisContexts"]
 
     # Hard ordering invariants.
     if not (partial_ctx > full_ctx > from_contracts_ctx):
         raise AssertionError(
-            "context ordering invariant failed: expected partial > full-only > from-contracts "
+            "analysis-context ordering invariant failed: expected partial > full-only > from-contracts "
             f"but got partial={partial_ctx}, full-only={full_ctx}, from-contracts={from_contracts_ctx}"
         )
 
@@ -117,12 +131,12 @@ def main() -> None:
     json_path.write_text(json.dumps(metrics, indent=2) + "\n")
 
     lines = [
-        "| mode | resolvedContexts | analysisContexts | elapsedMs | tokens | kanConflicts | bcViolations |",
+        "| mode | analysisContexts | emittedResolverContexts | elapsedMs | tokens | kanConflicts | bcViolations |",
         "|---|---:|---:|---:|---:|---:|---:|",
     ]
     for r in results:
         lines.append(
-            f"| {r['mode']} | {r['resolvedContexts']} | {r['analysisContexts']} | {r['elapsedMs']} | {r['tokens']} | {r['kanConflicts']} | {r['bcViolations']} |"
+            f"| {r['mode']} | {r['analysisContexts']} | {r['emittedResolverContexts']} | {r['elapsedMs']} | {r['tokens']} | {r['kanConflicts']} | {r['bcViolations']} |"
         )
     md_path = metrics_dir / "context-metrics.md"
     lines.extend(
