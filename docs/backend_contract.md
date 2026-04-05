@@ -11,6 +11,10 @@ It applies to:
 
 The contract here is narrower than the full internal implementation. Alpha consumers should depend on this document, the referenced schema, and the covered regression tests rather than on incidental file ordering or extra human-readable output.
 
+For browser, package-toolchain, and runtime compatibility expectations above
+the artifact descriptor layer, see
+[`docs/backend_compatibility.md`](backend_compatibility.md).
+
 ## Canonical Backend IDs
 
 The canonical backend ids are:
@@ -76,7 +80,7 @@ Current built-ins:
   - primary output: `tokens.css`
   - additional outputs may include `tokens.vars.css`, `components.css`, and `tokens.d.ts`
   - browser support for these CSS artifacts is defined separately in
-    [`docs/web_css_compatibility.md`](web_css_compatibility.md)
+    [`docs/backend_compatibility.md`](backend_compatibility.md)
 - `swift-tokens`
   - primary output: `tokens.swift`
 - `android-compose-tokens`

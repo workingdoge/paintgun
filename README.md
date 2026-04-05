@@ -72,8 +72,8 @@ The artifact shape, packaging policy, and maintainer checklist are documented in
 The canonical new-user success path is documented in [`docs/first_success_ux.md`](docs/first_success_ux.md).
 The target-backend and system-package architecture is documented in [`docs/target_backends.md`](docs/target_backends.md).
 The alpha-stable backend artifact contract is documented in [`docs/backend_contract.md`](docs/backend_contract.md).
-The browser baseline and fallback expectations for `web-css-vars` are documented in
-[`docs/web_css_compatibility.md`](docs/web_css_compatibility.md).
+The per-backend compatibility matrix is documented in
+[`docs/backend_compatibility.md`](docs/backend_compatibility.md).
 The incremental build/cache foundation is documented in [`docs/incremental_builds.md`](docs/incremental_builds.md).
 The user-facing finding families and remediation model are documented in [`docs/witness_taxonomy.md`](docs/witness_taxonomy.md).
 The DTCG 2025.10 design/conformance review is documented in [`docs/dtcg_2025_10_review.md`](docs/dtcg_2025_10_review.md).
@@ -91,8 +91,8 @@ Outputs:
 - `dist/tokens.vars.css` — raw CSS custom-property token backend output for the CSS compatibility target
 - `dist/components.css` — component-contract stylesheet that references Paintgun CSS custom properties
 - `dist/tokens.d.ts` — component-contract TypeScript declarations for the CSS compatibility target
-  - `web-css-vars` is a modern-web target. See [`docs/web_css_compatibility.md`](docs/web_css_compatibility.md)
-    for the `@layer` browser floor, practical alpha baseline, and fallback expectations.
+  - See [`docs/backend_compatibility.md`](docs/backend_compatibility.md) for the
+    backend-level browser, toolchain, and runtime compatibility contract.
 - `dist/tokens.swift` — emitted Swift token map (when `--target swift-tokens`)
 - `dist/tokens.kt` — emitted Android Compose token map (when `--target android-compose-tokens` or the `kotlin` compatibility alias)
   - Native API markers are embedded as `PaintgunEmitterAPI.swiftVersion` (Swift) and `PAINTGUN_EMITTER_API_VERSION` (Android Compose).
