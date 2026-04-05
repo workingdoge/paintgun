@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "checks": [
+    {
+      "id": "css-at-layer-floor",
+      "kind": "mdn-browser-compat",
+      "url": "https://raw.githubusercontent.com/mdn/browser-compat-data/main/css/at-rules/layer.json",
+      "description": "CSS cascade layers (@layer)",
+      "featurePath": [
+        "css",
+        "at-rules",
+        "layer",
+        "__compat",
+        "support"
+      ],
+      "expected": {
+        "chrome": "99",
+        "edge": "99",
+        "firefox": "97",
+        "safari": "15.4"
+      }
+    },
+    {
+      "id": "css-oklch-floor",
+      "kind": "mdn-browser-compat",
+      "url": "https://raw.githubusercontent.com/mdn/browser-compat-data/main/css/types/color.json",
+      "description": "CSS oklch() color values",
+      "featurePath": [
+        "css",
+        "types",
+        "color",
+        "oklch",
+        "__compat",
+        "support"
+      ],
+      "expected": {
+        "chrome": "111",
+        "edge": "111",
+        "firefox": "113",
+        "safari": "15.4"
+      }
+    }
+  ]
+}

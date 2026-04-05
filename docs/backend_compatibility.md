@@ -67,6 +67,10 @@ Practical alpha guidance:
   - Firefox 113+
   - Safari 15.4+
 
+Those documented floors are CI-watched against trusted MDN
+browser-compat-data via `.github/workflows/web-compat-watch.yml` and
+`spec-watch/web-compat.json`.
+
 That practical floor is an inference from the emitted alpha CSS shape, not a
 guarantee that every future stylesheet will require the same versions.
 

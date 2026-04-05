@@ -16,7 +16,16 @@ USER_AGENT = "paintgun-spec-watch/1"
 DEFAULT_TIMEOUT = 20.0
 LOCK_VERSION = 1
 DISCOVERY_VERSION = 1
+WEB_COMPAT_VERSION = 1
 VERSION_RE = re.compile(r"^\d{4}\.\d{2}$")
+NUMERIC_VERSION_RE = re.compile(r"^\s*[^\d]*?(\d+(?:\.\d+)*)")
+
+MDN_BROWSER_MIRRORS = {
+    "chrome_android": "chrome",
+    "edge": "chrome",
+    "firefox_android": "firefox",
+    "safari_ios": "safari",
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -65,6 +74,27 @@ def parse_args() -> argparse.Namespace:
         help="Per-request timeout in seconds.",
     )
     discover.add_argument(
+        "--artifact-dir",
+        default=None,
+        help="Optional directory for reports and fetched payloads.",
+    )
+
+    compat = subparsers.add_parser(
+        "web-compat-check",
+        help="Check documented web compatibility floors against trusted external browser data.",
+    )
+    compat.add_argument(
+        "--compat",
+        default="spec-watch/web-compat.json",
+        help="Path to watched web compatibility definitions.",
+    )
+    compat.add_argument(
+        "--timeout",
+        type=float,
+        default=DEFAULT_TIMEOUT,
+        help="Per-request timeout in seconds.",
+    )
+    compat.add_argument(
         "--artifact-dir",
         default=None,
         help="Optional directory for reports and fetched payloads.",
@@ -177,6 +207,87 @@ def load_discovery(path: Path) -> dict:
     }
 
 
+def browser_version_key(version: str) -> tuple[int, ...]:
+    match = NUMERIC_VERSION_RE.match(str(version))
+    if match is None:
+        raise ValueError(f"unsupported browser version {version!r}")
+    return tuple(int(part) for part in match.group(1).split("."))
+
+
+def parse_expected_browser_version(value: object, field_name: str) -> str:
+    version = str(value or "").strip()
+    if not version:
+        raise SystemExit(f"{field_name} must be a non-empty browser version string")
+    try:
+        browser_version_key(version)
+    except ValueError as exc:
+        raise SystemExit(f"{field_name} must be a numeric browser version, got {value!r}") from exc
+    return version
+
+
+def load_web_compat(path: Path) -> dict:
+    payload = load_json(path)
+    if payload.get("version") != WEB_COMPAT_VERSION:
+        raise SystemExit(f"{path} has unsupported version {payload.get('version')!r}")
+
+    checks = payload.get("checks")
+    if not isinstance(checks, list) or not checks:
+        raise SystemExit(f"{path} must contain a non-empty checks list")
+
+    seen_ids: set[str] = set()
+    normalized: list[dict] = []
+    for raw in checks:
+        if not isinstance(raw, dict):
+            raise SystemExit(f"{path} contains a non-object check entry")
+
+        check_id = str(raw.get("id", "")).strip()
+        kind = str(raw.get("kind", "")).strip()
+        url = str(raw.get("url", "")).strip()
+        description = str(raw.get("description", "")).strip()
+        feature_path = raw.get("featurePath")
+        expected = raw.get("expected")
+
+        if not check_id or not kind or not url or not description:
+            raise SystemExit(f"{path} contains an incomplete check entry: {raw!r}")
+        if check_id in seen_ids:
+            raise SystemExit(f"{path} contains duplicate check id {check_id!r}")
+        seen_ids.add(check_id)
+
+        if kind != "mdn-browser-compat":
+            raise SystemExit(f"{path} contains unsupported check kind {kind!r}")
+
+        if not isinstance(feature_path, list) or not feature_path or not all(
+            isinstance(part, str) and part.strip() for part in feature_path
+        ):
+            raise SystemExit(f"{path} check {check_id!r} must define a non-empty featurePath list")
+
+        if not isinstance(expected, dict) or not expected:
+            raise SystemExit(f"{path} check {check_id!r} must define a non-empty expected map")
+
+        normalized_expected: dict[str, str] = {}
+        for browser, version in expected.items():
+            browser_id = str(browser).strip()
+            if not browser_id:
+                raise SystemExit(f"{path} check {check_id!r} contains an empty browser id")
+            normalized_expected[browser_id] = parse_expected_browser_version(
+                version,
+                f"{path} check {check_id!r} expected {browser_id}",
+            )
+
+        normalized.append(
+            {
+                "id": check_id,
+                "kind": kind,
+                "url": url,
+                "description": description,
+                "featurePath": [part.strip() for part in feature_path],
+                "expected": normalized_expected,
+            }
+        )
+
+    return {"checks": normalized}
+
+
 def fetch_target(target: dict, timeout: float) -> dict:
     request = urllib.request.Request(
         target["url"],
@@ -241,6 +352,91 @@ def discover_versions_for_source(kind: str, text: str) -> list[str]:
     if not versions:
         raise ValueError(f"no stable DTCG versions found for source kind {kind!r}")
     return versions
+
+
+def extract_feature_value(payload: object, feature_path: list[str]) -> object:
+    current = payload
+    traversed: list[str] = []
+    for segment in feature_path:
+        traversed.append(segment)
+        if not isinstance(current, dict) or segment not in current:
+            joined = ".".join(traversed)
+            raise ValueError(f"feature path missing segment {joined!r}")
+        current = current[segment]
+    return current
+
+
+def is_full_support_statement(statement: dict) -> bool:
+    return not any(
+        statement.get(field)
+        for field in ("partial_implementation", "flags", "alternative_name", "prefix")
+    )
+
+
+def select_support_version(statements: list[dict]) -> str | None:
+    full_versions: list[str] = []
+    fallback_versions: list[str] = []
+
+    for statement in statements:
+        if statement.get("version_removed"):
+            continue
+
+        version_added = statement.get("version_added")
+        if version_added in (None, False):
+            continue
+
+        version = str(version_added).strip()
+        try:
+            browser_version_key(version)
+        except ValueError:
+            continue
+
+        if is_full_support_statement(statement):
+            full_versions.append(version)
+        else:
+            fallback_versions.append(version)
+
+    versions = full_versions or fallback_versions
+    if not versions:
+        return None
+    return min(versions, key=browser_version_key)
+
+
+def resolve_support_version(
+    support_map: dict,
+    browser: str,
+    seen: set[str] | None = None,
+) -> str | None:
+    if seen is None:
+        seen = set()
+    if browser in seen:
+        raise ValueError(f"cyclic mirror resolution for browser {browser!r}")
+    seen = seen | {browser}
+
+    if browser not in support_map:
+        raise ValueError(f"support map is missing browser {browser!r}")
+
+    entry = support_map[browser]
+    if entry == "mirror":
+        source_browser = MDN_BROWSER_MIRRORS.get(browser)
+        if source_browser is None:
+            raise ValueError(f"unsupported mirror browser {browser!r}")
+        return resolve_support_version(support_map, source_browser, seen)
+    if entry is False or entry is None:
+        return None
+    if isinstance(entry, str):
+        version = entry.strip()
+        try:
+            browser_version_key(version)
+        except ValueError as exc:
+            raise ValueError(f"unsupported support version {version!r} for {browser!r}") from exc
+        return version
+    if isinstance(entry, dict):
+        return select_support_version([entry])
+    if isinstance(entry, list):
+        statements = [statement for statement in entry if isinstance(statement, dict)]
+        return select_support_version(statements)
+    raise ValueError(f"unsupported support entry for {browser!r}: {entry!r}")
 
 
 def to_lock_entry(observed: dict) -> dict:
@@ -331,6 +527,36 @@ def build_discovery_summary(report: dict) -> str:
             "2. If a newer stable version appears, open or update a `bd` review/adoption issue in the canonical repo root.",
             "3. Review the new release against Paint's current support boundary before changing runtime behavior.",
             "4. If Paint adopts the new stable version, update `spec-watch/discovery.json` and any linked docs in the same change.",
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def build_web_compat_summary(report: dict) -> str:
+    lines = [
+        "# Web Compatibility Watch",
+        "",
+        f"- Checked: {report['checked']}",
+        f"- Mismatches: {report['mismatchCount']}",
+        f"- Errors: {report['errorCount']}",
+        "",
+        "| Check | Result | Notes |",
+        "| --- | --- | --- |",
+    ]
+
+    for row in report["results"]:
+        note = row["note"].replace("\n", "<br>")
+        lines.append(f"| `{row['id']}` | {row['result']} | {note} |")
+
+    lines.extend(
+        [
+            "",
+            "Triage:",
+            "1. Inspect `report.json` and any uploaded payload copies to confirm which documented baseline drifted.",
+            "2. Decide whether Paint's documented web compatibility floor or the emitted web CSS contract changed.",
+            "3. Open or update a `bd` follow-up issue in the canonical repo root for any accepted contract change.",
+            "4. If the documented floor is intentionally changing, update `docs/backend_compatibility.md`, `spec-watch/web-compat.json`, and any linked release docs in the same change.",
             "",
         ]
     )
@@ -585,6 +811,124 @@ def command_discover_check(args: argparse.Namespace) -> int:
     return 0 if report["ok"] else 1
 
 
+def command_web_compat_check(args: argparse.Namespace) -> int:
+    compat = load_web_compat(Path(args.compat))
+    checks = compat["checks"]
+    artifact_dir = Path(args.artifact_dir) if args.artifact_dir else None
+    if artifact_dir is not None:
+        artifact_dir.mkdir(parents=True, exist_ok=True)
+
+    results: list[dict] = []
+    mismatches: list[dict] = []
+    errors: list[dict] = []
+
+    for check in checks:
+        observed = fetch_target(check, args.timeout)
+        if "error" in observed:
+            errors.append({"id": check["id"], "url": check["url"], "error": observed["error"]})
+            results.append({"id": check["id"], "result": "error", "note": observed["error"]})
+            continue
+
+        if artifact_dir is not None:
+            write_payload(artifact_dir, observed)
+
+        try:
+            payload = json.loads(observed["body"].decode("utf-8"))
+            support = extract_feature_value(payload, check["featurePath"])
+            if not isinstance(support, dict):
+                raise ValueError("feature path did not resolve to a browser support map")
+        except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
+            errors.append({"id": check["id"], "url": check["url"], "error": str(exc)})
+            results.append({"id": check["id"], "result": "error", "note": str(exc)})
+            continue
+
+        check_mismatches: list[dict] = []
+        observed_support: dict[str, str | None] = {}
+        for browser, expected_version in check["expected"].items():
+            try:
+                observed_version = resolve_support_version(support, browser)
+            except ValueError as exc:
+                errors.append({"id": check["id"], "url": check["url"], "error": str(exc)})
+                results.append({"id": check["id"], "result": "error", "note": str(exc)})
+                check_mismatches = []
+                observed_support = {}
+                break
+
+            observed_support[browser] = observed_version
+            if observed_version is None:
+                check_mismatches.append(
+                    {
+                        "browser": browser,
+                        "expectedVersion": expected_version,
+                        "observedVersion": None,
+                    }
+                )
+                continue
+
+            if browser_version_key(observed_version) != browser_version_key(expected_version):
+                check_mismatches.append(
+                    {
+                        "browser": browser,
+                        "expectedVersion": expected_version,
+                        "observedVersion": observed_version,
+                    }
+                )
+
+        if not observed_support and any(row["id"] == check["id"] and row["result"] == "error" for row in results):
+            continue
+
+        if check_mismatches:
+            mismatches.append(
+                {
+                    "id": check["id"],
+                    "description": check["description"],
+                    "url": check["url"],
+                    "featurePath": check["featurePath"],
+                    "expected": check["expected"],
+                    "observed": observed_support,
+                    "browsers": check_mismatches,
+                }
+            )
+            mismatch_notes = []
+            for mismatch in check_mismatches:
+                observed_version = mismatch["observedVersion"] or "unsupported"
+                mismatch_notes.append(
+                    f"{mismatch['browser']} expected {mismatch['expectedVersion']} observed {observed_version}"
+                )
+            results.append(
+                {
+                    "id": check["id"],
+                    "result": "drift",
+                    "note": "; ".join(mismatch_notes),
+                }
+            )
+        else:
+            notes = ", ".join(
+                f"{browser} {observed_support[browser]}"
+                for browser in sorted(observed_support)
+            )
+            results.append({"id": check["id"], "result": "ok", "note": f"matched: {notes}"})
+
+    report = {
+        "version": WEB_COMPAT_VERSION,
+        "ok": not mismatches and not errors,
+        "checked": len(checks),
+        "mismatchCount": len(mismatches),
+        "errorCount": len(errors),
+        "results": sorted(results, key=lambda item: item["id"]),
+        "mismatches": mismatches,
+        "errors": errors,
+    }
+    summary = build_web_compat_summary(report)
+
+    if artifact_dir is not None:
+        write_json(artifact_dir / "report.json", report)
+        (artifact_dir / "summary.md").write_text(summary, encoding="utf-8")
+
+    print(summary)
+    return 0 if report["ok"] else 1
+
+
 def main() -> int:
     args = parse_args()
     if args.command == "refresh":
@@ -593,6 +937,8 @@ def main() -> int:
         return command_check(args)
     if args.command == "discover-check":
         return command_discover_check(args)
+    if args.command == "web-compat-check":
+        return command_web_compat_check(args)
     raise AssertionError(f"unsupported command {args.command!r}")
 
 

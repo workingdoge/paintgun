@@ -80,6 +80,7 @@ The alpha is a `go` only if every required gate below is satisfied.
 | CI contract is frozen for alpha | [`docs/ci_contract.md`](ci_contract.md) and its referenced tests | exit-code and JSON/report behavior match the documented contract |
 | Core verification passes | `cargo test --workspace` | must pass on the candidate release commit |
 | Upstream spec-watch is clean | `python3 scripts/spec_watch.py check --targets spec-watch/targets.json --lock spec-watch/lock.json --artifact-dir spec-watch-artifacts` | must pass without drift unless the lock refresh is part of the release |
+| Documented web compatibility watch is clean | `python3 scripts/spec_watch.py web-compat-check --compat spec-watch/web-compat.json --artifact-dir web-compat-watch-artifacts` | must pass without documented-floor drift unless the compatibility contract change is part of the release |
 | Public install path works | `./scripts/test_public_install.sh` | must install a usable `paint` binary from a packaged tarball without repo bootstrap |
 | Contributor source install still works | `cargo install --locked --path . --root "$(mktemp -d)"` | must still produce a usable `paint` binary for maintainers working from source |
 | Tarball packaging works | `./scripts/package_release.sh --out-dir "$(mktemp -d)"` | must produce a versioned tarball and `.sha256` sidecar |

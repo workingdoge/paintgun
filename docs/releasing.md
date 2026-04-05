@@ -82,6 +82,7 @@ For the first public release, detached manifest signing is supported but not req
    ```bash
    cargo test --workspace
    python3 scripts/spec_watch.py check --targets spec-watch/targets.json --lock spec-watch/lock.json --artifact-dir spec-watch-artifacts
+   python3 scripts/spec_watch.py web-compat-check --compat spec-watch/web-compat.json --artifact-dir web-compat-watch-artifacts
    cargo install --locked --path . --root "$(mktemp -d)"
    ```
 
@@ -105,5 +106,6 @@ For the first public release, detached manifest signing is supported but not req
 
 - The CI baseline for this repo is documented in `.github/workflows/ci.yml`.
 - Upstream Design Tokens drift is checked by `.github/workflows/spec-watch.yml`; keep the lockfile current before shipping.
+- Documented `web-css-vars` browser floors are checked by `.github/workflows/web-compat-watch.yml`; update the compatibility docs and watch config together if the supported web baseline changes.
 - The release artifact path in this document is intentionally mechanical and repo-local so maintainers do not need hidden packaging infrastructure to cut the first public release.
 - The public install path should stay tarball-first until a later issue deliberately adds a package-manager distribution surface.

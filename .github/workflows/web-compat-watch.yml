@@ -1,0 +1,38 @@
+name: Web Compatibility Watch
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "11 10 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  web-compat-watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check documented web compatibility baselines
+        run: |
+          python3 scripts/spec_watch.py web-compat-check \
+            --compat spec-watch/web-compat.json \
+            --artifact-dir web-compat-watch-artifacts
+
+      - name: Publish web compatibility summary
+        if: always()
+        run: |
+          if [ -f web-compat-watch-artifacts/summary.md ]; then
+            cat web-compat-watch-artifacts/summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload web compatibility artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-compat-watch-report
+          path: web-compat-watch-artifacts/
+          if-no-files-found: ignore

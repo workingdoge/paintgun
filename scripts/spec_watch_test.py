@@ -4,6 +4,7 @@ from __future__ import annotations
 import contextlib
 import importlib.util
 import io
+import json
 from pathlib import Path
 import tempfile
 import types
@@ -118,6 +119,177 @@ class DiscoveryCheckTest(unittest.TestCase):
             report = spec_watch.load_json(artifact_dir / "report.json")
             self.assertEqual(report["observedLatestStableVersion"], "2026.02")
             self.assertEqual(report["newVersionCount"], 2)
+
+
+class ResolveSupportVersionTest(unittest.TestCase):
+    def test_resolves_mirror_browser_support(self) -> None:
+        support = {
+            "chrome": {"version_added": "99"},
+            "edge": "mirror",
+        }
+
+        self.assertEqual(spec_watch.resolve_support_version(support, "edge"), "99")
+
+    def test_prefers_full_support_over_partial_entries(self) -> None:
+        support = {
+            "safari": [
+                {
+                    "version_added": "10.1",
+                    "version_removed": "15",
+                    "partial_implementation": True,
+                },
+                {
+                    "version_added": "15",
+                },
+            ]
+        }
+
+        self.assertEqual(spec_watch.resolve_support_version(support, "safari"), "15")
+
+
+class WebCompatCheckTest(unittest.TestCase):
+    def test_detects_documented_floor_mismatch(self) -> None:
+        config = {
+            "version": 1,
+            "checks": [
+                {
+                    "id": "css-at-layer-floor",
+                    "kind": "mdn-browser-compat",
+                    "url": "https://example.invalid/layer.json",
+                    "description": "CSS cascade layers",
+                    "featurePath": ["css", "at-rules", "layer", "__compat", "support"],
+                    "expected": {
+                        "chrome": "99",
+                        "edge": "99",
+                        "firefox": "98",
+                        "safari": "15.4",
+                    },
+                }
+            ],
+        }
+        response = {
+            "id": "css-at-layer-floor",
+            "kind": "mdn-browser-compat",
+            "url": "https://example.invalid/layer.json",
+            "status": 200,
+            "resolvedUrl": "https://example.invalid/layer.json",
+            "contentType": "application/json",
+            "size": 0,
+            "sha256": "abc",
+            "body": json_bytes(
+                {
+                    "css": {
+                        "at-rules": {
+                            "layer": {
+                                "__compat": {
+                                    "support": {
+                                        "chrome": {"version_added": "99"},
+                                        "edge": "mirror",
+                                        "firefox": {"version_added": "97"},
+                                        "safari": {"version_added": "15.4"},
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ),
+        }
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            config_path = temp_path / "web-compat.json"
+            artifact_dir = temp_path / "artifacts"
+            spec_watch.write_json(config_path, config)
+            args = types.SimpleNamespace(
+                compat=str(config_path),
+                timeout=1.0,
+                artifact_dir=str(artifact_dir),
+            )
+
+            with mock.patch.object(spec_watch, "fetch_target", return_value=response):
+                with contextlib.redirect_stdout(io.StringIO()):
+                    rc = spec_watch.command_web_compat_check(args)
+
+            self.assertEqual(rc, 1)
+            report = spec_watch.load_json(artifact_dir / "report.json")
+            self.assertEqual(report["mismatchCount"], 1)
+            self.assertEqual(report["results"][0]["result"], "drift")
+            self.assertEqual(report["mismatches"][0]["browsers"][0]["browser"], "firefox")
+
+    def test_passes_when_documented_floors_match(self) -> None:
+        config = {
+            "version": 1,
+            "checks": [
+                {
+                    "id": "css-oklch-floor",
+                    "kind": "mdn-browser-compat",
+                    "url": "https://example.invalid/color.json",
+                    "description": "CSS oklch() colors",
+                    "featurePath": ["css", "types", "color", "oklch", "__compat", "support"],
+                    "expected": {
+                        "chrome": "111",
+                        "edge": "111",
+                        "firefox": "113",
+                        "safari": "15.4",
+                    },
+                }
+            ],
+        }
+        response = {
+            "id": "css-oklch-floor",
+            "kind": "mdn-browser-compat",
+            "url": "https://example.invalid/color.json",
+            "status": 200,
+            "resolvedUrl": "https://example.invalid/color.json",
+            "contentType": "application/json",
+            "size": 0,
+            "sha256": "def",
+            "body": json_bytes(
+                {
+                    "css": {
+                        "types": {
+                            "color": {
+                                "oklch": {
+                                    "__compat": {
+                                        "support": {
+                                            "chrome": {"version_added": "111"},
+                                            "edge": "mirror",
+                                            "firefox": {"version_added": "113"},
+                                            "safari": {"version_added": "15.4"},
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ),
+        }
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            config_path = temp_path / "web-compat.json"
+            artifact_dir = temp_path / "artifacts"
+            spec_watch.write_json(config_path, config)
+            args = types.SimpleNamespace(
+                compat=str(config_path),
+                timeout=1.0,
+                artifact_dir=str(artifact_dir),
+            )
+
+            with mock.patch.object(spec_watch, "fetch_target", return_value=response):
+                with contextlib.redirect_stdout(io.StringIO()):
+                    rc = spec_watch.command_web_compat_check(args)
+
+            self.assertEqual(rc, 0)
+            report = spec_watch.load_json(artifact_dir / "report.json")
+            self.assertTrue(report["ok"])
+            self.assertEqual(report["mismatchCount"], 0)
+
+
+def json_bytes(payload: object) -> bytes:
+    return json.dumps(payload).encode("utf-8")
 
 
 if __name__ == "__main__":

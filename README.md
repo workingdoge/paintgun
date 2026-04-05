@@ -421,9 +421,10 @@ Compose bundles are trust-root relative rather than absolute: `compose.manifest.
 
 ## Spec watch
 
-The repo ships two upstream spec checks:
+The repo ships three narrow upstream/external drift checks:
 - `.github/workflows/spec-watch.yml` watches the canonical Design Tokens 2025.10 TR + schema endpoints listed in `spec-watch/targets.json` and compares them against the pinned digests in `spec-watch/lock.json`.
 - `.github/workflows/spec-release-discovery.yml` watches trusted upstream index pages in `spec-watch/discovery.json` and fails when they report a newer stable DTCG release than Paint currently targets.
+- `.github/workflows/web-compat-watch.yml` watches the documented `web-css-vars` browser floor in `spec-watch/web-compat.json` against trusted MDN browser-compat-data.
 
 Run the pinned digest watch locally with:
 
@@ -450,7 +451,16 @@ python3 scripts/spec_watch.py discover-check \
   --artifact-dir spec-release-discovery-artifacts
 ```
 
-Triage details live in `docs/spec_watch.md` and `docs/spec_release_watch.md`.
+Run the web compatibility watch locally with:
+
+```bash
+python3 scripts/spec_watch.py web-compat-check \
+  --compat spec-watch/web-compat.json \
+  --artifact-dir web-compat-watch-artifacts
+```
+
+Triage details live in `docs/spec_watch.md`, `docs/spec_release_watch.md`, and
+`docs/web_compat_watch.md`.
 Context-scaling metrics fixture:
 
 ```bash
