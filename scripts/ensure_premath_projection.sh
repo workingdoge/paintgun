@@ -24,12 +24,12 @@ if [ -e "$target_path" ]; then
   rm -rf "$target_path"
 fi
 
-if "$repo_root/scripts/link_premath_checkout.sh"; then
+if bash "$repo_root/scripts/link_premath_checkout.sh"; then
   exit 0
 fi
 
 if [ "$allow_snapshot" = "1" ]; then
-  "$repo_root/scripts/materialize_premath_snapshot.sh"
+  bash "$repo_root/scripts/materialize_premath_snapshot.sh"
   exit 0
 fi
 
