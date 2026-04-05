@@ -62,6 +62,14 @@ fn swift_package_scaffold_is_emitted() {
         "swift module should include PaintgunTokens struct"
     );
     assert!(
+        module_content.contains("public struct PaintgunColor: Equatable"),
+        "swift module should keep PaintgunColor as a Paintgun-owned value type"
+    );
+    assert!(
+        !module_content.contains("public typealias PaintgunColor = Color"),
+        "swift module should not alias PaintgunColor directly to SwiftUI.Color"
+    );
+    assert!(
         module_content.contains("public enum PaintgunEmitterAPI"),
         "swift module should include native API version marker"
     );
@@ -98,6 +106,10 @@ fn android_compose_module_scaffold_is_emitted() {
     assert!(
         build_content.contains("kotlin(\"jvm\")"),
         "android module should declare jvm plugin"
+    );
+    assert!(
+        build_content.contains("testRuntimeOnly(\"org.junit.platform:junit-platform-launcher\")"),
+        "android module should include the JUnit Platform launcher on the test runtime path"
     );
     let source_content = fs::read_to_string(source).expect("read kotlin source");
     assert!(

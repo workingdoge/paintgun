@@ -528,14 +528,10 @@ where
         "// Native API version: {}\n",
         SWIFT_EMITTER_API_VERSION
     ));
+    out.push_str("import Foundation\n");
     out.push_str("#if canImport(SwiftUI)\n");
     out.push_str("import SwiftUI\n");
-    out.push_str("public typealias PaintgunColor = Color\n");
-    out.push_str("@inline(__always) private func paintgunColor(red: Double, green: Double, blue: Double, opacity: Double) -> PaintgunColor {\n");
-    out.push_str("  Color(.sRGB, red: red, green: green, blue: blue, opacity: opacity)\n");
-    out.push_str("}\n");
-    out.push_str("#else\n");
-    out.push_str("import Foundation\n");
+    out.push_str("#endif\n");
     out.push_str("public struct PaintgunColor: Equatable {\n");
     out.push_str("  public let red: Double\n");
     out.push_str("  public let green: Double\n");
@@ -550,6 +546,13 @@ where
     out.push_str("}\n");
     out.push_str("@inline(__always) private func paintgunColor(red: Double, green: Double, blue: Double, opacity: Double) -> PaintgunColor {\n");
     out.push_str("  PaintgunColor(red: red, green: green, blue: blue, opacity: opacity)\n");
+    out.push_str("}\n");
+    out.push_str("#if canImport(SwiftUI)\n");
+    out.push_str("public extension PaintgunColor {\n");
+    out.push_str("  @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)\n");
+    out.push_str("  var swiftUIColor: SwiftUI.Color {\n");
+    out.push_str("    Color(.sRGB, red: red, green: green, blue: blue, opacity: opacity)\n");
+    out.push_str("  }\n");
     out.push_str("}\n");
     out.push_str("#endif\n\n");
     out.push_str("public enum PaintgunEmitterAPI {\n");
@@ -822,6 +825,7 @@ fn kotlin_build_gradle() -> String {
     out.push_str("}\n\n");
     out.push_str("dependencies {\n");
     out.push_str("  testImplementation(kotlin(\"test\"))\n");
+    out.push_str("  testRuntimeOnly(\"org.junit.platform:junit-platform-launcher\")\n");
     out.push_str("}\n\n");
     out.push_str("tasks.test {\n");
     out.push_str("  useJUnitPlatform()\n");
