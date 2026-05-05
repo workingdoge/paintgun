@@ -47,6 +47,21 @@ paint build \
   --format text
 ```
 
+## Spec publication packs
+
+Paintgun can package site-owned specs into a self-contained publication pack
+against the Atlas `atlas.spec-publication.v1` manifest contract. The packer
+copies the manifest and declared source documents, emits `spec.index.json`, and
+binds all pack artifacts in `spec.pack.json`.
+
+```bash
+paint spec-pack path/to/atlas-spec-publication.json --out dist-spec
+paint verify-spec-pack dist-spec/spec.pack.json
+```
+
+This surface is publication glue only. It does not make Paintgun the semantic
+owner of the site specs it packages.
+
 Other targets:
 
 ```bash

@@ -43,6 +43,7 @@ use paintgun::resolver::{
     read_json_file, supporting_inputs_for_selection, Input, ResolverDoc, ResolverError,
 };
 use paintgun::signing::sign_manifest_file;
+use paintgun::specpub::{build_spec_pack, verify_spec_pack};
 use paintgun::verify::{verify_ctc_with_options, CtcVerifyOptions, VerifyProfile};
 
 #[derive(Debug)]
@@ -183,6 +184,26 @@ impl From<CliAllowlistMatcher> for AllowlistMatcherMode {
 
 #[derive(Subcommand, Debug)]
 enum Command {
+    /// Package site-owned specs into a Paintgun spec publication pack.
+    SpecPack {
+        /// Path to an atlas.spec-publication.v1 manifest.
+        manifest: PathBuf,
+
+        /// Output directory for spec.index.json, spec.pack.json, and copied sources.
+        #[arg(short, long, default_value = "dist-spec")]
+        out: PathBuf,
+    },
+
+    /// Verify a Paintgun spec publication pack.
+    VerifySpecPack {
+        /// Path to spec.pack.json.
+        manifest: PathBuf,
+
+        /// Output format.
+        #[arg(long, value_enum, default_value_t = CliFormat::Text)]
+        format: CliFormat,
+    },
+
     /// Build a single token pack: resolve, emit, and produce the per-pack CTC.
     Build {
         /// Path to *.resolver.json
@@ -1690,6 +1711,45 @@ fn main() {
 
 fn run(cli: Cli) -> CliResult<()> {
     match cli.cmd {
+        Command::SpecPack { manifest, out } => {
+            let summary = build_spec_pack(&manifest, &out, env!("CARGO_PKG_VERSION"))
+                .map_err(CliError::new)?;
+            println!(
+                "✓ Spec pack written: {} (index: {}, documents={})",
+                summary.pack_manifest, summary.index, summary.documents
+            );
+            return Ok(());
+        }
+
+        Command::VerifySpecPack { manifest, format } => {
+            let report = verify_spec_pack(&manifest);
+            if matches!(format, CliFormat::Json) {
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&report)
+                        .expect("serialize spec-pack verify report")
+                );
+                if !report.ok {
+                    std::process::exit(1);
+                }
+                return Ok(());
+            }
+
+            if !report.ok {
+                eprintln!("✗ Spec pack verification failed:");
+                for error in &report.errors {
+                    eprintln!("  - {error}");
+                }
+                std::process::exit(1);
+            }
+            println!(
+                "✓ Spec pack verified: {} (documents={})",
+                manifest.display(),
+                report.checked_documents
+            );
+            return Ok(());
+        }
+
         Command::Verify {
             manifest,
             format,
