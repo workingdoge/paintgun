@@ -52,7 +52,9 @@ paint build \
 Paintgun can package site-owned specs into a self-contained publication pack
 against the Atlas `atlas.spec-publication.v1` manifest contract. The packer
 copies the manifest and declared source documents, emits `spec.index.json`, and
-binds all pack artifacts in `spec.pack.json`.
+binds all pack artifacts in `spec.pack.json`. The supported manifest shape is
+the Atlas-owned schema mirrored at
+`schemas/atlas/atlas-spec-publication.v1.schema.json`.
 
 ```bash
 paint spec-pack path/to/atlas-spec-publication.json --out dist-spec

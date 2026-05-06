@@ -11,6 +11,8 @@ use crate::util::sha256_hex;
 pub const SPEC_PUBLICATION_SCHEMA: &str = "atlas.spec-publication.v1";
 pub const SPEC_PACK_SCHEMA: &str = "paintgun.spec-pack.v1";
 pub const SPEC_INDEX_SCHEMA: &str = "paintgun.spec-index.v1";
+pub const ATLAS_SPEC_PUBLICATION_SCHEMA_JSON: &str =
+    include_str!("../schemas/atlas/atlas-spec-publication.v1.schema.json");
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
