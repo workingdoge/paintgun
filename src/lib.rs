@@ -33,6 +33,7 @@ pub mod resolver;
 pub(crate) mod resolver_io;
 pub(crate) mod resolver_runtime;
 pub mod signing;
+pub mod specpub;
 pub mod util;
 pub mod verify;
 pub(crate) mod web_css;
